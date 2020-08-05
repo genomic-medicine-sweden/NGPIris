@@ -25,12 +25,12 @@ class ProgressPercentage(object):
     def __init__(self, source):
         self._source = source
 
-        if isinstance(self.source, str):  # Local file
-            self._size = os.path.getsize(source)
-        elif hasattr(self.source, 'size'):  # Object summary
-            self._size = source.size
-        elif hasattr(self.source, 'content_length'):  # Object
-            self._size = source.content_length
+        if isinstance(self._source, str):  # Local file
+            self._size = os.path.getsize(self._source)
+        elif hasattr(self._source, 'size'):  # Object summary
+            self._size = self._source.size
+        elif hasattr(self._source, 'content_length'):  # Object
+            self._size = self._source.content_length
         else:
             raise UnknownSourceTypeError(f'Unknown source format {self.source}')
 
@@ -46,7 +46,7 @@ class ProgressPercentage(object):
         curr_time = time.time()
         if curr_time - self._interval > self._previous_time:
             speed = (self._seen_so_far - self._previous_bytesize) / (curr_time - self._previous_time)
-            self._speed = round(speed / (1000 ** 2), 2)
+            self._speed = round(speed / (1024 ** 2), 2)
             self._previous_time = curr_time
             self._previous_bytesize = self._seen_so_far
 
