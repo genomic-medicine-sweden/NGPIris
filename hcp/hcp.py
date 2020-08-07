@@ -19,6 +19,8 @@ from boto3.s3.transfer import TransferConfig
 
 from .errors import UnattachedBucketError, LocalFileExistsError, UnknownSourceTypeError
 
+from pathlib import Path
+import hashlib
 
 class ProgressPercentage(object):
     """Progressbar for both upload and download of files."""
@@ -119,6 +121,7 @@ class HCPManager:
             delattr(self, 'objects')  # Incase of jumping from one bucket to another
         return self.bucket
 
+
     @bucketcheck
     def get_object(self, key):
         """Return object with exact matching key."""
@@ -155,12 +158,20 @@ class HCPManager:
     @bucketcheck
     def upload_file(self, local_path, remote_key, metadata={}):
         """Upload local file to remote as key with associated metadata."""
+        md5orsha256_local = calc_etag(local_path)
         self.bucket.upload_file(local_path,
                                 remote_key,
                                 ExtraArgs={'Metadata': metadata},
                                 Config=self.transfer_config,
                                 Callback=ProgressPercentage(local_path))
         print('')  # Post progressbar correction for stdout
+
+        remote_tag = self.get_object(remote_key).e_tag
+        print(remote_tag)
+        if md5orsha256_local != remote_tag:
+            raise Exception('Local file does not match remote file')
+        else:
+            print("File matches")
 
     @bucketcheck
     def download_file(self, obj, local_path, force=False):
@@ -192,3 +203,51 @@ class HCPManager:
             return obj.get()['Body'].read().decode('utf-8')
         else:
             return ''
+
+
+def calc_etag(local_path):
+    threshold=10 ** 7
+    file_size = Path(local_path).stat().st_size
+    if file_size > threshold:
+        chunk_size = 10 * 1000 ** 2    
+        print("SHA-256")
+        sha256s = []
+        with open(local_path, 'rb') as fp:
+            while True:
+                data = fp.read(chunk_size)
+                if not data:
+                    break
+                sha256s.append(hashlib.sha256(data))
+
+        if len(sha256s) < 1:
+            return [f'no MPU: {hashlib.sha256().hexdigest()}']
+        if len(sha256s) == 1:
+            return [f'no MPU: {sha256s[0].hexdigest()}']
+
+        ret = "" 
+        retstr = ''
+        part = 1
+        for x in sha256s:
+            #ret.append(f'part {part:>6}: {x.hexdigest()}')
+            retstr += x.hexdigest()
+            part += 1
+        bindigests = b''.join(m.digest() for m in sha256s)
+
+        bindigests_md5 = hashlib.sha256(bindigests)
+        strdigests_md5 = hashlib.sha256(retstr.encode())
+        ret += (f'"{bindigests_md5.hexdigest()}-{len(sha256s)}"')
+        #ret.append(f'finally str: {strdigests_md5.hexdigest()}-{len(sha256s)}')
+        print(ret)
+
+    else:
+        chunk_size = 8 * 1024**2
+        print("md5sum")
+
+        with open(local_path, 'rb') as fp:
+            data = fp.read()
+            ret = f'"{hashlib.md5(data).hexdigest()}"'
+            print(ret)
+
+    return ret
+
+
