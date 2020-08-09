@@ -16,11 +16,16 @@ from functools import wraps
 from botocore.utils import fix_s3_host
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
+from configparser import ConfigParser
 
-from .errors import UnattachedBucketError, LocalFileExistsError, UnknownSourceTypeError
+from .helpers import calculate_etag
+from .errors import (UnattachedBucketError, LocalFileExistsError,
+                     UnknownSourceTypeError, MismatchChecksumError)
 
-from pathlib import Path
-import hashlib
+
+config = ConfigParser()
+config.read('config.ini')
+
 
 class ProgressPercentage(object):
     """Progressbar for both upload and download of files."""
@@ -63,7 +68,7 @@ class ProgressPercentage(object):
                                                                     self._seen_so_far,
                                                                     self._size,
                                                                     f'{speed}MB/s',
-                                                                    percentage))  # Extra whitespaces for flushing
+                                                                    percentage))
             sys.stdout.flush()
 
 
@@ -95,18 +100,18 @@ class HCPManager:
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key)
 
-        config = Config(s3={'addressing_style': 'path',
-                            'payload_signing_enabled': True},
-                        signature_version='s3v4')
+        s3_config = Config(s3={'addressing_style': 'path',
+                               'payload_signing_enabled': True},
+                           signature_version='s3v4')
 
         self.s3 = session.resource('s3',
                                    endpoint_url=self.endpoint,
                                    verify=False,  # Checks for SLL certificate. Disables because of already "secure" solution.
-                                   config=config)
+                                   config=s3_config)
 
-        self.transfer_config = TransferConfig(multipart_threshold=10 ** 7,  # Threshold size of file to use multipart
-                                              max_concurrency=15,  # Number of chunks to work with
-                                              multipart_chunksize=10 ** 7)  # Size of chunks, 10MB, min 5MB, max 5GB
+        self.transfer_config = TransferConfig(multipart_threshold=int(config.get('hcp', 'size_threshold')),
+                                              max_concurrency=int(config.get('hcp', 'max_concurrency')),
+                                              multipart_chunksize=int(config.get('hcp', 'chunk_size')))
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
 
@@ -118,9 +123,7 @@ class HCPManager:
         """Attempt to attach to the given bucket."""
         self.bucket = self.s3.Bucket(bucket)
         if hasattr(self, 'objects'):
-            delattr(self, 'objects')  # Incase of jumping from one bucket to another
-        return self.bucket
-
+            delattr(self, 'objects')  # Incase of already attached bucket
 
     @bucketcheck
     def get_object(self, key):
@@ -158,7 +161,6 @@ class HCPManager:
     @bucketcheck
     def upload_file(self, local_path, remote_key, metadata={}):
         """Upload local file to remote as key with associated metadata."""
-        md5orsha256_local = calc_etag(local_path)
         self.bucket.upload_file(local_path,
                                 remote_key,
                                 ExtraArgs={'Metadata': metadata},
@@ -166,12 +168,12 @@ class HCPManager:
                                 Callback=ProgressPercentage(local_path))
         print('')  # Post progressbar correction for stdout
 
-        remote_tag = self.get_object(remote_key).e_tag
-        print(remote_tag)
-        if md5orsha256_local != remote_tag:
-            raise Exception('Local file does not match remote file')
-        else:
-            print("File matches")
+        calculated_etag = calculate_etag(local_path)
+        remote_obj = self.get_object(remote_key)
+
+        if calculated_etag != remote_obj.e_tag:
+            self.delete_object(remote_obj)
+            raise MismatchChecksumError('Local and remote file checksums differ. Removing remote file.')
 
     @bucketcheck
     def download_file(self, obj, local_path, force=False):
@@ -191,6 +193,12 @@ class HCPManager:
                                   Callback=ProgressPercentage(obj))
         print('')  # Post progressbar correction for stdout
 
+        calculated_etag = calculate_etag(local_path)
+        remote_etag = obj.e_tag
+        if calculated_etag != remote_etag:
+            os.remove(local_path)
+            raise MismatchChecksumError('Local and remote file checksums differ. Removing local file.')
+
     @bucketcheck
     def delete_object(self, obj):
         """Delete the provided object."""
@@ -203,51 +211,3 @@ class HCPManager:
             return obj.get()['Body'].read().decode('utf-8')
         else:
             return ''
-
-
-def calc_etag(local_path):
-    threshold=10 ** 7
-    file_size = Path(local_path).stat().st_size
-    if file_size > threshold:
-        chunk_size = 10 * 1000 ** 2    
-        print("SHA-256")
-        sha256s = []
-        with open(local_path, 'rb') as fp:
-            while True:
-                data = fp.read(chunk_size)
-                if not data:
-                    break
-                sha256s.append(hashlib.sha256(data))
-
-        if len(sha256s) < 1:
-            return [f'no MPU: {hashlib.sha256().hexdigest()}']
-        if len(sha256s) == 1:
-            return [f'no MPU: {sha256s[0].hexdigest()}']
-
-        ret = "" 
-        retstr = ''
-        part = 1
-        for x in sha256s:
-            #ret.append(f'part {part:>6}: {x.hexdigest()}')
-            retstr += x.hexdigest()
-            part += 1
-        bindigests = b''.join(m.digest() for m in sha256s)
-
-        bindigests_md5 = hashlib.sha256(bindigests)
-        strdigests_md5 = hashlib.sha256(retstr.encode())
-        ret += (f'"{bindigests_md5.hexdigest()}-{len(sha256s)}"')
-        #ret.append(f'finally str: {strdigests_md5.hexdigest()}-{len(sha256s)}')
-        print(ret)
-
-    else:
-        chunk_size = 8 * 1024**2
-        print("md5sum")
-
-        with open(local_path, 'rb') as fp:
-            data = fp.read()
-            ret = f'"{hashlib.md5(data).hexdigest()}"'
-            print(ret)
-
-    return ret
-
-
