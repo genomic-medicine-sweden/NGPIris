@@ -16,8 +16,15 @@ from functools import wraps
 from botocore.utils import fix_s3_host
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
+from configparser import ConfigParser
 
-from .errors import UnattachedBucketError, LocalFileExistsError, UnknownSourceTypeError
+from .helpers import calculate_etag
+from .errors import (UnattachedBucketError, LocalFileExistsError,
+                     UnknownSourceTypeError, MismatchChecksumError)
+
+
+config = ConfigParser()
+config.read('config.ini')
 
 
 class ProgressPercentage(object):
@@ -61,7 +68,7 @@ class ProgressPercentage(object):
                                                                     self._seen_so_far,
                                                                     self._size,
                                                                     f'{speed}MB/s',
-                                                                    percentage))  # Extra whitespaces for flushing
+                                                                    percentage))
             sys.stdout.flush()
 
 
@@ -93,18 +100,18 @@ class HCPManager:
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key)
 
-        config = Config(s3={'addressing_style': 'path',
-                            'payload_signing_enabled': True},
-                        signature_version='s3v4')
+        s3_config = Config(s3={'addressing_style': 'path',
+                               'payload_signing_enabled': True},
+                           signature_version='s3v4')
 
         self.s3 = session.resource('s3',
                                    endpoint_url=self.endpoint,
                                    verify=False,  # Checks for SLL certificate. Disables because of already "secure" solution.
-                                   config=config)
+                                   config=s3_config)
 
-        self.transfer_config = TransferConfig(multipart_threshold=10 ** 7,  # Threshold size of file to use multipart
-                                              max_concurrency=15,  # Number of chunks to work with
-                                              multipart_chunksize=10 ** 7)  # Size of chunks, 10MB, min 5MB, max 5GB
+        self.transfer_config = TransferConfig(multipart_threshold=int(config.get('hcp', 'size_threshold')),
+                                              max_concurrency=int(config.get('hcp', 'max_concurrency')),
+                                              multipart_chunksize=int(config.get('hcp', 'chunk_size')))
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
 
@@ -116,8 +123,7 @@ class HCPManager:
         """Attempt to attach to the given bucket."""
         self.bucket = self.s3.Bucket(bucket)
         if hasattr(self, 'objects'):
-            delattr(self, 'objects')  # Incase of jumping from one bucket to another
-        return self.bucket
+            delattr(self, 'objects')  # Incase of already attached bucket
 
     @bucketcheck
     def get_object(self, key):
@@ -162,6 +168,13 @@ class HCPManager:
                                 Callback=ProgressPercentage(local_path))
         print('')  # Post progressbar correction for stdout
 
+        calculated_etag = calculate_etag(local_path)
+        remote_obj = self.get_object(remote_key)
+
+        if calculated_etag != remote_obj.e_tag:
+            self.delete_object(remote_obj)
+            raise MismatchChecksumError('Local and remote file checksums differ. Removing remote file.')
+
     @bucketcheck
     def download_file(self, obj, local_path, force=False):
         """Download objects file to specified local file."""
@@ -179,6 +192,12 @@ class HCPManager:
                                   local_path,
                                   Callback=ProgressPercentage(obj))
         print('')  # Post progressbar correction for stdout
+
+        calculated_etag = calculate_etag(local_path)
+        remote_etag = obj.e_tag
+        if calculated_etag != remote_etag:
+            os.remove(local_path)
+            raise MismatchChecksumError('Local and remote file checksums differ. Removing local file.')
 
     @bucketcheck
     def delete_object(self, obj):

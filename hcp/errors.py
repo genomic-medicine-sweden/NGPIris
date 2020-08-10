@@ -8,3 +8,7 @@ class LocalFileExistsError(Exception):
 
 class UnknownSourceTypeError(Exception):
     """Raise on trying to get size of unknown object type."""
+
+
+class MismatchChecksumError(Exception):
+    """Raise on local and remote checksums differing."""
