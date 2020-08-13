@@ -21,7 +21,7 @@ def calculate_etag(local_path):
                 if not data_chunk:
                     break
 
-                chunk_hashes.append(hashlib.sha256(chunk))
+                chunk_hashes.append(hashlib.sha256(data_chunk))
 
         binary_digests = b''.join(chunk_hash.digest() for chunk_hash in chunk_hashes)
         binary_hash = hashlib.sha256(binary_digests).hexdigest()
