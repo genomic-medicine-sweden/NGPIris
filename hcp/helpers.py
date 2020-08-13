@@ -1,10 +1,9 @@
 import os
 import hashlib
 
-from configparser import ConfigParser
+from .config import get_config
 
-config = ConfigParser()
-config.read('config.ini')
+config = get_config()
 
 
 def calculate_etag(local_path):

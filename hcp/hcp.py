@@ -21,10 +21,10 @@ from configparser import ConfigParser
 from .helpers import calculate_etag
 from .errors import (UnattachedBucketError, LocalFileExistsError,
                      UnknownSourceTypeError, MismatchChecksumError)
+from .config import get_config
 
 
-config = ConfigParser()
-config.read('config.ini')
+config = get_config()
 
 
 class ProgressPercentage(object):
