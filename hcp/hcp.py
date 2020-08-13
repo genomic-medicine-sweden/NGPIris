@@ -16,7 +16,6 @@ from functools import wraps
 from botocore.utils import fix_s3_host
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
-from configparser import ConfigParser
 
 from .helpers import calculate_etag
 from .errors import (UnattachedBucketError, LocalFileExistsError,
@@ -109,9 +108,9 @@ class HCPManager:
                                    verify=False,  # Checks for SLL certificate. Disables because of already "secure" solution.
                                    config=s3_config)
 
-        self.transfer_config = TransferConfig(multipart_threshold=int(config.get('hcp', 'size_threshold')),
-                                              max_concurrency=int(config.get('hcp', 'max_concurrency')),
-                                              multipart_chunksize=int(config.get('hcp', 'chunk_size')))
+        self.transfer_config = TransferConfig(multipart_threshold=config.getint('hcp', 'size_threshold'),
+                                              max_concurrency=config.getint('hcp', 'max_concurrency'),
+                                              multipart_chunksize=config.getint('hcp', 'chunk_size'))
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
 
