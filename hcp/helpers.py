@@ -1,10 +1,9 @@
 import os
 import hashlib
 
-from configparser import ConfigParser
+from .config import get_config
 
-config = ConfigParser()
-config.read('config.ini')
+config = get_config()
 
 
 def calculate_etag(local_path):
@@ -16,8 +15,12 @@ def calculate_etag(local_path):
 
         chunk_hashes = []
         with open(local_path, 'rb') as fp:
-            while chunk := fp.read(chunk_size):
-                chunk_hashes.append(hashlib.sha256(chunk))
+            while True:
+                data_chunk = fp.read(chunk_size)
+                if not data_chunk:
+                    break
+
+                chunk_hashes.append(hashlib.sha256(data_chunk))
 
         binary_digests = b''.join(chunk_hash.digest() for chunk_hash in chunk_hashes)
         binary_hash = hashlib.sha256(binary_digests).hexdigest()
@@ -26,7 +29,11 @@ def calculate_etag(local_path):
     else:
         file_hash = hashlib.md5()
         with open(local_path, 'rb') as fp:
-            while chunk := fp.read(chunk_size):
-                file_hash.update(chunk)
+            while True:
+                data_chunk = fp.read(chunk_size)
+                if not data_chunk:
+                    break
+
+                file_hash.update(data_chunk)
 
         return f'"{file_hash.hexdigest()}"'
