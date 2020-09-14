@@ -1,0 +1,16 @@
+{
+  "modelVersion": "1.1.0",
+  "indexName": "index_name",
+  "queryString": "query_string",
+  "offset": 0,
+  "itemsToReturn": 1,
+  "facetRequests": [
+    {
+      "modelVersion": "1.1.0",
+      "fieldName": "HCI_namespace",
+      "minCount": 0,
+      "maxCount": 10,
+      "facetPrefix": "string"
+    }
+  ]
+}
