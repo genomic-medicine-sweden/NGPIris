@@ -9,16 +9,16 @@ import requests
 import ast
 import json
 import os
-
+import sys
 
 # Creates template based on template. 
 def create_template(args):
-    with open("template_query.json", "r") as sample:
+    with open("hci/template_query.json", "r") as sample:
         data = json.load(sample)
         data["indexName"] = args.index
         data["queryString"] = args.query
 
-    with open("written_query.json", "w") as dumpyboi:
+    with open("hci/written_query.json", "w") as dumpyboi:
         json.dump(data, dumpyboi, indent=4)
 
 
@@ -35,7 +35,7 @@ def generate_token(args):
 
 # If using query and index.
 def query(token, index):
-    with open ("written_query.json", "r") as mqj:
+    with open ("hci/written_query.json", "r") as mqj:
         json_data = json.load(mqj)
     response = requests.post("https://10.248.2.95:8888/api/search/query", headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
                              json=json_data, verify=False) 
