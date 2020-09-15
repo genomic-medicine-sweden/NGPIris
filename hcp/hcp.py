@@ -192,11 +192,6 @@ class HCPManager:
                                   Callback=ProgressPercentage(obj))
         print('')  # Post progressbar correction for stdout
 
-        calculated_etag = calculate_etag(local_path)
-        remote_etag = obj.e_tag
-        if calculated_etag != remote_etag:
-            os.remove(local_path)
-            raise MismatchChecksumError('Local and remote file checksums differ. Removing local file.')
 
     @bucketcheck
     def delete_object(self, obj):
