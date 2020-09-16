@@ -9,8 +9,8 @@ import argparse
 import unittest
 import tempfile
 
-from core import HCPManager
-from core.helpers import calculate_etag
+from hcp.hcp import HCPManager
+from hcp.helpers import calculate_etag
 
 
 class MissingCredentialsError(Exception):
