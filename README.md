@@ -66,3 +66,30 @@ hcpm.upload_file(<local_file_path>, <remote_key>)
 # Note that the maximum metadata size is rather small (2KB).
 hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value})
 ```
+
+# HCI
+> HCI Search API tool 
+
+## Introduction
+
+Tool using the HCI Search API. Making it possible to search and query an index on HCI linked to data on the HCP.
+Use a password file for connection, if `-o` is used a json file with the results is produced, otherwise the result is printed in stdout.  
+
+### Usage
+
+#### For searching using query (e.g. sample name)
+
+```
+./hci.py query -i [index_name] -q [query] -p [password_file] -o [output]
+```
+
+#### List all queryable indexes and their available fields
+
+```
+# Lists all indexes and their fields on the HCI
+./hci.py index -i all -p [password_file] -o [output]
+
+# Lists specified index and associated fields 
+./hci.py index -i [index_name] -p [password_file] -o [output]
+
+```
