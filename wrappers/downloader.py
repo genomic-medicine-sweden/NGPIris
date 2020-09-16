@@ -14,6 +14,25 @@ from hcp.hcp import HCPManager
 from hci import hci
 
 ##############################################
+def check(hcpm, args, pretty):
+    if args.query:
+        f = pretty
+        results= (f["results"])
+        for item in results:
+            itm = (item["metadata"])
+            meta = itm["HCI_displayName"]
+            samples = (itm["hcp_fastqpaths"])
+            string = "".join(samples).strip("[]").strip("{]}'")
+            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").split(",")
+        print(meta)
+        for i in lst:
+            if args.query in os.path.basename(i) or args.query in i:
+                print("check:",i)
+                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+
+    else:
+        obj = hcpm.get_object(args.key) # Get object with key.
+
 # Download files using query, e.g. runid or sample name.
 def download(hcpm, args, pretty):
     if args.query:
@@ -69,6 +88,7 @@ def arg():
 
     parser.add_argument("--download", action="store_true", help="Use when download")
     parser.add_argument("--delete", action="store_true", help="Use when delete")
+    parser.add_argument("--check", action="store_true", help="Only prints results")
     
     args = parser.parse_args()
 
@@ -89,6 +109,9 @@ def main():
 
     elif args.delete:
         delete(hcpm, args)
+    
+    elif args.check:
+        check(hcpm, args, pretty)
 
 if __name__ == "__main__":
     main()
