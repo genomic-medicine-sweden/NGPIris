@@ -23,9 +23,7 @@ def create_template(args):
 
 
 def generate_token(args):
-    root = os.path.abspath(os.path.dirname(__file__))
-    pw_path = os.path.join(root, args.password)
-    with open(pw_path) as pw:
+    with open(args.password) as pw:
         admin_pass = str(pw.readline()).strip()
         my_key = requests.post("https://10.248.2.93:8888/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
             "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
