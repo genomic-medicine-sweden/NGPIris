@@ -24,7 +24,7 @@ def check(hcpm, args, pretty):
             samples = (itm["hcp_fastqpaths"])
             string = "".join(samples).strip("[]").strip("{]}'")
             lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").split(",")
-        print(meta)
+        print(f"Metadata file: {meta}")
         for i in lst:
             if args.query in os.path.basename(i) or args.query in i:
                 print("check:",i)
