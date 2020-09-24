@@ -59,16 +59,18 @@ def download(hcpm, args, pretty):
 # Delete file on HCP using a key (path to object)
 def delete(hcpm, args):
     obj = hcpm.get_object(args.key) # Get object with key.
-    sys.stdout.write(f"[--] You are about to delete a file \"{args.key}\", are you sure? [Y/N]?\n")
-    sys.stdout.flush()
-    answer = sys.stdin.readline()
-    if answer[0].lower() == "y":
-        hcpm.delete_object(obj) # Delete file.
-        time.sleep(2)
-        print(f"[--] Deleting file \"{args.key}\" \n")
+    if obj is not None:
+        sys.stdout.write(f"[--] You are about to delete a file in a bucket on HCP\"{args.key}\", are you sure? [Y/N]?\n")
+        sys.stdout.flush()
+        answer = sys.stdin.readline()
+        if answer[0].lower() == "y":
+            hcpm.delete_object(obj) # Delete file.
+            time.sleep(2)
+            print(f"[--] Deleting file \"{args.key}\" \n")
+        else:
+            sys.exit(f"[Error] Exiting... Did not delete the file \"{args.key}\"\n")
     else:
-        sys.exit(f"[Error] Exiting... Did not delete the file \"{args.key}\"\n")
-
+        print(f"File: {args.key} does not exist in the HCP")
 
 def arg():
     parser = argparse.ArgumentParser(prog="downloader.py")
