@@ -6,7 +6,6 @@
 import glob
 import argparse
 import os
-import schema
 import json
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -38,18 +37,6 @@ def upload_fastq(args, files_pg):
                         f"{args.run}/"+os.path.basename(args.jsonpath))
 
     
-def validation(args):
-    # Validation for fields in json.
-    pass
-#    json_schem = schema.Schema({"run_ID": schema.Regex(args.run), 
-#                           "date": schema.Regex("[0-9]{2}-[0-9]{2}-[0-9]{4}"),
-#                           "samples": {schema.Regex("[\w]+$"): schema.And(list, lambda x: [args.sample in x])}}, 
-#                           ignore_extra_keys=True)
-
-#    with open(args.jsonpath, "r") as f:
-#        data = json.load(f)
-#        json_schem.validate(data)
-
 
 def arg():
     parser = argparse.ArgumentParser(prog="uploader.py")
