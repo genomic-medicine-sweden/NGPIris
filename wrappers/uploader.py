@@ -70,9 +70,9 @@ def arg():
 def main():
     args = arg()
     files_pg = files(args)
+
     # Upload files only if validation is OK.
-    if validation(args) is None:
-        upload_fastq(args, files_pg)
+    upload_fastq(args, files_pg)
 
 
 if __name__ == "__main__":
