@@ -49,7 +49,10 @@ def download(hcpm, args, pretty):
                 print("downloading:",i.replace(".fastq.gz", ".fasterq").strip())
                 name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
                 obj = hcpm.get_object(name) # Get object with json.
-                hcpm.download_file(obj, f"{args.output}/"+os.path.basename(name)) # Downloads file.
+                if obj is not None:
+                    hcpm.download_file(obj, f"{args.output}/"+os.path.basename(name)) # Downloads file.
+                else:
+                    print(f"File: '{name}' does not exist in bucket '{args.bucket}' on the HCP")
 
     else:
         obj = hcpm.get_object(args.key) # Get object with key.
@@ -71,6 +74,7 @@ def delete(hcpm, args):
             sys.exit(f"[Error] Exiting... Did not delete the file \"{args.key}\"\n")
     else:
         print(f"File: {args.key} does not exist in the HCP")
+
 
 def arg():
     parser = argparse.ArgumentParser(prog="downloader.py")
