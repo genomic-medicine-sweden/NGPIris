@@ -70,7 +70,6 @@ def arg():
 def main():
     args = arg()
     files_pg = files(args)
-    print(files_pg)
     # Upload files only if validation is OK.
     if validation(args) is None:
         upload_fastq(args, files_pg)
