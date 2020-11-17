@@ -29,12 +29,12 @@ def upload_fastq(args, files_pg):
 
     # List and upload files provided bu path flag.
     for file_pg in files_pg:
-        hcpm.upload_file(file_pg, args.run+"/"+os.path.basename(file_pg))
+        hcpm.upload_file(file_pg, args.remotepath+"/"+os.path.basename(file_pg))
         print(f"uploading: {file_pg}")
 
     # Uploads associated json files.
     hcpm.upload_file(f"{args.jsonpath}",
-                        f"{args.run}/"+os.path.basename(args.jsonpath))
+                        f"{args.remotepath}/"+os.path.basename(args.jsonpath))
 
     
 
@@ -53,14 +53,10 @@ def arg():
                             help="bucket name")
     requiredUpload.add_argument("-p", "--path",
                             help="path to directory with files for upload")
-    requiredNamed.add_argument("-j", "--jsonpath",
-                            required=True,
+    requiredUpload.add_argument("-j", "--jsonpath",
                             help="path to json file with metadata")
-    requiredNamed.add_argument("-r", "--run",
-                            help="run name")
-    requiredNamed.add_argument("-s", "--sample",
-                            required=True,
-                            help="samplename")
+    requiredUpload.add_argument("-r", "--remotepath",
+                            help="path to directory to put files on HCP")
 
     args = parser.parse_args()
 
