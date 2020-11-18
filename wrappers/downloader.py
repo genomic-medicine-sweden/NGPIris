@@ -5,7 +5,6 @@
 import glob
 import argparse
 import os
-import schema
 import json
 import sys
 import time
