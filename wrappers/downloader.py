@@ -15,19 +15,22 @@ from hci import hci
 ##############################################
 def check(hcpm, args, pretty):
     if args.query:
-        f = pretty
-        results= (f["results"])
-        for item in results:
-            itm = (item["metadata"])
-            meta = itm["HCI_displayName"]
-            samples = (itm["hcp_fastqpaths"])
-            string = "".join(samples).strip("[]").strip("{]}'")
-            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").split(",")
-        print(f"Metadata file: {meta}")
-        for i in lst:
-            if args.query in os.path.basename(i) or args.query in i:
-                print("check:",i)
-                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+        try:
+            f = pretty
+            results= (f["results"])
+            for item in results:
+                itm = (item["metadata"])
+                meta = itm["HCI_displayName"]
+                samples = (itm["hcp_fastqpaths"])
+                string = "".join(samples).strip("[]").strip("{]}'")
+                lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").split(",")
+            print(f"Metadata file: {meta}")
+            for i in lst:
+                if args.query in os.path.basename(i) or args.query in i:
+                    print("check:",i)
+                    name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+        except:
+            print(f"File(s) does not exists: {args.query}")
 
     else:
         obj = hcpm.get_object(args.key) # Get object with key.
