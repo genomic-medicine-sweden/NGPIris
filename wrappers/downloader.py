@@ -17,18 +17,19 @@ def check(hcpm, args, pretty):
     if args.query:
         try:
             f = pretty
-            results= (f["results"])
+            results= f["results"]
             for item in results:
-                itm = (item["metadata"])
+                itm = item["metadata"]
                 meta = itm["HCI_displayName"]
-                samples = (itm["hcp_fastqpaths"])
+                samples = itm["samples_Fastq_paths"]
                 string = "".join(samples).strip("[]").strip("{]}'")
-                lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").split(",")
+                lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
             print(f"Metadata file: {meta}")
             for i in lst:
                 if args.query in os.path.basename(i) or args.query in i:
                     print("check:",i)
                     name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+
         except:
             print(f"File(s) does not exists: {args.query}")
 
@@ -39,17 +40,18 @@ def check(hcpm, args, pretty):
 def download(hcpm, args, pretty):
     if args.query:
         f = pretty
-        results= (f["results"])
+        results= f["results"]
         for item in results:
-            itm = (item["metadata"])
-            samples = (itm["hcp_fastqpaths"])
+            itm = item["metadata"]
+            samples = itm["samples_Fastq_paths"]
             string = "".join(samples).strip("[]").strip("{]}'")
-            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").split(",")
+            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
 
         for i in lst:
             if args.query in os.path.basename(i) or args.query in i:
-                print("downloading:",i.replace(".fastq.gz", ".fasterq").strip())
-                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+                s = os.path.basename(i)
+                print("downloading:",s.replace(".fastq.gz", ".fasterq").strip())
+                name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
                 obj = hcpm.get_object(name) # Get object with json.
                 if obj is not None:
                     hcpm.download_file(obj, f"{args.output}/"+os.path.basename(name)) # Downloads file.
