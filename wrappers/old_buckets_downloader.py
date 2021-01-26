@@ -26,9 +26,8 @@ def check(hcpm, args, pretty):
                 lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
             print(f"Metadata file: {meta}")
             for i in lst:
-                if args.query in os.path.basename(i) or args.query in i:
+                if args.query in i:
                     print("check:",i)
-                    name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
         except:
             print(f"File(s) does not exists: {args.query}")
