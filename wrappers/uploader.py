@@ -53,8 +53,8 @@ def arg():
                             help="bucket name")
     requiredUpload.add_argument("-p", "--path",
                             help="path to directory with files for upload")
-    requiredUpload.add_argument("-j", "--jsonpath",
-                            help="path to json file with metadata")
+    requiredUpload.add_argument("-f", "--filepath",
+                            help="path to single file")
     requiredUpload.add_argument("-r", "--remotepath",
                             help="path to directory to put files on HCP")
 
