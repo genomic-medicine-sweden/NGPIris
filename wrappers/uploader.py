@@ -28,13 +28,15 @@ def upload_fastq(args, files_pg):
     hcpm.attach_bucket(args.bucket)
 
     # List and upload files provided bu path flag.
-    for file_pg in files_pg:
-        hcpm.upload_file(file_pg, args.remotepath+"/"+os.path.basename(file_pg))
-        print(f"uploading: {file_pg}")
+    if args.path:
+        for file_pg in files_pg:
+            hcpm.upload_file(file_pg, args.remotepath+"/"+os.path.basename(file_pg))
+            print(f"uploading: {file_pg}")
 
-    # Uploads associated json files.
-    hcpm.upload_file(f"{args.jsonpath}",
-                        f"{args.remotepath}/"+os.path.basename(args.jsonpath))
+    if args.filepath:
+        # Uploads associated json files.
+        hcpm.upload_file(f"{args.filepath}",
+                            f"{args.remotepath}/"+os.path.basename(args.filepath))
 
     
 
