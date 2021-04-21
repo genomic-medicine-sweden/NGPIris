@@ -79,6 +79,17 @@ def delete(hcpm, args):
     else:
         print(f"File: {args.key} does not exist in the HCP")
 
+def search(hcpm, args):
+    if args.query:
+            objects = hcpm.get_objects()
+            found_objs = hcpm.search_objects(args.query)
+            if len(found_objs) > 0:
+                for obj in found_objs:
+                    print(obj)
+            else:
+                print(f'No results found for: {args.query}')
+    else:
+        print(f'A query needs to be specified if you are using the "search" option')
 
 def arg():
     parser = argparse.ArgumentParser(prog="downloader.py")
@@ -99,6 +110,7 @@ def arg():
     parser.add_argument("--download", action="store_true", help="Use when download")
     parser.add_argument("--delete", action="store_true", help="Use when delete")
     parser.add_argument("--check", action="store_true", help="Only prints results")
+    parser.add_argument("--search", action="store_true", help="Use when searching")
     
     args = parser.parse_args()
 
@@ -122,6 +134,9 @@ def main():
     
     elif args.check:
         check(hcpm, args, pretty)
+
+    elif args.search:
+        search(hcpm, args)
 
 if __name__ == "__main__":
     main()
