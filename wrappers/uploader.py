@@ -15,28 +15,37 @@ from hcp.hcp import HCPManager
 # List files that will be uploaded on the HCP.
 # Depending on if the files are compressed or not.
 def files(args):
-    if glob.glob(f"{args.path}/*.fasterq"):
-        file_lst = glob.glob(f"{args.path}/*.fasterq")
-    else:
-        file_lst = glob.glob(f"{args.path}/*.fastq.gz") 
+    file_lst = glob.glob(args.path)
     return file_lst
 
 
 # Upload FASTQ and json to selected bucket on HCP.
-def upload_fastq(args, files_pg):
-    hcpm = HCPManager(args.endpoint, args.aws_access_key_id, args.aws_secret_access_key)
-    hcpm.attach_bucket(args.bucket)
-
-    # List and upload files provided bu path flag.
+def upload_fastq(args, files_pg, hcpm):
+    # List and upload files provided by path flag.
     for file_pg in files_pg:
-        hcpm.upload_file(file_pg, args.remotepath+"/"+os.path.basename(file_pg))
-        print(f"uploading: {file_pg}")
+        if len(hcpm.search_objects(f"{args.remotepath}/"+os.path.basename(file_pg))) < 1:
+            try:
+                hcpm.upload_file(file_pg, f"{args.remotepath}/"+os.path.basename(file_pg))
+                print(f"uploading: {args.remotepath}/{os.path.basename(file_pg)}")
+            except Exception as e:
+                print(e)
+                continue
+        else:
+            print(f"Object already exists: {args.remotepath}/{os.path.basename(file_pg)}")
+            continue
 
-    # Uploads associated json files.
-    hcpm.upload_file(f"{args.jsonpath}",
-                        f"{args.remotepath}/"+os.path.basename(args.jsonpath))
+    if args.filepath:
+        # Uploads single file.
+        hcpm.upload_file(f"{args.filepath}",
+                            f"{args.remotepath}/"+os.path.basename(args.filepath))
 
-    
+
+def search(args,hcpm):
+    lst = hcpm.search_objects(args.query)
+    for i in lst:
+        print(i.key)
+
+
 
 def arg():
     parser = argparse.ArgumentParser(prog="uploader.py")
@@ -53,10 +62,12 @@ def arg():
                             help="bucket name")
     requiredUpload.add_argument("-p", "--path",
                             help="path to directory with files for upload")
-    requiredUpload.add_argument("-j", "--jsonpath",
+    requiredUpload.add_argument("-f", "--filepath",
                             help="path to json file with metadata")
     requiredUpload.add_argument("-r", "--remotepath",
                             help="path to directory to put files on HCP")
+    requiredUpload.add_argument("-q", "--query",
+                            help="search for files on HCP")
 
     args = parser.parse_args()
 
@@ -65,10 +76,21 @@ def arg():
 
 def main():
     args = arg()
-    files_pg = files(args)
 
-    # Upload files only if validation is OK.
-    upload_fastq(args, files_pg)
+    # Connect to HCP
+    hcpm = HCPManager(args.endpoint, args.aws_access_key_id, args.aws_secret_access_key)
+    hcpm.attach_bucket(args.bucket)
+
+    if args.path:
+        files_pg = files(args)
+        upload_fastq(args, files_pg, hcpm)
+
+    if args.filepath:
+        files_pg = []
+        upload_fastq(args, files_pg, hcpm)
+
+    if args.query:
+        search(args,hcpm)
 
 
 if __name__ == "__main__":
