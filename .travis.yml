@@ -1,0 +1,29 @@
+language: python
+python:
+    - '3.6'
+    
+sudo: required
+cache: pip
+
+install:
+# Install anaconda
+- export LANG=en_US.iso885915
+- wget https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh -O conda.sh;
+- bash conda.sh -b -p $HOME/anaconda
+- export PATH="$HOME/anaconda/bin:$PATH"
+- conda config --add channels defaults
+- conda config --add channels bioconda
+- conda config --add channels conda-forge
+- conda info
+- echo $LANG
+                    
+## Install HCPInterface
+- bash <(curl https://raw.githubusercontent.com/genomic-medicine-sweden/HCPInterface/$branch/setup.sh) 
+- source activate hcpenv
+
+script:
+    - pip check
+    - pytest --cov=HCPInterface tests/
+    #- git log -n 10|gitlint
+
+after_success: coveralls
