@@ -2,7 +2,7 @@
 
 SCRIPT=$(readlink -f $0)
 scriptdir=`dirname $SCRIPT`
-NAME=$1
+NAME=${1:-hcpenv}
 
 echo "INFO - Unloading active environment"
 conda info| tac | tac | grep -q $NAME && source deactivate || :
@@ -15,8 +15,8 @@ source activate $NAME
 
 echo "INFO - Installing requirements"
 conda config --add channels bioconda
-pip install -r ${scriptdir}/../../requirements.txt
+pip install -r ${scriptdir}/requirements.txt
 
 echo "INFO - Installing HCPinterface"
 pip install .
-echo "INFO - Installation complete!"
+echo "INFO - Installation complete. Use 'source activate ${NAME}' !"

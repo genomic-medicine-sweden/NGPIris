@@ -20,6 +20,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points={
-        "console_scripts": [hcpinterface=hcpinterface.cli:root"],
+        "console_scripts": ["hcpi=HCPinterface.cli.base:root"],
     },
 )
