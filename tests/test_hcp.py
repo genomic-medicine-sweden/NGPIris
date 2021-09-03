@@ -13,11 +13,12 @@ from HCPInterface import WD
 from HCPInterface.hcp.hcp import HCPManager
 from HCPInterface.hcp.helpers import calculate_etag
 
+testWD = os.path.join(WD, '..', 'tests')
 
 class MissingCredentialsError(Exception):
     """Raise on trying to run tests without proper input of HCP credentials."""
 
-credentials_path = os.path.join(WD, '..','tests', 'profile.json')
+credentials_path = os.path.join(testWD, 'profile.json')
 
 with open(credentials_path, 'r') as inp:
     credentials = json.load(inp)
@@ -37,7 +38,7 @@ hcpm.attach_bucket("ngs-test")
 class TestProcess(unittest.TestCase):
 
     def test01_upload_file(self):
-        self.assertIsNone(hcpm.upload_file(f"{ROOT_PATH}/data/test_reads_R1.fasterq", "unittest/test_reads_R1.fasterq"))
+        self.assertIsNone(hcpm.upload_file(f"{testWD}/data/test_reads_R1.fasterq", "unittest/test_reads_R1.fasterq"))
 
     def test02_search_objects(self):
         self.assertEqual(hcpm.search_objects("unittest/test_reads_R1.fasterq")[0].key, "unittest/test_reads_R1.fasterq")
@@ -48,7 +49,7 @@ class TestProcess(unittest.TestCase):
 
     def test04_md5_sha256(self):
         remote_etag = hcpm.get_object("unittest/test_reads_R1.fasterq").e_tag
-        calculated_etag = calculate_etag(f"{ROOT_PATH}/data/test_reads_R1.fasterq")
+        calculated_etag = calculate_etag(f"{testWD}/data/test_reads_R1.fasterq")
         self.assertEqual(calculated_etag, remote_etag)
 
     def test05_delete_file(self):
