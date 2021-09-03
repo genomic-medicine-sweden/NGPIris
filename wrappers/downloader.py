@@ -81,15 +81,36 @@ def delete(hcpm, args):
 
 def search(hcpm, args):
     if args.query:
-            objects = hcpm.get_objects()
-            found_objs = hcpm.search_objects(args.query)
+        objects = hcpm.get_objects()
+        found_objs = hcpm.search_objects(args.query)
+        if len(found_objs) > 0:
+            for obj in found_objs:
+                print(obj)
+        else:
+            print(f'No results found for: {args.query}')
+                
+    elif args.qfile:
+        #Read the query file line by line and store in list
+        infile = open(args.qfile, 'r')
+        lines = infile.readlines()
+        #Remove newlines
+        lines = map(lambda s: s.strip(), lines)
+        
+        #Load in all data on HCP
+        objects = hcpm.get_objects()
+        
+        #Search for each item in query file
+        qdict = {}
+        for line in lines:
+            print(f'[-- query: {line} --]')
+            found_objs = hcpm.search_objects(line)
             if len(found_objs) > 0:
                 for obj in found_objs:
                     print(obj)
             else:
-                print(f'No results found for: {args.query}')
+                print('Nothing found')
     else:
-        print(f'A query needs to be specified if you are using the "search" option')
+        print(f'A query or query file needs to be specified if you are using the "search" option')
 
 def arg():
     parser = argparse.ArgumentParser(prog="downloader.py")
@@ -111,7 +132,10 @@ def arg():
     parser.add_argument("--delete", action="store_true", help="Use when delete")
     parser.add_argument("--check", action="store_true", help="Only prints results")
     parser.add_argument("--search", action="store_true", help="Use when searching")
-    
+
+    parser.add_argument("--no-hci", action="store_true", help="Avoid using HCI")
+    parser.add_argument("--qfile", help="Input file of queries")
+
     args = parser.parse_args()
 
     return args
@@ -122,9 +146,11 @@ def main():
     hcpm = HCPManager(args.endpoint, args.aws_access_key_id, args.aws_secret_access_key)
     hcpm.attach_bucket(args.bucket)
 
-    hci.create_template(args)    
-    token = hci.generate_token(args) 
-    pretty = json.loads(hci.query(token, args.index))
+    #Skip the HCI stuff if requested
+    if not args.no_hci:
+        hci.create_template(args)    
+        token = hci.generate_token(args) 
+        pretty = json.loads(hci.query(token, args.index))
 
     if args.download:
         download(hcpm, args, pretty)
