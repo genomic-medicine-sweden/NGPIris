@@ -120,7 +120,6 @@ def delete(ctx, hcpm, args):
 def search(ctx, hcpm, args):
     """Search for file"""
     if args.query:
-        objects = hcpm.get_objects()
         found_objs = hcpm.search_objects(args.query)
         if len(found_objs) > 0:
             for obj in found_objs:

@@ -50,15 +50,6 @@ def upload_fastq(ctx, args, files_pg, hcpm):
                             f"{args.remotepath}/"+os.path.basename(args.filepath))
 
 
-@upload.command()
-@click.pass_context
-def search(ctx, args,hcpm):
-    """Search for file"""
-    lst = hcpm.search_objects(args.query)
-    for i in lst:
-        print(i.key)
-
-
 def arg():
     parser = argparse.ArgumentParser(prog="uploader.py")
     requiredNamed = parser.add_argument_group('required arguments')
