@@ -16,6 +16,7 @@ source activate $NAME
 echo "INFO - Installing requirements"
 conda config --add channels bioconda
 pip install -r ${scriptdir}/requirements.txt
+pip install -r ${scriptdir}/freeze.txt
 
 echo "INFO - Installing HCPinterface"
 pip install .
