@@ -37,7 +37,7 @@ def check(ctx, hcpm, args, pretty):
                 lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
             print(f"Metadata file: {meta}")
             for i in lst:
-                if args.query in os.path.basename(i) or args.query in i:
+                if args.query in i or args.query in os.path.basename(i):
                     print("check:",i)
                     name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
@@ -75,6 +75,26 @@ def download_files(ctx, hcpm, args, pretty):
         obj = hcpm.get_object(args.key) # Get object with key.
         hcpm.download_file(obj, args.output) # Downloads file.
 
+@download.command()
+@click.pass_obj
+def download_legacy(ctx, hcpm, args, pretty):
+    """Downloads files on the old NGS buckets"""
+    if args.query:
+        f = pretty
+        results= f["results"]
+        for item in results:
+            itm = item["metadata"]
+            samples = itm["samples_Fastq_paths"]
+        for i in samples:
+            obj = hcpm.get_object(i) # Get object with json.
+            if obj is not None:
+                hcpm.download_file(obj, f"{args.output}/"+os.path.basename(i)) # Downloads file.
+            else:
+                print(f"File: '{s}' does not exist in bucket '{args.bucket}' on the HCP")
+
+    else:
+        obj = hcpm.get_object(args.key) # Get object with key.
+        hcpm.download_file(obj, args.output) # Downloads file.
 
 @download.command()
 @click.pass_obj
