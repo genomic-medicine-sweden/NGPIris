@@ -1,7 +1,7 @@
 import click
 import sys
 
-from HCPInterface import log
+from HCPInterface import log, version
 from HCPInterface.hcp import HCPManager
 from HCPInterface.cli.functions import check, download, delete, search, upload
 
@@ -15,6 +15,7 @@ from HCPInterface.cli.functions import check, download, delete, search, upload
 @click.option("--skip-hci", default=False, help="Skips calling the HCI. Requires --index & --password",is_flag=True)
 @click.option("-i", "--index", type=str,default="",help="Specify index from HCI to parse")
 @click.option("-pw","--password",default="",help="File with HCI password")
+@click.version_option(version)
 @click.pass_context
 def root(ctx, endpoint, access_key_id, access_key, bucket, query,key,skip_hci,index,password):
     """HCP interfacing tool"""
