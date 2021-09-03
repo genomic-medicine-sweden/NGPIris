@@ -15,21 +15,22 @@ from hcp.hcp import HCPManager
 ##############################################
 # List files that will be uploaded on the HCP.
 
+def files(args):
+    """Depending on if the files are compressed or not"""
+    file_lst = glob.glob(args.path)
+    return file_lst
+
 @click.group()
 def upload():
     """Uploads the files to the selected bucked on the HCP"""
     return
 
 
+@upload.command()
+@click.pass_context
+def upload_fastq(ctx, args, files_pg, hcpm):
+    """Upload FASTQ and json to selected bucket on HCP."""
 
-# Depending on if the files are compressed or not.
-def files(args):
-    file_lst = glob.glob(args.path)
-    return file_lst
-
-
-# Upload FASTQ and json to selected bucket on HCP.
-def upload_fastq(args, files_pg, hcpm):
     # List and upload files provided by path flag.
     for file_pg in files_pg:
         if len(hcpm.search_objects(f"{args.remotepath}/"+os.path.basename(file_pg))) < 1:
@@ -49,7 +50,10 @@ def upload_fastq(args, files_pg, hcpm):
                             f"{args.remotepath}/"+os.path.basename(args.filepath))
 
 
-def search(args,hcpm):
+@upload.command()
+@click.pass_context
+def search(ctx, args,hcpm):
+    """Search for file"""
     lst = hcpm.search_objects(args.query)
     for i in lst:
         print(i.key)

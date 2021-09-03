@@ -17,11 +17,14 @@ from hci import hci
 ##############################################
 
 @click.group()
-def download():
+def download(ctx):
     """Downloads or deletes files from the selected bucket on the HCP"""
     return
 
-def check(hcpm, args, pretty):
+@download.command()
+@click.pass_obj
+def check(ctx, hcpm, args, pretty):
+    """Checks for file existence"""
     if args.query:
         try:
             f = pretty
@@ -44,8 +47,10 @@ def check(hcpm, args, pretty):
     else:
         obj = hcpm.get_object(args.key) # Get object with key.
 
-# Download files using query, e.g. runid or sample name.
-def download_files(hcpm, args, pretty):
+@download.command()
+@click.pass_obj
+def download_files(ctx, hcpm, args, pretty):
+    """Download files using query, e.g. runid or sample name."""
     if args.query:
         f = pretty
         results= f["results"]
@@ -71,8 +76,11 @@ def download_files(hcpm, args, pretty):
         hcpm.download_file(obj, args.output) # Downloads file.
 
 
-# Delete file on HCP using a key (path to object)
-def delete(hcpm, args):
+@download.command()
+@click.pass_obj
+def delete(ctx, hcpm, args):
+    """Delete file on HCP using a key (path to object)"""
+
     obj = hcpm.get_object(args.key) # Get object with key.
     if obj is not None:
         sys.stdout.write(f"[--] You are about to delete a file in a bucket on HCP\"{args.key}\", are you sure? [Y/N]?\n")
@@ -87,7 +95,10 @@ def delete(hcpm, args):
     else:
         print(f"File: {args.key} does not exist in the HCP")
 
-def search(hcpm, args):
+@download.command()
+@click.pass_obj
+def search(ctx, hcpm, args):
+    """Search for file"""
     if args.query:
         objects = hcpm.get_objects()
         found_objs = hcpm.search_objects(args.query)

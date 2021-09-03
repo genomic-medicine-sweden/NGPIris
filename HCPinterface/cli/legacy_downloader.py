@@ -20,7 +20,10 @@ def legacy_download():
     """Downloads or deletes files on the old NGS buckets on the HCP"""
     return
 
-def check(hcpm, args, pretty):
+@legacy_download.command()
+@click.pass_context
+def check(ctx, hcpm, args, pretty):
+    """Checks for file existence"""
     if args.query:
         try:
             f = pretty
@@ -42,8 +45,11 @@ def check(hcpm, args, pretty):
     else:
         obj = hcpm.get_object(args.key) # Get object with key.
 
-# Download files using query, e.g. runid or sample name.
-def download(hcpm, args, pretty):
+@legacy_download.command()
+@click.pass_context
+def download(ctx, hcpm, args, pretty):
+    """Download files using query, e.g. runid or sample name."""
+
     if args.query:
         f = pretty
         results= f["results"]
@@ -61,9 +67,10 @@ def download(hcpm, args, pretty):
         obj = hcpm.get_object(args.key) # Get object with key.
         hcpm.download_file(obj, args.output) # Downloads file.
 
-
-# Delete file on HCP using a key (path to object)
-def delete(hcpm, args):
+@legacy_download.command()
+@click.pass_context
+def delete(ctx, hcpm, args):
+    """Delete file on HCP using a key (path to object)"""
     obj = hcpm.get_object(args.key) # Get object with key.
     if obj is not None:
         sys.stdout.write(f"[--] You are about to delete a file in a bucket on HCP\"{args.key}\", are you sure? [Y/N]?\n")

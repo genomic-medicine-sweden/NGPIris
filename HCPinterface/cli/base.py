@@ -5,9 +5,11 @@ from .uploader import upload
 from .legacy_downloader import legacy_download
 
 @click.group()
+
 @click.pass_context
-def root():
+def root(ctx):
     """HCP interfacing tool"""
+    ctx = {}
 
 root.add_command(upload)
 root.add_command(download)
