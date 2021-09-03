@@ -55,22 +55,12 @@ def arg():
     requiredNamed = parser.add_argument_group('required arguments')
     requiredUpload = parser.add_argument_group('additional required arguments for upload')
 
-    requiredUpload.add_argument("-ep", "--endpoint",
-                            help="endpoint url")
-    requiredUpload.add_argument("-aki", "--aws_access_key_id",
-                            help="aws access key id")
-    requiredUpload.add_argument("-sak", "--aws_secret_access_key",
-                            help="aws secret access key")
-    requiredUpload.add_argument("-b", "--bucket",
-                            help="bucket name")
     requiredUpload.add_argument("-p", "--path",
                             help="path to directory with files for upload")
     requiredUpload.add_argument("-f", "--filepath",
                             help="path to single file")
     requiredUpload.add_argument("-r", "--remotepath",
                             help="path to directory to put files on HCP")
-    requiredUpload.add_argument("-q", "--query",
-                            help="search for files on HCP")
 
     args = parser.parse_args()
 
@@ -91,9 +81,6 @@ def main():
     if args.filepath:
         files_pg = []
         upload_fastq(args, files_pg, hcpm)
-
-    if args.query:
-        search(args,hcpm)
 
 
 if __name__ == "__main__":

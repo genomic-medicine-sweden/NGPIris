@@ -4,7 +4,6 @@
 
 import click
 import glob
-import argparse
 import os
 import json
 import sys
@@ -17,13 +16,28 @@ from hci import hci
 ##############################################
 
 @click.group()
-def download(ctx):
+@click.options('-q',"--query",help="Specific search query")
+@click.options("-k", "--key",help="The path to the key-file on the HCP you want to download")
+@click.options("--no-hci", default=False, help="Avoid using HCI")
+@click.options("-i", "--index", type=str,default="" help="Specify index from HCI to parse")
+def download(ctx, query, key, no_hci,index):
     """Downloads or deletes files from the selected bucket on the HCP"""
+    hcpm = HCPManager(endpoint, access_key_id, secret_access_key)
+    hcpm.attach_bucket(bucket)
+
+    if no_hcp and index == "":
+        log.error("Avoiding HCI requires use of --index flag")
+
+    #Skip the HCI stuff if requested
+    if not no_hci:
+        hci.create_template(args)    
+        token = hci.generate_token(args) 
+        pretty = json.loads(hci.query(token, args.index))
     return
 
 @download.command()
 @click.pass_obj
-def check(ctx, hcpm, args, pretty):
+def check(ctx, hcpm, pretty):
     """Checks for file existence"""
     if args.query:
         try:
@@ -48,8 +62,9 @@ def check(ctx, hcpm, args, pretty):
         obj = hcpm.get_object(args.key) # Get object with key.
 
 @download.command()
+@click.option('-o',"--output",help="Specify output file to write to",required=True)
 @click.pass_obj
-def download_files(ctx, hcpm, args, pretty):
+def download_files(ctx, output hcpm, pretty):
     """Download files using query, e.g. runid or sample name."""
     if args.query:
         f = pretty
@@ -76,8 +91,9 @@ def download_files(ctx, hcpm, args, pretty):
         hcpm.download_file(obj, args.output) # Downloads file.
 
 @download.command()
+@click.option('-o',"--output",help="Specify output file to write to",required=True)
 @click.pass_obj
-def download_legacy(ctx, hcpm, args, pretty):
+def download_legacy(ctx, output, hcpm, pretty):
     """Downloads files on the old NGS buckets"""
     if args.query:
         f = pretty
@@ -98,7 +114,7 @@ def download_legacy(ctx, hcpm, args, pretty):
 
 @download.command()
 @click.pass_obj
-def delete(ctx, hcpm, args):
+def delete(ctx, hcpm):
     """Delete file on HCP using a key (path to object)"""
 
     obj = hcpm.get_object(args.key) # Get object with key.
@@ -117,7 +133,8 @@ def delete(ctx, hcpm, args):
 
 @download.command()
 @click.pass_obj
-def search(ctx, hcpm, args):
+@click.options('-qf','--query-file',help="File listing queries")
+def search(ctx, query_file, hcpm):
     """Search for file"""
     if args.query:
         found_objs = hcpm.search_objects(args.query)
@@ -150,57 +167,8 @@ def search(ctx, hcpm, args):
     else:
         print(f'A query or query file needs to be specified if you are using the "search" option')
 
-def arg():
-    parser = argparse.ArgumentParser(prog="downloader.py")
-    requiredNamed = parser.add_argument_group("required arguments")
-    requiredUpload = parser.add_argument_group("additional required arguments for upload")
-
-    requiredNamed.add_argument("-ep", "--endpoint", help="endpoint url")
-    requiredNamed.add_argument("-aki", "--aws_access_key_id", help="aws access key id")
-    requiredNamed.add_argument("-sak", "--aws_secret_access_key", help="aws secret access key")
-    requiredNamed.add_argument("-b", "--bucket", help="bucket name")
-    requiredNamed.add_argument("-p", "--password", help="file with passwords for HCI")
-
-    parser.add_argument("-q", "--query", nargs="?", action="store", type=str, help="Specify search query, e.g. sample name")
-    parser.add_argument("-i", "--index", nargs="?", action="store", type=str, help="Specify index from HCI to parse")
-    parser.add_argument("-o", "--output", nargs="?", action="store", type=str, help="Specify file to store outputs")
-    parser.add_argument("-k", "--key", help="The path (key) to the file on the HCP you want to download")
-
-    parser.add_argument("--download", action="store_true", help="Use when download")
-    parser.add_argument("--delete", action="store_true", help="Use when delete")
-    parser.add_argument("--check", action="store_true", help="Only prints results")
-    parser.add_argument("--search", action="store_true", help="Use when searching")
-
-    parser.add_argument("--no-hci", action="store_true", help="Avoid using HCI")
-    parser.add_argument("--qfile", help="Input file of queries")
-
-    args = parser.parse_args()
-
-    return args
-
-
 def main():
-    args = arg()
-    hcpm = HCPManager(args.endpoint, args.aws_access_key_id, args.aws_secret_access_key)
-    hcpm.attach_bucket(args.bucket)
-
-    #Skip the HCI stuff if requested
-    if not args.no_hci:
-        hci.create_template(args)    
-        token = hci.generate_token(args) 
-        pretty = json.loads(hci.query(token, args.index))
-
-    if args.download:
-        download_files(hcpm, args, pretty)
-
-    elif args.delete:
-        delete(hcpm, args)
-    
-    elif args.check:
-        check(hcpm, args, pretty)
-
-    elif args.search:
-        search(hcpm, args)
+    pass
 
 if __name__ == "__main__":
     main()
