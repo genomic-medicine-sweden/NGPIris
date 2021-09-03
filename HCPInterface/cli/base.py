@@ -1,6 +1,7 @@
 import click
 
-from .functions import check, download_files, download_legacy, delete, search, upload_fastq
+from HCPInterface.hcp import HCPManager
+from .functions import check, download_files, delete, search, upload_fastq
 
 @click.group()
 @click.option("-ep","--endpoint",help="Endpoint URL",type=str)
@@ -32,7 +33,6 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, query,key,no_hci,inde
 
 root.add_command(check)
 root.add_command(download_files)
-root.add_command(download_legacy)
 root.add_command(delete)
 root.add_command(search)
 root.add_command(upload_fastq)

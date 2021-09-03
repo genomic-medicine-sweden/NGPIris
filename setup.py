@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from HCPinterface import version
+from HCPInterface import version
 from setuptools import setup, find_packages
 
 try:
@@ -9,10 +9,10 @@ except IOError:
     install_requires = []
 
 setup(
-    name="HCPinterface",
+    name="HCPInterface",
     version=version,
     long_description=__doc__,
-    url="https://github.com/genomic-medicine-sweden/HCPinterface",
+    url="https://github.com/genomic-medicine-sweden/HCPInterface",
     author="Isak Sylvin",
     author_email="isak.sylvin@gu.se",
     install_requires=install_requires,
@@ -20,6 +20,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points={
-        "console_scripts": ["hcpi=HCPinterface.cli.base:root"],
+        "console_scripts": ["hcpi=HCPInterface.cli.base:root"],
     },
 )
