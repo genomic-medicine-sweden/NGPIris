@@ -1,5 +1,6 @@
 # User specified ignores
 *keys.json
+tests/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
