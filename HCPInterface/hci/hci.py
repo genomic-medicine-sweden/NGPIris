@@ -12,18 +12,18 @@ import os
 import sys
 
 # Creates template based on template. 
-def create_template(args):
+def create_template(index, query):
     with open("hci/template_query.json", "r") as sample:
         data = json.load(sample)
-        data["indexName"] = args.index
-        data["queryString"] = args.query
+        data["indexName"] = index
+        data["queryString"] = query
 
     with open("hci/written_query.json", "w") as dumpyboi:
         json.dump(data, dumpyboi, indent=4)
 
 
-def generate_token(args):
-    with open(args.password) as pw:
+def generate_token(password):
+    with open(password) as pw:
         admin_pass = str(pw.readline()).strip()
         my_key = requests.post("https://10.248.2.93:8888/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
             "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)

@@ -17,10 +17,11 @@ from botocore.utils import fix_s3_host
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
 
-from .helpers import calculate_etag
-from .errors import (UnattachedBucketError, LocalFileExistsError,
+from HCPInterface.hcp.helpers import calculate_etag
+from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
                      UnknownSourceTypeError, MismatchChecksumError)
-from .config import get_config
+from HCPInterface.hcp.config import get_config
+from HCPInterface import log
 
 
 config = get_config()
@@ -120,6 +121,8 @@ class HCPManager:
 
     def attach_bucket(self, bucket):
         """Attempt to attach to the given bucket."""
+        if bucket is None:
+            log.error("Attempted to attach bucket. But no bucket named.")
         self.bucket = self.s3.Bucket(bucket)
         if hasattr(self, 'objects'):
             delattr(self, 'objects')  # Incase of already attached bucket

@@ -9,6 +9,7 @@ import json
 import sys
 import time
 
+from HCPInterface import log
 from HCPInterface.hcp import HCPManager
 from HCPInterface.hci import hci
 
@@ -29,14 +30,14 @@ def check(ctx, type, hcpm, pretty):
                 samples = itm["samples_Fastq_paths"]
                 string = "".join(samples).strip("[]").strip("{]}'")
                 lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
-            print(f"Metadata file: {meta}")
+            log.info("Metadata file: {}".format(meta))
             for i in lst:
                 if query in i or query in os.path.basename(i):
-                    print("check:",i)
+                    log.info("check: ",i)
                     name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
         except:
-            print("File(s) does not exists: {}".format(query))
+            log.error("File(s) does not exists: {}".format(query))
 
     elif type=="key":
         obj = hcpm.get_object(key) # Get object with key.
@@ -46,7 +47,7 @@ def check(ctx, type, hcpm, pretty):
 @click.option('-t',"--type",required=True,help="Method to identify file",type=click.Choice(['query','key'],case_sensitive=False))
 @click.option('-l'"--legacy",help="Legacy mode to download files on the old NGS buckets",default=False,is_flag=True)
 @click.pass_obj
-def download_files(ctx, output, hcpm, pretty):
+def download(ctx, output, hcpm, pretty):
     """Download files using query, e.g. runid or sample name."""
     if type=="query":
         f = pretty
@@ -61,7 +62,7 @@ def download_files(ctx, output, hcpm, pretty):
                 if obj is not None:
                     hcpm.download_file(obj, "{0}/{1}".format(output,os.path.basename(i))) # Downloads file.
                 else:
-                    print("File: '{0}' does not exist in bucket '{1}' on the HCP".format(s,bucket))
+                    log.error("File: '{0}' does not exist in bucket '{1}' on the HCP".format(s,bucket))
 
         elif not legacy:
             for item in results:
@@ -73,13 +74,13 @@ def download_files(ctx, output, hcpm, pretty):
             for i in lst:
                 if query in os.path.basename(i) or query in i:
                     s = os.path.basename(i)
-                    print("downloading:",s.replace(".fastq.gz", ".fasterq").strip())
+                    log.info("downloading:",s.replace(".fastq.gz", ".fasterq").strip())
                     name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
                     obj = hcpm.get_object(name) # Get object with json.
                     if obj is not None:
                         hcpm.download_file(obj, "{0}/{1}".format(output,os.path.basename(name))) # Downloads file.
                     else:
-                        print("File: '{0}' does not exist in bucket '{1}' on the HCP".format(name, bucket))
+                        log.error("File: '{0}' does not exist in bucket '{1}' on the HCP".format(name, bucket))
 
     elif type=="key":
         obj = hcpm.get_object(key) # Get object with key.
@@ -98,11 +99,12 @@ def delete(ctx, hcpm):
         if answer[0].lower() == "y":
             hcpm.delete_object(obj) # Delete file.
             time.sleep(2)
-            print(f"[--] Deleting file \"{key}\" \n")
+            log.info("[--] Deleting file \"{0}\" \n".format(key))
         else:
-            sys.exit(f"[Error] Exiting... Did not delete the file \"{key}\"\n")
+            log.error("[Error] Exiting... Did not delete the file \"{}\"\n".format(key))
+            sys.exit(-1)
     else:
-        print(f"File: {key} does not exist in the HCP")
+        log.info(f"File: {0} does not exist in the HCP".format(key))
 
 @click.command()
 @click.pass_obj
@@ -113,9 +115,9 @@ def search(ctx, query_file, hcpm):
         found_objs = hcpm.search_objects(query)
         if len(found_objs) > 0:
             for obj in found_objs:
-                print(obj)
+                log.info(obj)
         else:
-            print(f'No results found for: {query}')
+            log.info(f'No results found for: {query}')
                 
     elif query_file:
         #Read the query file line by line and store in list
@@ -130,21 +132,21 @@ def search(ctx, query_file, hcpm):
         #Search for each item in query file
         qdict = {}
         for line in lines:
-            print(f'[-- query: {line} --]')
+            log.info('[-- query: {line} --]')
             found_objs = hcpm.search_objects(line)
             if len(found_objs) > 0:
                 for obj in found_objs:
-                    print(obj)
+                    log.info(obj)
             else:
-                print('Nothing found')
+                log.info('Nothing found')
     else:
-        print(f'A query or query file needs to be specified if you are using the "search" option')
+        log.info('A query or query file needs to be specified if you are using the "search" option')
 
 @click.command()
 @click.option('-i',"--input",help="Item to upload", type=click.Path())
 @click.option('-d',"--destination",help="Target directory to put files on HCP")
 @click.pass_obj
-def upload_fastq(files_pg, hcpm, input):
+def upload(files_pg, hcpm, input):
     """Upload fastq to HCP"""
 
     # List and upload files provided bu path flag.
@@ -156,7 +158,7 @@ def upload_fastq(files_pg, hcpm, input):
 
         for file_pg in files_lst:
             hcpm.upload_file(file_pg, os.path.join(destination,os.path.basename(file_pg)))
-            print(f"uploading: {file_pg}")
+            log.info("uploading: {}".format(file_pg))
     else:
         # Uploads associated json files.
         hcpm.upload_file(input,  os.path.join(destination,os.path.basename(file_pg)))

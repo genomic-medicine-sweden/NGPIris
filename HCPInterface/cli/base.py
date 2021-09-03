@@ -1,7 +1,8 @@
 import click
+import sys
 
 from HCPInterface.hcp import HCPManager
-from .functions import check, download_files, delete, search, upload_fastq
+from HCPInterface.cli.functions import check, download, delete, search, upload
 
 @click.group()
 @click.option("-ep","--endpoint",help="Endpoint URL",type=str)
@@ -12,27 +13,28 @@ from .functions import check, download_files, delete, search, upload_fastq
 @click.option("-k", "--key",help="The path to the key-file on the HCP you want to download")
 @click.option("--no-hci", default=False, help="Avoid using HCI")
 @click.option("-i", "--index", type=str,default="",help="Specify index from HCI to parse")
+@click.option("-pw","--password",default="",help="File with HCI password")
 @click.pass_context
-def root(ctx, endpoint, access_key_id, access_key, bucket, query,key,no_hci,index):
+def root(ctx, endpoint, access_key_id, access_key, bucket, query,key,no_hci,index,password):
     """HCP interfacing tool"""
     ctx.obj = {}
-    hcpm = HCPManager(endpoint, access_key_id, secret_access_key)
+    hcpm = HCPManager(endpoint, access_key_id, access_key)
     hcpm.attach_bucket(bucket)
 
-    if no_hcp and index == "":
-        log.error("Avoiding HCI requires use of --index flag")
-
-    #Skip the HCI stuff if requested
-    if not no_hci:
-        hci.create_template(args)    
-        token = hci.generate_token(args) 
-        pretty = json.loads(hci.query(token, args.index))
-    return
-
+    if not no_hci and (index == "" or password == ""):
+        log.error("HCI requires an --index and --password")
+        sys.exit(-1)
+    
+    if no_hci:
+        pass
+    else:
+        hci.create_template(index, query)    
+        token = hci.generate_token(password) 
+        pretty = json.loads(hci.query(token, index))
 
 
 root.add_command(check)
-root.add_command(download_files)
+root.add_command(download)
 root.add_command(delete)
 root.add_command(search)
-root.add_command(upload_fastq)
+root.add_command(upload)
