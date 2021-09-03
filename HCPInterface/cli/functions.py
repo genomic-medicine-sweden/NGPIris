@@ -18,11 +18,11 @@ from HCPInterface.hci import hci
 @click.command()
 @click.pass_obj
 @click.option('-t',"--type",required=True,help="Method to identify file",type=click.Choice(['query','key'],case_sensitive=False))
-def check(ctx, type, hcpm, pretty):
+def check(ctx, type):
     """Checks for file existence"""
     if type=="query":
         try:
-            f = pretty
+            f = ctx.obj["pretty"]
             results= f["results"]
             for item in results:
                 itm = item["metadata"]
@@ -40,17 +40,17 @@ def check(ctx, type, hcpm, pretty):
             log.error("File(s) does not exists: {}".format(query))
 
     elif type=="key":
-        obj = hcpm.get_object(key) # Get object with key.
+        obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
 
 @click.command()
 @click.option('-o',"--output",help="Specify output file to write to",required=True)
 @click.option('-t',"--type",required=True,help="Method to identify file",type=click.Choice(['query','key'],case_sensitive=False))
 @click.option('-l'"--legacy",help="Legacy mode to download files on the old NGS buckets",default=False,is_flag=True)
 @click.pass_obj
-def download(ctx, output, hcpm, pretty):
+def download(ctx, output):
     """Download files using query, e.g. runid or sample name."""
     if type=="query":
-        f = pretty
+        f = ctx.obj["pretty"]
         results= f["results"]
 
         if legacy:
@@ -58,9 +58,9 @@ def download(ctx, output, hcpm, pretty):
                 itm = item["metadata"]
                 samples = itm["samples_Fastq_paths"]
             for i in samples:
-                obj = hcpm.get_object(i) # Get object with json.
+                obj = ctx.obj["hcpm"].get_object(i) # Get object with json.
                 if obj is not None:
-                    hcpm.download_file(obj, "{0}/{1}".format(output,os.path.basename(i))) # Downloads file.
+                    ctx.obj["hcpm"].download_file(obj, "{0}/{1}".format(output,os.path.basename(i))) # Downloads file.
                 else:
                     log.error("File: '{0}' does not exist in bucket '{1}' on the HCP".format(s,bucket))
 
@@ -76,28 +76,28 @@ def download(ctx, output, hcpm, pretty):
                     s = os.path.basename(i)
                     log.info("downloading:",s.replace(".fastq.gz", ".fasterq").strip())
                     name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
-                    obj = hcpm.get_object(name) # Get object with json.
+                    obj = ctx.obj["hcpm"].get_object(name) # Get object with json.
                     if obj is not None:
-                        hcpm.download_file(obj, "{0}/{1}".format(output,os.path.basename(name))) # Downloads file.
+                        ctx.obj["hcpm"].download_file(obj, "{0}/{1}".format(output,os.path.basename(name))) # Downloads file.
                     else:
                         log.error("File: '{0}' does not exist in bucket '{1}' on the HCP".format(name, bucket))
 
     elif type=="key":
-        obj = hcpm.get_object(key) # Get object with key.
-        hcpm.download_file(obj, output) # Downloads file.
+        obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
+        ctx.obj["hcpm"].download_file(obj, output) # Downloads file.
 
 @click.command()
 @click.pass_obj
-def delete(ctx, hcpm):
+def delete(ctx):
     """Delete file on HCP using a key (path to object)"""
 
-    obj = hcpm.get_object(key) # Get object with key.
+    obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
     if obj is not None:
         sys.stdout.write(f"[--] You are about to delete a file in a bucket on HCP\"{key}\", are you sure? [Y/N]?\n")
         sys.stdout.flush()
         answer = sys.stdin.readline()
         if answer[0].lower() == "y":
-            hcpm.delete_object(obj) # Delete file.
+            ctx.obj["hcpm"].delete_object(obj) # Delete file.
             time.sleep(2)
             log.info("[--] Deleting file \"{0}\" \n".format(key))
         else:
@@ -109,10 +109,10 @@ def delete(ctx, hcpm):
 @click.command()
 @click.pass_obj
 @click.option('-qf','--query-file',help="File listing queries")
-def search(ctx, query_file, hcpm):
+def search(ctx, query_file):
     """Search for file"""
     if query:
-        found_objs = hcpm.search_objects(query)
+        found_objs = ctx.obj["hcpm"].search_objects(query)
         if len(found_objs) > 0:
             for obj in found_objs:
                 log.info(obj)
@@ -127,13 +127,13 @@ def search(ctx, query_file, hcpm):
         lines = map(lambda s: s.strip(), lines)
         
         #Load in all data on HCP
-        objects = hcpm.get_objects()
+        objects = ctx.obj["hcpm"].get_objects()
         
         #Search for each item in query file
         qdict = {}
         for line in lines:
             log.info('[-- query: {line} --]')
-            found_objs = hcpm.search_objects(line)
+            found_objs = ctx.obj["hcpm"].search_objects(line)
             if len(found_objs) > 0:
                 for obj in found_objs:
                     log.info(obj)
@@ -146,7 +146,7 @@ def search(ctx, query_file, hcpm):
 @click.option('-i',"--input",help="Item to upload", type=click.Path())
 @click.option('-d',"--destination",help="Target directory to put files on HCP")
 @click.pass_obj
-def upload(files_pg, hcpm, input):
+def upload(files_pg, input):
     """Upload fastq to HCP"""
 
     # List and upload files provided bu path flag.
@@ -157,11 +157,11 @@ def upload(files_pg, hcpm, input):
             file_lst = glob.glob("{}/*.fastq.gz".format(input)) 
 
         for file_pg in files_lst:
-            hcpm.upload_file(file_pg, os.path.join(destination,os.path.basename(file_pg)))
+            ctx.obj["hcpm"].upload_file(file_pg, os.path.join(destination,os.path.basename(file_pg)))
             log.info("uploading: {}".format(file_pg))
     else:
         # Uploads associated json files.
-        hcpm.upload_file(input,  os.path.join(destination,os.path.basename(file_pg)))
+        ctx.obj["hcpm"].upload_file(input,  os.path.join(destination,os.path.basename(file_pg)))
  
 
 def main():
