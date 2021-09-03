@@ -3,6 +3,7 @@
 # Wrapper that uploads FASTQ files.
 # Uploads the files to selected bucket on the HCP.
 
+import click
 import glob
 import argparse
 import os
@@ -13,6 +14,14 @@ from hcp.hcp import HCPManager
 
 ##############################################
 # List files that will be uploaded on the HCP.
+
+@click.group()
+def upload():
+    """Uploads the files to the selected bucked on the HCP"""
+    return
+
+
+
 # Depending on if the files are compressed or not.
 def files(args):
     file_lst = glob.glob(args.path)
