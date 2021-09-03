@@ -9,16 +9,15 @@ import argparse
 import unittest
 import tempfile
 
-from hcp.hcp import HCPManager
-from hcp.helpers import calculate_etag
+from HCPInterface import WD
+from HCPInterface.hcp.hcp import HCPManager
+from HCPInterface.hcp.helpers import calculate_etag
 
 
 class MissingCredentialsError(Exception):
     """Raise on trying to run tests without proper input of HCP credentials."""
 
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-
-credentials_path = os.path.join(ROOT_PATH, 'keys.json')
+credentials_path = os.path.join(WD, '..','tests', 'profile.json')
 
 with open(credentials_path, 'r') as inp:
     credentials = json.load(inp)
@@ -28,7 +27,7 @@ with open(credentials_path, 'r') as inp:
 
 
 if not all([endpoint, aws_access_key_id, aws_secret_access_key]):
-    raise MissingCredentialsError('One or more credentials missing from keys.json.')
+    raise MissingCredentialsError('One or more credentials missing from profile.json.')
 
 
 hcpm = HCPManager(endpoint, aws_access_key_id, aws_secret_access_key)
