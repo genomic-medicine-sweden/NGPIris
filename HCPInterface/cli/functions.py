@@ -17,10 +17,11 @@ from HCPInterface.hci import hci
 
 @click.command()
 @click.pass_obj
-@click.option('-t',"--type",required=True,help="Method to identify file",type=click.Choice(['query','key'],case_sensitive=False))
-def check(ctx, type):
+@click.option('-q',"--query",help="Specific search query", default="")
+@click.option("-k", "--key",help="The path to the key-file of files to check for",default="")
+def check(ctx, query, key):
     """Checks for file existence"""
-    if type=="query":
+    if query != "":
         try:
             f = ctx.obj["pretty"]
             results= f["results"]
@@ -39,17 +40,18 @@ def check(ctx, type):
         except:
             log.error("File(s) does not exists: {}".format(query))
 
-    elif type=="key":
+    elif key != "":
         obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
 
 @click.command()
 @click.option('-o',"--output",help="Specify output file to write to",required=True)
-@click.option('-t',"--type",required=True,help="Method to identify file",type=click.Choice(['query','key'],case_sensitive=False))
 @click.option('-l'"--legacy",help="Legacy mode to download files on the old NGS buckets",default=False,is_flag=True)
+@click.option('-q',"--query",help="Specific search query", default="")
+@click.option("-k", "--key",help="The path to the key-file on the HCP you want to download",default="")
 @click.pass_obj
 def download(ctx, output):
-    """Download files using query, e.g. runid or sample name."""
-    if type=="query":
+    """Download files using query for RunID or Sample name."""
+    if query != "":
         f = ctx.obj["pretty"]
         results= f["results"]
 
@@ -82,36 +84,17 @@ def download(ctx, output):
                     else:
                         log.error("File: '{0}' does not exist in bucket '{1}' on the HCP".format(name, bucket))
 
-    elif type=="key":
+    elif key != "":
         obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
         ctx.obj["hcpm"].download_file(obj, output) # Downloads file.
 
 @click.command()
 @click.pass_obj
-def delete(ctx):
-    """Delete file on HCP using a key (path to object)"""
-
-    obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
-    if obj is not None:
-        sys.stdout.write(f"[--] You are about to delete a file in a bucket on HCP\"{key}\", are you sure? [Y/N]?\n")
-        sys.stdout.flush()
-        answer = sys.stdin.readline()
-        if answer[0].lower() == "y":
-            ctx.obj["hcpm"].delete_object(obj) # Delete file.
-            time.sleep(2)
-            log.info("[--] Deleting file \"{0}\" \n".format(key))
-        else:
-            log.error("[Error] Exiting... Did not delete the file \"{}\"\n".format(key))
-            sys.exit(-1)
-    else:
-        log.info(f"File: {0} does not exist in the HCP".format(key))
-
-@click.command()
-@click.pass_obj
-@click.option('-qf','--query-file',help="File listing queries")
-def search(ctx, query_file):
+@click.option('-q',"--query",help="Specific search query", default="")
+@click.option("-k", "--key",help="The path to the key-file containing a list of queries",default="")
+def search(ctx, query, key):
     """Search for file"""
-    if query:
+    if query != "":
         found_objs = ctx.obj["hcpm"].search_objects(query)
         if len(found_objs) > 0:
             for obj in found_objs:
@@ -119,9 +102,9 @@ def search(ctx, query_file):
         else:
             log.info(f'No results found for: {query}')
                 
-    elif query_file:
+    elif key != "":
         #Read the query file line by line and store in list
-        infile = open(query_file, 'r')
+        infile = open(key, 'r')
         lines = infile.readlines()
         #Remove newlines
         lines = map(lambda s: s.strip(), lines)
@@ -140,14 +123,36 @@ def search(ctx, query_file):
             else:
                 log.info('Nothing found')
     else:
-        log.info('A query or query file needs to be specified if you are using the "search" option')
+        log.info('A query or key file needs to be specified if you are using the "search" option')
+
+@click.command()
+@click.pass_obj
+def delete(ctx):
+    """Delete file on the HCP"""
+
+    obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
+    if obj is not None:
+        sys.stdout.write(f"[--] You are about to delete a file in a bucket on HCP\"{key}\", are you sure? [Y/N]?\n")
+        sys.stdout.flush()
+        answer = sys.stdin.readline()
+        if answer[0].lower() == "y":
+            ctx.obj["hcpm"].delete_object(obj) # Delete file.
+            time.sleep(2)
+            log.info("[--] Deleting file \"{0}\" \n".format(key))
+        else:
+            log.error("[Error] Exiting... Did not delete the file \"{}\"\n".format(key))
+            sys.exit(-1)
+    else:
+        log.info(f"File: {0} does not exist in the HCP".format(key))
+
+
 
 @click.command()
 @click.option('-i',"--input",help="Item to upload", type=click.Path())
 @click.option('-d',"--destination",help="Target directory to put files on HCP")
 @click.pass_obj
 def upload(files_pg, input):
-    """Upload fastq to HCP"""
+    """Upload fastq file to the HCP"""
 
     # List and upload files provided bu path flag.
     if os.path.isdir(input):
