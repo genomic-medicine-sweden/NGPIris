@@ -58,17 +58,33 @@ class ProgressPercentage(object):
 
         return self._speed
 
+    def _trim_text(self, text):
+        """Trim text to fit current terminal size."""
+        terminal_width = os.get_terminal_size()[0]
+
+        if len(text) > terminal_width:
+            diff = len(text) - terminal_width
+            text = text[:len(text)-diff-3] + '...'
+
+        return text
+
     def __call__(self, bytes_amount):
         with self._lock:
             self._seen_so_far += bytes_amount
             speed = self._calculate_speed()
             percentage = (self._seen_so_far / self._size) * 100
-            sys.stdout.write("\r%s  %s / %s  %s  (%.2f%%)      " % (self._source,
-                                                                    self._seen_so_far,
-                                                                    self._size,
-                                                                    f'{speed}MB/s',
-                                                                    percentage))
+            text = "\r%s  %s / %s  %s  (%.2f%%)" % (self._source,
+                                                    self._seen_so_far,
+                                                    self._size,
+                                                    f'{speed}MB/s',
+                                                    percentage)
+            text = self._trim_text(text)
+
+            sys.stdout.write(text)
             sys.stdout.flush()
+
+    def __exit__(self):
+        sys.stdout.flush()
 
 
 def bucketcheck(fn):
