@@ -19,7 +19,7 @@ from boto3.s3.transfer import TransferConfig
 
 from HCPInterface.hcp.helpers import calculate_etag
 from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
-                     UnknownSourceTypeError, MismatchChecksumError)
+                     UnknownSourceTypeError, MismatchChecksumError, ConnectionError)
 from HCPInterface.hcp.config import get_config
 from HCPInterface import log
 
@@ -85,7 +85,8 @@ def bucketcheck(fn):
 
 
 class HCPManager:
-    def __init__(self, endpoint, aws_access_key_id, aws_secret_access_key, debug=False):
+    def __init__(self, endpoint, aws_access_key_id, aws_secret_access_key, bucket = None, debug=False):
+        self.bucket = None
         self.endpoint = endpoint
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
@@ -115,9 +116,19 @@ class HCPManager:
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
 
+        self.test_connection()
+
     def list_buckets(self):
         """List all available buckets at endpoint."""
         return [bucket.name for bucket in self.s3.buckets.all()]
+
+    def test_connection(self):
+        try:
+            if self.bucket is None:
+                raise ConnectionError("Invalid access, credentials or bucket")
+            self.s3.meta.client.head_bucket(Bucket=self.bucket.name)
+        except ConnectionError:
+            log.error("Invalid access, credentials or bucket")
 
     def attach_bucket(self, bucket):
         """Attempt to attach to the given bucket."""

@@ -12,3 +12,6 @@ class UnknownSourceTypeError(Exception):
 
 class MismatchChecksumError(Exception):
     """Raise on local and remote checksums differing."""
+
+class ConnectionError(Exception):
+    """Raise on issue highly likely due to a non-functional connection"""
