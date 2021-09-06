@@ -18,7 +18,7 @@ from HCPInterface.cli.functions import check, download, delete, search, upload
 def root(ctx, endpoint, access_key_id, access_key, bucket, skip_hci, index, password):
     """HCP interfacing tool"""
     ctx.obj = {}
-    hcpm = HCPManager(endpoint, access_key_id, access_key)
+    hcpm = HCPManager(endpoint, access_key_id, access_key, bucket)
     hcpm.attach_bucket(bucket)
 
     if not skip_hci and (index == "" or password == ""):

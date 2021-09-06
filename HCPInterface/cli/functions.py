@@ -38,7 +38,7 @@ def check(ctx, query, key):
                     name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
         except:
-            log.error("File(s) does not exists: {}".format(query))
+            log.info("File(s) does not exists: {}".format(query))
 
     elif key != "":
         obj = ctx.obj["hcpm"].get_object(key) # Get object with key.
