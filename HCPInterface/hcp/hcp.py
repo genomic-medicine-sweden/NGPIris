@@ -4,6 +4,7 @@
 Module for simple interfacing with the HCP cloud storage.
 """
 
+import json
 import os
 import sys
 import time
@@ -19,7 +20,8 @@ from boto3.s3.transfer import TransferConfig
 
 from HCPInterface.hcp.helpers import calculate_etag
 from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
-                     UnknownSourceTypeError, MismatchChecksumError, ConnectionError)
+                     UnknownSourceTypeError, MismatchChecksumError, ConnectionError,
+                     MissingCredentialsError)
 from HCPInterface.hcp.config import get_config
 from HCPInterface import log
 
@@ -85,11 +87,14 @@ def bucketcheck(fn):
 
 
 class HCPManager:
-    def __init__(self, endpoint, aws_access_key_id, aws_secret_access_key, bucket = None, debug=False):
+    def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", bucket=None,credentials_path="", debug=False):
         self.bucket = bucket
-        self.endpoint = endpoint
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
+        if credentials_path != "":
+            self.set_credentials(credentials_path)
+        else:
+            self.endpoint = endpoint
+            self.aws_access_key_id = aws_access_key_id
+            self.aws_secret_access_key = aws_secret_access_key
 
         # Very verbose. Use with care.
         if debug:
@@ -123,6 +128,7 @@ class HCPManager:
         return [bucket.name for bucket in self.s3.buckets.all()]
 
     def test_connection(self):
+        """Validate the connection works with as little overhead as possible."""
         try:
             if self.bucket is None:
                 raise ConnectionError("Unassigned bucket")
@@ -137,6 +143,18 @@ class HCPManager:
         self.bucket = self.s3.Bucket(bucket)
         if hasattr(self, 'objects'):
             delattr(self, 'objects')  # Incase of already attached bucket
+
+    def set_credentials(self, credentials_path):
+        """Set endpoint, aws id and aws key using a json-file"""
+        with open(credentials_path, 'r') as inp:
+            c = json.load(inp)
+            self.endpoint = c['endpoint']
+            self.aws_access_key_id = c['aws_access_key_id']
+            self.aws_secret_access_key = c['aws_secret_access_key']
+            log.debug("Credentials file successfully utilized")
+
+        if not all([c['endpoint'], c['aws_access_key_id'], c['aws_secret_access_key']]):
+            raise MissingCredentialsError('One or more credentials missing from keys.json.')
 
     @bucketcheck
     def get_object(self, key):

@@ -9,14 +9,14 @@ from HCPInterface.cli.functions import check, download, delete, search, upload
 @click.option("-ep","--endpoint",help="Endpoint URL",type=str,default="")
 @click.option("-id","--access_key_id",help="Amazon key identifier",type=str,default="")
 @click.option("-key","--access_key",help="Amazon secret access key",type=str,default="")
-@click.option('-p',"--profile", help="File containing ep, id & key; instead of using the CLI.",type=str,default="")
+@click.option('-c',"--credentials", help="File containing ep, id & key; instead of using the CLI.",type=str,default="")
 @click.option("-b","--bucket",help="Bucket name",type=str, required=True)
 @click.option("--skip-hci", default=False, help="Skips calling the HCI. Requires --index & --password",is_flag=True)
 @click.option("-i", "--index", type=str,default="",help="Specify index from HCI to parse")
 @click.option("-pw","--password",default="",help="File with HCI password")
 @click.version_option(version)
 @click.pass_context
-def root(ctx, endpoint, access_key_id, access_key, bucket, skip_hci, index, password, profile):
+def root(ctx, endpoint, access_key_id, access_key, bucket, skip_hci, index, password, credentials):
     """HCP interfacing tool"""
     #Invalid input checks
     if not skip_hci and (index == "" or password == ""):
@@ -28,7 +28,7 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, skip_hci, index, pass
         sys.exit(-1)
 
     ctx.obj = {}
-    hcpm = HCPManager(endpoint, access_key_id, access_key, bucket)
+    hcpm = HCPManager(endpoint, access_key_id, access_key, credentials, bucket)
     hcpm.attach_bucket(bucket)
 
     if skip_hci:

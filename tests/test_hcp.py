@@ -14,26 +14,10 @@ from HCPInterface.hcp.hcp import HCPManager
 from HCPInterface.hcp.helpers import calculate_etag
 
 testWD = os.path.join(WD, '..', 'tests')
+credentials_path = os.path.join(testWD, 'credentials.json')
 
-class MissingCredentialsError(Exception):
-    """Raise on trying to run tests without proper input of HCP credentials."""
-
-credentials_path = os.path.join(testWD, 'profile.json')
-
-with open(credentials_path, 'r') as inp:
-    credentials = json.load(inp)
-    endpoint = credentials['ep']
-    aws_access_key_id = credentials['aki']
-    aws_secret_access_key = credentials['sak']
-
-
-if not all([endpoint, aws_access_key_id, aws_secret_access_key]):
-    raise MissingCredentialsError('One or more credentials missing from profile.json.')
-
-
-hcpm = HCPManager(endpoint, aws_access_key_id, aws_secret_access_key)
+hcpm = HCPManager(credentials_path=credentials_path)
 hcpm.attach_bucket("ngs-test")
-
 
 class TestProcess(unittest.TestCase):
 

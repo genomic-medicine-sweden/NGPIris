@@ -15,3 +15,6 @@ class MismatchChecksumError(Exception):
 
 class ConnectionError(Exception):
     """Raise on issue highly likely due to a non-functional connection"""
+
+class MissingCredentialsError(Exception):
+    """One or more credentials missing from json-file"""
