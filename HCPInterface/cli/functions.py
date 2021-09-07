@@ -23,8 +23,7 @@ def check(ctx, query, key):
     """Checks for file existence"""
     if query != "":
         try:
-            f = ctx["pretty"]
-            results= f["results"]
+            results= ctx["hci_query"]["results"]
             for item in results:
                 itm = item["metadata"]
                 meta = itm["HCI_displayName"]
@@ -52,9 +51,7 @@ def check(ctx, query, key):
 def download(ctx, destination, legacy, query, key):
     """Download files using query for RunID or Sample name."""
     if query != "":
-        import pdb; pdb.set_trace()
-        f = ctx["pretty"]
-        results= f["results"]
+        results= ctx["hci_query"]["results"]
 
         if legacy:
             for item in results:

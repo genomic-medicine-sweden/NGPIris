@@ -65,7 +65,8 @@ def test_version(runner):
 def test_base(runner):
     cmd = "-b 'ngs-test' -c {0}".format(credentials_path)
     res = runner.invoke(root, cmd.split())
-    assert res.exit_code == 0
+    #Command should complain about lack of subcommand
+    assert res.exit_code == 2
 
 def test_upload(runner):
     cmd = "-b 'ngs-test' -c {0} --skip-hci upload -i {1} -d {2}".format(credentials_path, 
@@ -74,7 +75,7 @@ def test_upload(runner):
     assert res.exit_code == 0
 
 def test_search(runner):
-    cmd = "-b 'ngs-test' -c {0} search -q {1}".format(credentials_path, os.path.join("unittest","test_reads_R1.fasterq")
+    cmd = "-b 'ngs-test' -c {0} --skip-hci search -q {1}".format(credentials_path, os.path.join("unittest","test_reads_R1.fasterq"))
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0 
 
@@ -89,6 +90,6 @@ def test_download(runner):
     pass
 
 def test_delete(runner):
-    cmd = "-b 'ngs-test' -c {0} delete -q {1} -f".format(credentials_path, os.path.join("unittest","test_reads_R1.fasterq"))
+    cmd = "-b 'ngs-test' -c {0} --skip-hci delete -q {1} -f".format(credentials_path, os.path.join("unittest","test_reads_R1.fasterq"))
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0

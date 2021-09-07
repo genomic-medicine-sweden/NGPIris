@@ -36,8 +36,8 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, skip_hci, index, pass
     else:
         hci.create_template(index, query)    
         token = hci.generate_token(password) 
-        pretty = json.loads(hci.query(token, index))
-        ctx.obj["pretty"] = pretty
+        hci_query = hci.pretty_query(token)
+        ctx.obj["hci_query"] = hci_query
 
     ctx.obj["hcpm"] = hcpm
 

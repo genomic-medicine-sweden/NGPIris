@@ -23,6 +23,7 @@ def create_template(index, query):
 
 
 def generate_token(password):
+    """Generate a security token from a password"""
     with open(password) as pw:
         admin_pass = str(pw.readline()).strip()
         my_key = requests.post("https://10.248.2.93:8888/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
@@ -31,13 +32,17 @@ def generate_token(password):
         return ast.literal_eval(my_key.text)["access_token"].lstrip()
 
 
-# If using query and index.
-def query(token, index):
+def query(token):
+    """Queries the HCI using a token"""
     with open ("hci/written_query.json", "r") as mqj:
         json_data = json.load(mqj)
     response = requests.post("https://10.248.2.95:8888/api/search/query", headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
                              json=json_data, verify=False) 
     return response.text
+
+def pretty_query(token):
+   """Return the result of a query in json loaded format"""
+   return json.loads(query(token))
 
 
 # If using index, it searches through all indexes if nothing else is specified. 
