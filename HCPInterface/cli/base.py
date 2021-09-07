@@ -23,12 +23,12 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, skip_hci, index, pass
         log.error("HCI requires an --index and --password")
         sys.exit(-1)
 
-    if profile != "" and (endpoint != "" or access_key_id != "" or access_key != ""):
+    if credentials != "" and (endpoint != "" or access_key_id != "" or access_key != ""):
         log.error("Credentials were provided both through a file and the CLI. Make up your mind")
         sys.exit(-1)
 
     ctx.obj = {}
-    hcpm = HCPManager(endpoint, access_key_id, access_key, credentials, bucket)
+    hcpm = HCPManager(endpoint, access_key_id, access_key, bucket=bucket,credentials_path=credentials)
     hcpm.attach_bucket(bucket)
 
     if skip_hci:
