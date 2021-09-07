@@ -190,8 +190,12 @@ class HCPManager:
         return [obj for obj in self.objects if string in obj.key]
 
     @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={}):
+    def upload_file(self, local_path, remote_key, metadata={}, force=False):
         """Upload local file to remote as key with associated metadata."""
+        if force:
+            self.delete_object(remote_obj)
+            log.info("Replaced remote file with local")
+
         self.bucket.upload_file(local_path,
                                 remote_key,
                                 ExtraArgs={'Metadata': metadata},

@@ -104,14 +104,14 @@ def upload(ctx, input, destination):
 @click.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
 @click.option('-q',"--query",help="Specific search query", default="", required=True)
-@click.option('-f-',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
+@click.option('-f',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
 @click.pass_obj
 def download(ctx, destination, query,fast):
     """Download files using a given query"""
     if not fast:
         found_objs = ctx["hcpm"].search_objects(query)
         if len(found_objs) == 0:
-            log.info("File: {} does not exist {} on {}".format(query, ctx["hcpm"].bucket.name))
+            log.info("File: {} does not exist on {}".format(query, ctx["hcpm"].bucket.name))
         elif len(found_objs) > 1:
             for obj in found_objs:
                 log.info("Found {} files matching query".format(len(found_obj)))
