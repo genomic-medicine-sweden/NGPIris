@@ -104,13 +104,35 @@ def upload(ctx, input, destination):
 @click.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
 @click.option('-q',"--query",help="Specific search query", default="", required=True)
+@click.option('-f-',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
 @click.pass_obj
-def download(ctx, destination, query):
+def download(ctx, destination, query,fast):
     """Download files using a given query"""
-    if query != "":
+    if not fast:
+        found_objs = ctx["hcpm"].search_objects(query)
+        if len(found_objs) == 0:
+            log.info("File: {} does not exist {} on {}".format(query, ctx["hcpm"].bucket.name))
+        elif len(found_objs) > 1:
+            for obj in found_objs:
+                log.info("Found {} files matching query".format(len(found_obj)))
+                log.info("Download {}? [Y/N]".format(obj))
+                sys.stdout.write("[--] Do you wish to download {0} on {1}? [Y/N]?\n".format(obj.key, ctx["hcpm"].bucket.name))
+                sys.stdout.flush()
+                answer = sys.stdin.readline()
+                if answer[0].lower() == "y":
+                    obj = ctx["hcpm"].get_object(query) # Get object with key.
+                    ctx["hcpm"].download_file(obj, destination, force=True) # Downloads file.
+                    #log.info("Downloaded {}".format(obj.key))
+
+        elif len(found_objs) == 1:
+            obj = ctx["hcpm"].get_object(query) # Get object with key.
+            ctx["hcpm"].download_file(obj, destination, force=True) # Downloads file.
+            #log.info("Downloaded {}".format(obj.key))
+    elif fast:
         obj = ctx["hcpm"].get_object(query) # Get object with key.
-        ctx["hcpm"].download_file(obj, destination) # Downloads file.
- 
+        ctx["hcpm"].download_file(obj, destination, force=True) # Downloads file.
+        #log.info("Downloaded {}".format(obj.key))
+        
 
 def main():
     pass
