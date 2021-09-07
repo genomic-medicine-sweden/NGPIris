@@ -4,7 +4,7 @@ import sys
 from HCPInterface import log, version
 from HCPInterface.hcp import HCPManager
 from HCPInterface.hci import hci
-from HCPInterface.cli.functions import delete, search, upload
+from HCPInterface.cli.functions import delete, search, upload, download
 from HCPInterface.cli.hci_functions import hci
 
 @click.group()
@@ -32,3 +32,4 @@ root.add_command(hci)
 root.add_command(delete)
 root.add_command(search)
 root.add_command(upload)
+root.add_command(download)

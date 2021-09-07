@@ -11,16 +11,15 @@ import time
 
 from HCPInterface import log
 from HCPInterface.hcp import HCPManager
-from HCPInterface.hci import hci
 
 ##############################################
 
 @click.command()
 @click.pass_obj
 @click.option('-q',"--query",help="Specific search query", default="")
-@click.option("-k", "--key",help="The path to the key-file containing a list of queries",default="")
-def search(ctx, query, key):
-    """Search for file"""
+@click.option("-f", "--file",help="The path to the file containing a list of queries",default="")
+def search(ctx, query, file):
+    """List all file hits for a given query"""
     if query != "":
         found_objs = ctx["hcpm"].search_objects(query)
         if len(found_objs) > 0:
@@ -29,9 +28,9 @@ def search(ctx, query, key):
         else:
             log.info(f'No results found for: {query}')
                 
-    elif key != "":
+    elif file != "":
         #Read the query file line by line and store in list
-        infile = open(key, 'r')
+        infile = open(file, 'r')
         lines = infile.readlines()
         #Remove newlines
         lines = map(lambda s: s.strip(), lines)
@@ -50,14 +49,14 @@ def search(ctx, query, key):
             else:
                 log.info('Nothing found')
     else:
-        log.info('A query or key file needs to be specified if you are using the "search" option')
+        log.info('A query or file needs to be specified if you are using the "search" option')
 
 @click.command()
 @click.option('-q',"--query",help="Specific search query", default="")
 @click.option('-f',"--force",is_flag=True,default=False)
 @click.pass_obj
 def delete(ctx,query,force):
-    """Delete file on the HCP"""
+    """Delete a file on the HCP"""
 
     objs = ctx["hcpm"].search_objects(query) # Get object with query
     if len(objs) < 1:
@@ -101,6 +100,16 @@ def upload(ctx, input, destination):
     else:
         # Uploads associated json files.
         ctx["hcpm"].upload_file(input,  os.path.join(destination))
+
+@click.command()
+@click.option('-d',"--destination",help="Specify destination file to write to",required=True)
+@click.option('-q',"--query",help="Specific search query", default="", required=True)
+@click.pass_obj
+def download(ctx, destination, query):
+    """Download files using a given query"""
+    if query != "":
+        obj = ctx["hcpm"].get_object(query) # Get object with key.
+        ctx["hcpm"].download_file(obj, destination) # Downloads file.
  
 
 def main():
