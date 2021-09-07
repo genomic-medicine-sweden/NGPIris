@@ -192,9 +192,11 @@ class HCPManager:
     @bucketcheck
     def upload_file(self, local_path, remote_key, metadata={}, force=False):
         """Upload local file to remote as key with associated metadata."""
-        if force:
-            self.delete_object(remote_obj)
-            log.info("Replaced remote file with local")
+        prev_remote_obj = self.get_object(remote_key)
+
+        if force and prev_remote_obj is not None:
+            self.delete_object(prev_remote_obj)
+            log.info("Removed remote file prior to upload of local file.")
 
         self.bucket.upload_file(local_path,
                                 remote_key,
@@ -203,8 +205,8 @@ class HCPManager:
                                 Callback=ProgressPercentage(local_path))
         print('')  # Post progressbar correction for stdout
 
-        calculated_etag = calculate_etag(local_path)
         remote_obj = self.get_object(remote_key)
+        calculated_etag = calculate_etag(local_path)
 
         if calculated_etag != remote_obj.e_tag:
             self.delete_object(remote_obj)

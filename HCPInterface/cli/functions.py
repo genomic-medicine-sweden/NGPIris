@@ -9,8 +9,9 @@ import json
 import sys
 import time
 
-from HCPInterface import log
+from HCPInterface import log, TIMESTAMP
 from HCPInterface.hcp import HCPManager
+from HCPInterface.io import io
 
 ##############################################
 
@@ -81,25 +82,47 @@ def delete(ctx,query,force):
 
 
 @click.command()
-@click.option('-i',"--input",help="Item to upload", type=click.Path())
+@click.option('-i',"input", type=click.Path(exists=True), required=True)
 @click.option('-d',"--destination",help="Target directory to put files on HCP")
+@click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
+@click.option('-f',"--force",is_flag=True,default=False,help="Removes remote file in case of name collision")
+@click.option('-m',"--meta",help="Local path for generated metadata file",default="{}/meta-{}.json".format(os.getcwd(), TIMESTAMP))
 @click.pass_obj
-def upload(ctx, input, destination):
-    """Upload fastq file to the HCP"""
+def upload(ctx, input, destination, tag, force,meta):
+    """Upload fastq files / fastq folder structure"""
+    meta_fn = meta
+    file_lst = []
 
-    # List and upload files provided bu path flag.
     if os.path.isdir(input):
-        if glob.glob("{}/*.fasterq".format(input)):
-            file_lst = glob.glob("{}/*.fasterq".format(input))
-        else:
-            file_lst = glob.glob("{}/*.fastq.gz".format(input)) 
-
-        for file_pg in files_lst:
-            ctx["hcpm"].upload_file(file_pg, os.path.join(destination))
-            log.info("uploading: {}".format(file_pg))
+        #Recursively loop over all folders
+        for root, dirs, files in os.walk(folder):
+            log.debug("{} {} {}".format(root,dirs,files))
+            for f in files:
+                try:
+                    io.verify_fq_suffix(os.path.join(root,f))
+                    io.verify_fq_content(os.path.join(root,f))
+                    io.generate_tagmap(os.path.join(root,f), tag, meta_fn)
+                    file_lst.append(os.path.join(root,f))
+                except Exception as e:
+                    log.debug("{} is not a valid upload file".format(f))
     else:
-        # Uploads associated json files.
-        ctx["hcpm"].upload_file(input,  os.path.join(destination))
+        input = os.path.abspath(input)
+        try:
+            io.verify_fq_suffix(input)
+            io.verify_fq_content(input)
+            io.generate_tagmap(input, tag, meta_fn)
+            file_lst.append(input)
+        except Exception as e:
+            log.debug("{} is not a valid upload file".format(input))
+
+
+    for file_pg in file_lst:
+        ctx["hcpm"].upload_file(file_pg, destination, force=force)
+        log.info("Uploading: {}".format(file_pg))
+
+    # Uploads associated json files.
+    ctx["hcpm"].upload_file(meta_fn, destination, force=force)
+
 
 @click.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)

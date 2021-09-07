@@ -21,7 +21,7 @@ from unittest.mock import patch, mock_open
 
 testWD = os.path.join(WD, '..', 'tests')
 credentials_path = os.path.join(testWD, 'credentials.json')
-f1target =  os.path.join("unittest","test_reads_R1.fasterq") 
+f1target =  os.path.join("unittest","test_reads_R1.fastq.gz") 
 
 
 @pytest.fixture
@@ -46,8 +46,8 @@ def test_hci_base(runner):
     assert res.exit_code == 0
 
 def test_upload(runner):
-    cmd = "-b ngs-test -c {0} upload -i {1} -d {2}".format(credentials_path, 
-          os.path.join(testWD,"data","test_reads_R1.fasterq"), f1target)
+    cmd = "-b ngs-test -c {0} upload -i {1} -d {2} -f -m /tmp/meta.json".format(credentials_path, 
+          os.path.join(testWD,"data","test_reads_R1.fastq.gz"), f1target)
     log.debug(cmd)
     res = runner.invoke(root, cmd.split()) 
     assert res.exit_code == 0
