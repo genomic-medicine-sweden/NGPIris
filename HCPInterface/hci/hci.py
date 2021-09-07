@@ -11,14 +11,16 @@ import json
 import os
 import sys
 
+from HCPInterface import WD
+
 # Creates template based on template. 
 def create_template(index, query):
-    with open("hci/template_query.json", "r") as sample:
+    with open("{}/hci/template_query.json".format(WD), "r") as sample:
         data = json.load(sample)
         data["indexName"] = index
         data["queryString"] = query
 
-    with open("hci/written_query.json", "w") as dumpyboi:
+    with open("{}/hci/written_query.json".format(WD), "w") as dumpyboi:
         json.dump(data, dumpyboi, indent=4)
 
 
@@ -34,7 +36,7 @@ def generate_token(password):
 
 def query(token):
     """Queries the HCI using a token"""
-    with open ("hci/written_query.json", "r") as mqj:
+    with open ("{}/hci/written_query.json".format(WD), "r") as mqj:
         json_data = json.load(mqj)
     response = requests.post("https://10.248.2.95:8888/api/search/query", headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
                              json=json_data, verify=False) 
@@ -42,7 +44,7 @@ def query(token):
 
 def pretty_query(token):
    """Return the result of a query in json loaded format"""
-   return json.loads(query(token))
+   return json.loads(query(token))["results"]
 
 
 # If using index, it searches through all indexes if nothing else is specified. 
