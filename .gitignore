@@ -1,6 +1,7 @@
 # User specified ignores
 *profile.json
 *.swp
+*_query.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
