@@ -12,12 +12,17 @@ import re
 from HCPInterface import log, WD, TIMESTAMP
 
 def verify_fq_suffix(fn):
-    """Makes sure the provided file has fastq suffic"""
+    """Makes sure the provided file looks like a fastq"""
+
     #Check suffix
-    hit = re.search("fastq.gz$",fn)
-    if not hit:
+    if not fn.endswith any(["fastq.gz","fq.gz","fastq","fq"]):
         raise Exception("File {0} is not a zipped fastq".format(fn))
     log.debug('Verified that {0} is a zipped fastq'.format(fn))
+    #Check for unresolved symlink
+    if os.path.islink(fn):
+        if not os.path.exists(os.readlink(fn)):
+            raise Exception("File {0} is an unresolved symlink".format(fn))
+
 
 def verify_fq_content(fn):
     """Makes sure fastq file contains fastq data"""
@@ -38,7 +43,8 @@ def verify_fq_content(fn):
 
         if not corr:
             raise Exception("File {0} does not look like a fastq at line {1}: {2}".format(fn, lineno, line))
-
+    f1.close()
+    
     if lineno % 4 != 0:
         raise Exception("File {0} is missing data".format(fn))
     log.debug('Verified that {0} resembles a fastq'.format(fn))

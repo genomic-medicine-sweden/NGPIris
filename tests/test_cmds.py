@@ -46,7 +46,7 @@ def test_hci_base(runner):
     assert res.exit_code == 0
 
 def test_upload(runner):
-    cmd = "-b ngs-test -c {0} upload -i {1} -d {2} -f -m /tmp/meta.json".format(credentials_path, 
+    cmd = "-b ngs-test -c {0} upload -i {1} -d {2} -m /tmp/meta.json".format(credentials_path, 
           os.path.join(testWD,"data","test_reads_R1.fastq.gz"), f1target)
     log.debug(cmd)
     res = runner.invoke(root, cmd.split()) 

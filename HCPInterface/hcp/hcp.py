@@ -20,8 +20,8 @@ from boto3.s3.transfer import TransferConfig
 
 from HCPInterface.hcp.helpers import calculate_etag
 from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
-                     UnknownSourceTypeError, MismatchChecksumError, ConnectionError,
-                     MissingCredentialsError)
+                                     UnknownSourceTypeError, MismatchChecksumError, 
+                                     ConnectionError, MissingCredentialsError)
 from HCPInterface.hcp.config import get_config
 from HCPInterface import log
 
@@ -131,7 +131,7 @@ class HCPManager:
         """Validate the connection works with as little overhead as possible."""
         try:
             if self.bucket is None:
-                raise ConnectionError("Unassigned bucket")
+                raise ConnectionError("No bucket assigned")
             self.s3.meta.client.head_bucket(Bucket=self.bucket)
         except ConnectionError:
             log.error("Invalid access, credentials or bucket")
@@ -190,13 +190,16 @@ class HCPManager:
         return [obj for obj in self.objects if string in obj.key]
 
     @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={}, force=False):
+    def upload_file(self, local_path, remote_key, metadata={}):
         """Upload local file to remote as key with associated metadata."""
+        # Force has been intentionally left out from upload functionality due to risk of overwriting clinical data. 
+        # Should the need arise to remove erroneous data then it must be manually (and therefore fully intentionally) 
+        # deleted prior to uploading
         prev_remote_obj = self.get_object(remote_key)
 
-        if force and prev_remote_obj is not None:
-            self.delete_object(prev_remote_obj)
-            log.info("Removed remote file prior to upload of local file.")
+        #if force and prev_remote_obj is not None:
+        #    self.delete_object(prev_remote_obj)
+        #    log.info("Removed remote file prior to upload of local file.")
 
         self.bucket.upload_file(local_path,
                                 remote_key,

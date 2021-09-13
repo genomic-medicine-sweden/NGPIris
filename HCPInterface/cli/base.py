@@ -18,9 +18,9 @@ from HCPInterface.cli.hci_functions import hci
 def root(ctx, endpoint, access_key_id, access_key, bucket, credentials):
     """HCP interfacing tool"""
     #Invalid input checks
-    if credentials != "" and (endpoint != "" or access_key_id != "" or access_key != ""):
+    if credentials != "" and any([endpoint,access_key_id,access_key]):
         log.error("Credentials were provided both through a file and the CLI. Make up your mind")
-        sys.exit(-1)
+        ctx.abort()
 
     ctx.obj = {}
     hcpm = HCPManager(endpoint, access_key_id, access_key, bucket=bucket,credentials_path=credentials)
