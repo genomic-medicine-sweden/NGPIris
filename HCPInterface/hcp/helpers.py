@@ -1,7 +1,7 @@
 import os
 import hashlib
 
-from .config import get_config
+from HCPInterface.hcp.config import get_config
 
 config = get_config()
 
