@@ -4,6 +4,7 @@
 Module for simple interfacing with the HCP cloud storage.
 """
 
+import json
 import os
 import sys
 import time
@@ -17,10 +18,12 @@ from botocore.utils import fix_s3_host
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
 
-from .helpers import calculate_etag
-from .errors import (UnattachedBucketError, LocalFileExistsError,
-                     UnknownSourceTypeError, MismatchChecksumError)
-from .config import get_config
+from HCPInterface.hcp.helpers import calculate_etag
+from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
+                                     UnknownSourceTypeError, MismatchChecksumError, 
+                                     ConnectionError, MissingCredentialsError)
+from HCPInterface.hcp.config import get_config
+from HCPInterface import log
 
 
 config = get_config()
@@ -58,17 +61,33 @@ class ProgressPercentage(object):
 
         return self._speed
 
+    def _trim_text(self, text):
+        """Trim text to fit current terminal size."""
+        terminal_width = os.get_terminal_size()[0]
+
+        if len(text) > terminal_width:
+            diff = len(text) - terminal_width
+            text = text[:len(text)-diff-3] + '...'
+
+        return text
+
     def __call__(self, bytes_amount):
         with self._lock:
             self._seen_so_far += bytes_amount
             speed = self._calculate_speed()
             percentage = (self._seen_so_far / self._size) * 100
-            sys.stdout.write("\r%s  %s / %s  %s  (%.2f%%)      " % (self._source,
-                                                                    self._seen_so_far,
-                                                                    self._size,
-                                                                    f'{speed}MB/s',
-                                                                    percentage))
+            text = "\r%s  %s / %s  %s  (%.2f%%)" % (self._source,
+                                                    self._seen_so_far,
+                                                    self._size,
+                                                    f'{speed}MB/s',
+                                                    percentage)
+            text = self._trim_text(text)
+
+            sys.stdout.write(text)
             sys.stdout.flush()
+
+    def __exit__(self):
+        sys.stdout.flush()
 
 
 def bucketcheck(fn):
@@ -84,10 +103,14 @@ def bucketcheck(fn):
 
 
 class HCPManager:
-    def __init__(self, endpoint, aws_access_key_id, aws_secret_access_key, debug=False):
-        self.endpoint = endpoint
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
+    def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", bucket=None,credentials_path="", debug=False):
+        self.bucket = bucket
+        if credentials_path != "":
+            self.set_credentials(credentials_path)
+        else:
+            self.endpoint = endpoint
+            self.aws_access_key_id = aws_access_key_id
+            self.aws_secret_access_key = aws_secret_access_key
 
         # Very verbose. Use with care.
         if debug:
@@ -114,15 +137,40 @@ class HCPManager:
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
 
+        self.test_connection()
+
     def list_buckets(self):
         """List all available buckets at endpoint."""
         return [bucket.name for bucket in self.s3.buckets.all()]
 
+    def test_connection(self):
+        """Validate the connection works with as little overhead as possible."""
+        try:
+            if self.bucket is None:
+                raise ConnectionError("No bucket assigned")
+            self.s3.meta.client.head_bucket(Bucket=self.bucket)
+        except ConnectionError:
+            log.error("Invalid access, credentials or bucket")
+
     def attach_bucket(self, bucket):
         """Attempt to attach to the given bucket."""
+        if bucket is None:
+            log.error("Attempted to attach bucket. But no bucket named.")
         self.bucket = self.s3.Bucket(bucket)
         if hasattr(self, 'objects'):
             delattr(self, 'objects')  # Incase of already attached bucket
+
+    def set_credentials(self, credentials_path):
+        """Set endpoint, aws id and aws key using a json-file"""
+        with open(credentials_path, 'r') as inp:
+            c = json.load(inp)
+            self.endpoint = c['endpoint']
+            self.aws_access_key_id = c['aws_access_key_id']
+            self.aws_secret_access_key = c['aws_secret_access_key']
+            log.debug("Credentials file successfully utilized")
+
+        if not all([c['endpoint'], c['aws_access_key_id'], c['aws_secret_access_key']]):
+            raise MissingCredentialsError('One or more credentials missing from keys.json.')
 
     @bucketcheck
     def get_object(self, key):
@@ -160,6 +208,15 @@ class HCPManager:
     @bucketcheck
     def upload_file(self, local_path, remote_key, metadata={}):
         """Upload local file to remote as key with associated metadata."""
+        # Force has been intentionally left out from upload functionality due to risk of overwriting clinical data. 
+        # Should the need arise to remove erroneous data then it must be manually (and therefore fully intentionally) 
+        # deleted prior to uploading
+        prev_remote_obj = self.get_object(remote_key)
+
+        #if force and prev_remote_obj is not None:
+        #    self.delete_object(prev_remote_obj)
+        #    log.info("Removed remote file prior to upload of local file.")
+
         self.bucket.upload_file(local_path,
                                 remote_key,
                                 ExtraArgs={'Metadata': metadata},
@@ -167,8 +224,8 @@ class HCPManager:
                                 Callback=ProgressPercentage(local_path))
         print('')  # Post progressbar correction for stdout
 
-        calculated_etag = calculate_etag(local_path)
         remote_obj = self.get_object(remote_key)
+        calculated_etag = calculate_etag(local_path)
 
         if calculated_etag != remote_obj.e_tag:
             self.delete_object(remote_obj)

@@ -9,36 +9,20 @@ import argparse
 import unittest
 import tempfile
 
-from hcp.hcp import HCPManager
-from hcp.helpers import calculate_etag
+from HCPInterface import WD
+from HCPInterface.hcp.hcp import HCPManager
+from HCPInterface.hcp.helpers import calculate_etag
 
+testWD = os.path.join(WD, '..', 'tests')
+credentials_path = os.path.join(testWD, 'credentials.json')
 
-class MissingCredentialsError(Exception):
-    """Raise on trying to run tests without proper input of HCP credentials."""
-
-ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-
-credentials_path = os.path.join(ROOT_PATH, 'keys.json')
-
-with open(credentials_path, 'r') as inp:
-    credentials = json.load(inp)
-    endpoint = credentials['ep']
-    aws_access_key_id = credentials['aki']
-    aws_secret_access_key = credentials['sak']
-
-
-if not all([endpoint, aws_access_key_id, aws_secret_access_key]):
-    raise MissingCredentialsError('One or more credentials missing from keys.json.')
-
-
-hcpm = HCPManager(endpoint, aws_access_key_id, aws_secret_access_key)
+hcpm = HCPManager(credentials_path=credentials_path)
 hcpm.attach_bucket("ngs-test")
-
 
 class TestProcess(unittest.TestCase):
 
     def test01_upload_file(self):
-        self.assertIsNone(hcpm.upload_file(f"{ROOT_PATH}/data/test_reads_R1.fasterq", "unittest/test_reads_R1.fasterq"))
+        self.assertIsNone(hcpm.upload_file(f"{testWD}/data/test_reads_R1.fasterq", "unittest/test_reads_R1.fasterq"))
 
     def test02_search_objects(self):
         self.assertEqual(hcpm.search_objects("unittest/test_reads_R1.fasterq")[0].key, "unittest/test_reads_R1.fasterq")
@@ -49,7 +33,7 @@ class TestProcess(unittest.TestCase):
 
     def test04_md5_sha256(self):
         remote_etag = hcpm.get_object("unittest/test_reads_R1.fasterq").e_tag
-        calculated_etag = calculate_etag(f"{ROOT_PATH}/data/test_reads_R1.fasterq")
+        calculated_etag = calculate_etag(f"{testWD}/data/test_reads_R1.fasterq")
         self.assertEqual(calculated_etag, remote_etag)
 
     def test05_delete_file(self):

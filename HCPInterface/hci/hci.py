@@ -11,19 +11,22 @@ import json
 import os
 import sys
 
-# Creates template based on template. 
-def create_template(args):
-    with open("hci/template_query.json", "r") as sample:
-        data = json.load(sample)
-        data["indexName"] = args.index
-        data["queryString"] = args.query
+from HCPInterface import WD
 
-    with open("hci/written_query.json", "w") as dumpyboi:
+# Creates template based on template. 
+def create_template(index, query):
+    with open(f"{WD}/hci/template_query.json", "r") as sample:
+        data = json.load(sample)
+        data["indexName"] = index
+        data["queryString"] = query
+
+    with open(f"{WD}/hci/written_query.json", "w") as dumpyboi:
         json.dump(data, dumpyboi, indent=4)
 
 
-def generate_token(args):
-    with open(args.password) as pw:
+def generate_token(password):
+    """Generate a security token from a password"""
+    with open(password) as pw:
         admin_pass = str(pw.readline()).strip()
         my_key = requests.post("https://10.248.2.93:8888/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
             "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
@@ -31,13 +34,17 @@ def generate_token(args):
         return ast.literal_eval(my_key.text)["access_token"].lstrip()
 
 
-# If using query and index.
-def query(token, index):
-    with open ("hci/written_query.json", "r") as mqj:
+def query(token):
+    """Queries the HCI using a token"""
+    with open ("{}/hci/written_query.json".format(WD), "r") as mqj:
         json_data = json.load(mqj)
     response = requests.post("https://10.248.2.95:8888/api/search/query", headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
                              json=json_data, verify=False) 
     return response.text
+
+def pretty_query(token):
+   """Return the result of a query in json loaded format"""
+   return json.loads(query(token))["results"]
 
 
 # If using index, it searches through all indexes if nothing else is specified. 
