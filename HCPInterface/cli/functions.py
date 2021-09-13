@@ -61,24 +61,25 @@ def delete(ctx,query,force):
 
     objs = ctx["hcpm"].search_objects(query) # Get object with query
     if len(objs) < 1:
-        log.info("File: {0} does not exist on {1}".format(query, ctx["hcpm"].bucket.name))
+        log.info(f"File: {query} does not exist on {ctx["hcpm"].bucket.name}")
     else:
-        log.info("Found {0} files matching query".format(len(objs)))
+        log.info(f"Found {len(objs)} files matching query")
         for obj in objs: 
             if not force: 
-                sys.stdout.write("[--] You are about to delete the file {0} on {1}, are you sure? [Y/N]?\n".format(obj.key, ctx["hcpm"].bucket.name))
+                sys.stdout.write(f"[--] You are about to delete the file {obj.key}" \
+                                 f"on {ctx["hcpm"].bucket.name}, are you sure? [Y/N]?\n")
                 sys.stdout.flush()
                 answer = sys.stdin.readline()
                 if answer[0].lower() == "y":
                     ctx["hcpm"].delete_object(obj) # Delete file.
                     time.sleep(2)
-                    log.info("[--] Deleting file \"{0}\" \n".format(query))
+                    log.info(f"[--] Deleting file \"{query}\" \n")
                 else:
-                    log.info("Skipped deleting \"{}\"\n".format(obj.key))
+                    log.info(f"Skipped deleting \"{obj.key}\"\n")
             elif force:
                     ctx["hcpm"].delete_object(obj) # Delete file.
                     time.sleep(2)
-                    log.info("[--] Deleting file \"{0}\" \n".format(query))
+                    log.info(f"[--] Deleting file \"{query}\" \n")
 
 
 @click.command()
@@ -86,7 +87,7 @@ def delete(ctx,query,force):
 @click.option('-d',"--destination",help="Target directory to put files on HCP")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
 @click.option('-f',"--force",is_flag=True,default=False,help="Removes remote file in case of name collision")
-@click.option('-m',"--meta",help="Local path for generated metadata file",default="{}/meta-{}.json".format(os.getcwd(), TIMESTAMP))
+@click.option('-m',"--meta",help="Local path for generated metadata file",default=f"{os.getcwd()}/meta-{TIMESTAMP}.json")
 @click.pass_obj
 def upload(ctx, input, destination, tag, force,meta):
     """Upload fastq files / fastq folder structure"""
@@ -96,7 +97,6 @@ def upload(ctx, input, destination, tag, force,meta):
     if os.path.isdir(input):
         #Recursively loop over all folders
         for root, dirs, files in os.walk(folder):
-            log.debug("{} {} {}".format(root,dirs,files))
             for f in files:
                 try:
                     io.verify_fq_suffix(os.path.join(root,f))
@@ -104,7 +104,7 @@ def upload(ctx, input, destination, tag, force,meta):
                     io.generate_tagmap(os.path.join(root,f), tag, meta_fn)
                     file_lst.append(os.path.join(root,f))
                 except Exception as e:
-                    log.debug("{} is not a valid upload file".format(f))
+                    log.debug(f"{f} is not a valid upload file")
     else:
         input = os.path.abspath(input)
         try:
@@ -113,12 +113,12 @@ def upload(ctx, input, destination, tag, force,meta):
             io.generate_tagmap(input, tag, meta_fn)
             file_lst.append(input)
         except Exception as e:
-            log.debug("{} is not a valid upload file".format(input))
+            log.debug(f"{input} is not a valid upload file")
 
 
     for file_pg in file_lst:
         ctx["hcpm"].upload_file(file_pg, destination, force=force)
-        log.info("Uploading: {}".format(file_pg))
+        log.info("Uploading: {file_pg}")
 
     # Uploads associated json files.
     ctx["hcpm"].upload_file(meta_fn, destination, force=force)
@@ -134,28 +134,25 @@ def download(ctx, destination, query,fast):
     if not fast:
         found_objs = ctx["hcpm"].search_objects(query)
         if len(found_objs) == 0:
-            log.info("File: {} does not exist on {}".format(query, ctx["hcpm"].bucket.name))
+            log.info(f"File: {query} does not exist on {ctx["hcpm"].bucket.name}")
         elif len(found_objs) > 1:
             for obj in found_objs:
-                log.info("Found {} files matching query".format(len(found_obj)))
-                log.info("Download {}? [Y/N]".format(obj))
-                sys.stdout.write("[--] Do you wish to download {0} on {1}? [Y/N]?\n".format(obj.key, ctx["hcpm"].bucket.name))
+                log.info(f"Found {len(found_obj)} files matching query")
+                log.info(f"Download {obj}? [Y/N]")
+                sys.stdout.write(f"[--] Do you wish to download {obj.key} on {ctx["hcpm"].bucket.name}? [Y/N]?\n")
                 sys.stdout.flush()
                 answer = sys.stdin.readline()
                 if answer[0].lower() == "y":
                     obj = ctx["hcpm"].get_object(query) # Get object with key.
                     ctx["hcpm"].download_file(obj, destination, force=True) # Downloads file.
-                    #log.info("Downloaded {}".format(obj.key))
+                    #log.info(f"Downloaded {obj.key}"
 
         elif len(found_objs) == 1:
             obj = ctx["hcpm"].get_object(query) # Get object with key.
             ctx["hcpm"].download_file(obj, destination, force=True) # Downloads file.
-            #log.info("Downloaded {}".format(obj.key))
     elif fast:
         obj = ctx["hcpm"].get_object(query) # Get object with key.
         ctx["hcpm"].download_file(obj, destination, force=True) # Downloads file.
-        #log.info("Downloaded {}".format(obj.key))
-        
 
 def main():
     pass

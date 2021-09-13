@@ -16,12 +16,12 @@ def verify_fq_suffix(fn):
 
     #Check suffix
     if not fn.endswith any(["fastq.gz","fq.gz","fastq","fq"]):
-        raise Exception("File {0} is not a zipped fastq".format(fn))
-    log.debug('Verified that {0} is a zipped fastq'.format(fn))
+        raise Exception(f"File {fn} is not a zipped fastq")
+    log.debug(f'Verified that {fn} is a zipped fastq')
     #Check for unresolved symlink
     if os.path.islink(fn):
         if not os.path.exists(os.readlink(fn)):
-            raise Exception("File {0} is an unresolved symlink".format(fn))
+            raise Exception(f"File {fn} is an unresolved symlink")
 
 
 def verify_fq_content(fn):
@@ -42,12 +42,12 @@ def verify_fq_content(fn):
             lineno = 0
 
         if not corr:
-            raise Exception("File {0} does not look like a fastq at line {1}: {2}".format(fn, lineno, line))
+            raise Exception(f"File{fn} does not look like a fastq at line {lineno}: {line}")
     f1.close()
     
     if lineno % 4 != 0:
-        raise Exception("File {0} is missing data".format(fn))
-    log.debug('Verified that {0} resembles a fastq'.format(fn))
+        raise Exception(f"File {fn} is missing data")
+    log.debug(f'Verified that {fn} resembles a fastq')
 
 def generate_tagmap(fn, tag, out="{}/meta-{}.json".format(os.getcwd(), TIMESTAMP)):
     """Creates a json file with filenames and tags"""
@@ -56,4 +56,4 @@ def generate_tagmap(fn, tag, out="{}/meta-{}.json".format(os.getcwd(), TIMESTAMP
     md = open(out, "a")
     md.write(json.dumps(mdict, indent=4))
     md.close()
-    log.debug('Generated metadata file {}'.format(out))     
+    log.debug(f'Generated metadata file {out}')

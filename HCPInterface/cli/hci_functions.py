@@ -46,14 +46,14 @@ def search(ctx, query):
             samples = itm["samples_Fastq_paths"]
             string = "".join(samples).strip("[]").strip("{]}'")
             lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
-        log.info("Metadata file: {}".format(meta))
+        log.info(f"Metadata file: {meta}")
         for i in lst:
             if query in i or query in os.path.basename(i):
                 log.info("check: ",i)
                 name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
     except:
-        log.info("File(s) does not exists: {}".format(query))
+        log.info(f"File(s) does not exists: {query}")
 
 @hci.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
@@ -71,9 +71,9 @@ def download(ctx, destination, legacy, query):
         for i in samples:
             obj = ctx["hcpm"].get_object(i) # Get object with json.
             if obj is not None:
-                ctx["hcpm"].download_file(obj, "{0}/{1}".format(destination,os.path.basename(i))) # Downloads file.
+                ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(i)}") # Downloads file.
             else:
-                log.error("File: '{0}' does not exist in bucket '{1}' on the HCP".format(s,bucket))
+                log.error(f"File: '{s}' does not exist in bucket '{bucket}' on the HCP")
 
     elif not legacy:
         for item in results:
@@ -89,9 +89,9 @@ def download(ctx, destination, legacy, query):
                 name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
                 obj = ctx["hcpm"].get_object(name) # Get object with json.
                 if obj is not None:
-                    ctx["hcpm"].download_file(obj, "{0}/{1}".format(destination,os.path.basename(name))) # Downloads file.
+                    ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(name)}") # Downloads file.
                 else:
-                    log.error("File: '{0}' does not exist in bucket '{1}' on the HCP".format(name, bucket))
+                    log.error(f"File: '{name}' does not exist in bucket '{bucket}' on the HCP")
 
 def main():
     pass

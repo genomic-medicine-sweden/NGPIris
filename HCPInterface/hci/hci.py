@@ -15,12 +15,12 @@ from HCPInterface import WD
 
 # Creates template based on template. 
 def create_template(index, query):
-    with open("{}/hci/template_query.json".format(WD), "r") as sample:
+    with open(f"{WD}/hci/template_query.json", "r") as sample:
         data = json.load(sample)
         data["indexName"] = index
         data["queryString"] = query
 
-    with open("{}/hci/written_query.json".format(WD), "w") as dumpyboi:
+    with open(f"{WD}/hci/written_query.json", "w") as dumpyboi:
         json.dump(data, dumpyboi, indent=4)
 
 

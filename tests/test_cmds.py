@@ -35,19 +35,20 @@ def test_version(runner):
     assert version in res.stdout
 
 def test_base(runner):
-    cmd = "-b ngs-test -c {0}".format(credentials_path)
+    cmd = f"-b ngs-test -c {credentials_path}"
     res = runner.invoke(root, cmd.split())
     #Command should complain about lack of subcommand
     assert res.exit_code == 2
 
 def test_hci_base(runner):
-    cmd = "-b ngs-test -c {0} hci".format(credentials_path)
+    cmd = f"-b ngs-test -c {credentials_path} hci"
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
 
 def test_upload(runner):
-    cmd = "-b ngs-test -c {0} upload -i {1} -d {2} -m /tmp/meta.json".format(credentials_path, 
-          os.path.join(testWD,"data","test_reads_R1.fastq.gz"), f1target)
+    source = os.path.join(testWD,"data","test_reads_R1.fastq.gz")
+
+    cmd = f"-b ngs-test -c {credentials_path} upload -i {source} -d {f1target} -m /tmp/meta.json"
     log.debug(cmd)
     res = runner.invoke(root, cmd.split()) 
     assert res.exit_code == 0
@@ -58,12 +59,13 @@ def test_upload(runner):
 #    assert res.exit_code == 0 
 
 def test_download(runner):
-    cmd = "-b ngs-test -c {0} download -f -q {1} -d /{2}".format(credentials_path, f1target, os.path.join('tmp','tst.fq'))
+    dest =  os.path.join('tmp','tst.fq')
+    cmd = f"-b ngs-test -c {credentials_path} download -f -q {f1target} -d /{dest}"
     log.debug(cmd)
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
 
 def test_delete(runner):
-    cmd = "-b ngs-test -c {0} delete -q {1} -f".format(credentials_path, f1target)
+    cmd = f"-b ngs-test -c {credentials_path} delete -q {f1target} -f"
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
