@@ -15,8 +15,8 @@ def verify_fq_suffix(fn):
     """Makes sure the provided file looks like a fastq"""
 
     #Check suffix
-    if not fn.endswith any(["fastq.gz","fq.gz","fastq","fq"]):
-        raise Exception(f"File {fn} is not a zipped fastq")
+    if not fn.endswith("fastq.gz","fq.gz","fastq","fq"):
+        raise Exception(f"File {fn} is not a fastq")
     log.debug(f'Verified that {fn} is a zipped fastq')
     #Check for unresolved symlink
     if os.path.islink(fn):
