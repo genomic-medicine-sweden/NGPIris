@@ -1,7 +1,6 @@
 # HCP interfacing tool
-Tools for interfacing with the HCP
-
-https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html
+Package for interfacing with the HCP
+Largely based on [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html)
 
 ## Introduction
 Interfacing with the HCP is done through the HCPManager class. It makes the connection to the specified endpoint with the provided access keys and manages the upload, download, and querying against the contents of the available buckets.
