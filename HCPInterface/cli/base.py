@@ -1,7 +1,7 @@
 import click
 import sys
 
-from HCPInterface import log, version
+from HCPInterface import log
 from HCPInterface.hcp import HCPManager
 from HCPInterface.hci import hci
 from HCPInterface.cli.functions import delete, search, upload, download
@@ -13,7 +13,7 @@ from HCPInterface.cli.hci_functions import hci
 @click.option("-key","--access_key",help="Amazon secret access key",type=str,default="")
 @click.option('-c',"--credentials", help="File containing ep, id & key; instead of using the CLI.",type=str,default="")
 @click.option("-b","--bucket",help="Bucket name",type=str, required=True)
-@click.version_option(version)
+@click.version_option()
 @click.pass_context
 def root(ctx, endpoint, access_key_id, access_key, bucket, credentials):
     """HCP interfacing tool"""

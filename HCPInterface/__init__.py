@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 
-version = '2.1.2'
+__version__ = '2.1.3'
 
 # File work directory
 WD = os.path.dirname(os.path.realpath(__file__))
