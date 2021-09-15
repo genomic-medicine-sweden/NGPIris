@@ -7,9 +7,14 @@ try:
 except IOError:
     install_requires = []
 
+try:
+    ver = __import__('HCPInterface').version
+except ImportError:
+    ver = '1.0.0'
+
 setup(
     name="HCPInterface",
-    version="2.1.0",
+    version=ver,
     long_description=__doc__,
     long_description_content_type="text/markdown",
     url="https://github.com/genomic-medicine-sweden/HCPInterface",
