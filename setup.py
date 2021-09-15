@@ -16,7 +16,7 @@ setup(
     author="Isak Sylvin",
     author_email="isak.sylvin@gu.se",
     project_urls={
-        "Bug Tracker": "/https://github.com/genomic-medicine-sweden/HCPInterface/issues",
+        "Bug Tracker": "https://github.com/genomic-medicine-sweden/HCPInterface/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
