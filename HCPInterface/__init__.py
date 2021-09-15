@@ -2,7 +2,6 @@ import logging
 import os
 from datetime import datetime
 
-version = "2.0.0"
 
 # File work directory
 WD = os.path.dirname(os.path.realpath(__file__))
