@@ -9,6 +9,8 @@ import json
 import sys
 import time
 
+from pathlib import Path
+
 from HCPInterface import log, TIMESTAMP
 from HCPInterface.hcp import HCPManager
 from HCPInterface.io import io
@@ -84,14 +86,17 @@ def delete(ctx,query,force):
 
 @click.command()
 @click.option('-i',"input", type=click.Path(exists=True), required=True)
-@click.option('-d',"--destination",help="Target directory to put files on HCP")
+@click.option('-d',"--destination",help="Destination path on HCP")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
 @click.option('-m',"--meta",help="Local path for generated metadata file",default=f"{os.getcwd()}/meta-{TIMESTAMP}.json")
+@click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.pass_obj
-def upload(ctx, input, destination, tag, meta):
+def upload(ctx, input, destination, tag, meta,silent):
     """Upload fastq files / fastq folder structure"""
-    meta_fn = meta
     file_lst = []
+
+    dstfld = Path(destination)
+    dstfld = dstfld.parent
 
     if os.path.isdir(input):
         #Recursively loop over all folders
@@ -100,35 +105,39 @@ def upload(ctx, input, destination, tag, meta):
                 try:
                     io.verify_fq_suffix(os.path.join(root,f))
                     io.verify_fq_content(os.path.join(root,f))
-                    io.generate_tagmap(os.path.join(root,f), tag, meta_fn)
+                    io.generate_tagmap(os.path.join(root,f), tag, meta)
                     file_lst.append(os.path.join(root,f))
                 except Exception as e:
-                    log.debug(f"{f} is not a valid upload file")
+                    log.debug(f"{f} is not a valid upload file: {e}")
     else:
         input = os.path.abspath(input)
         try:
             io.verify_fq_suffix(input)
             io.verify_fq_content(input)
-            io.generate_tagmap(input, tag, meta_fn)
+            io.generate_tagmap(input, tag, meta)
             file_lst.append(input)
         except Exception as e:
-            log.debug(f"{input} is not a valid upload file")
+            log.debug(f"{input} is not a valid upload file: {e}")
 
 
     for file_pg in file_lst:
-        ctx['hcpm'].upload_file(file_pg, destination)
+        ctx['hcpm'].upload_file(file_pg, destination, silent=silent)
+        #time.sleep(2)
         log.info("Uploading: {file_pg}")
 
+    meta_fn = Path(meta).name
+    
     # Uploads associated json files.
-    ctx['hcpm'].upload_file(meta_fn, destination)
+    ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), silent=silent)
 
 
 @click.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
 @click.option('-q',"--query",help="Specific search query", default="", required=True)
 @click.option('-f',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
+@click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.pass_obj
-def download(ctx, destination, query,fast):
+def download(ctx, destination, query,fast, silent):
     """Download files using a given query"""
     if not fast:
         found_objs = ctx['hcpm'].search_objects(query)
@@ -143,15 +152,15 @@ def download(ctx, destination, query,fast):
                 answer = sys.stdin.readline()
                 if answer[0].lower() == "y":
                     obj = ctx['hcpm'].get_object(query) # Get object with key.
-                    ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+                    ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
                     #log.info(f"Downloaded {obj.key}"
 
         elif len(found_objs) == 1:
             obj = ctx['hcpm'].get_object(query) # Get object with key.
-            ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+            ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
     elif fast:
         obj = ctx['hcpm'].get_object(query) # Get object with key.
-        ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+        ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
 
 def main():
     pass
