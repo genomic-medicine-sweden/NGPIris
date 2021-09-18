@@ -1,19 +1,73 @@
-# HCP interfacing tool
-Package for interfacing with the HCP
-Largely based on [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html)
+# HCP Interface
+HCP Interface is a light-weight tool for interacting with a [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html) backed Hitachi Performance Cluster. 
+HCP Interface is designed with two use cases in mind:
+* A simple, clear, real-time interaction with HCP file management
+* Improving process flow for performing off-site data analysis by using automated transfer scripts
 
 ## Introduction
-Interfacing with the HCP is done through the HCPManager class. It makes the connection to the specified endpoint with the provided access keys and manages the upload, download, and querying against the contents of the available buckets.
 
-The connection is made on the higher-level resource level rather than client level. This may change in the future when more advanced features are desired.
+HCP Interface provides two  parts. 
+A command line interface for intuitive manipulation of single files.
+And a python package to import easy to use file manipulation functions
 
-### Usage
+Both of these modes of interaction pipe processes to the HCPManager class. This class is responsible for connecting to the specified endpoints with the provided access keys and manages the upload, download, and querying against the contents of the available buckets.
+
+The connection is made on a higher resource level rather than client level. This will come to change in the future as more advanced features are introduced.
+
+
+## Usage
+
+### Command Line Interface
+Successful installation means the command `hcpi` is active.
+Run it in the terminal, and view the help for each subcommand.
+
+```hcpi
+Usage: hcpi [OPTIONS] COMMAND [ARGS]...
+
+  HCP interfacing tool
+
+Options:
+  -ep, --endpoint TEXT       Endpoint URL
+  -id, --access_key_id TEXT  Amazon key identifier
+  -key, --access_key TEXT    Amazon secret access key
+  -c, --credentials TEXT     File containing ep, id & key; instead of using
+                             the CLI.
+
+  -b, --bucket TEXT          Bucket name  [required]
+  --version                  Show the version and exit.
+  --help                     Show this message and exit.
+
+Commands:
+  delete    Delete a file on the HCP
+  download  Download files using a given query
+  hci       HCI dependent commands
+  search    List all file hits for a given query
+  upload    Upload fastq files / fastq folder structure
+```
+#### Upload a file
+`hcpi -b BUCKETNAME -c CREDENTIALS_FILE upload -i FILE2UPLOAD -d /tmp/MYDUMBTESTFILE´`
+This command will upload your test file, and a meta-data file, to /tmp/ on the bucket BUCKETNAME. 
+ `-m` will specificy where the meta-data file will be stored locally. Without it the meta-data file will appear in your current directory.
+
+#### Download a file
+`hcpi -b BUCKETNAME -c CREDENTIALS_FILE download -f -q /tmp/MYDUMBTESTFILE -d ./MYDUMBTESTFILE --silent`
+
+This command will download your previously uploaded testfile, and put it in your current directory.
+`-f` will overwrite any locally stored file with the same name
+`--silent` will remove the download progress bar. Which is sometimes useful when scripting
+
+#### Additional commands
+`hcpi` contains more commands and flags for additional operations. Such as search, deleting, or doing things in a more nuanced way. The help menu packaged with the program is always kept up to date, so refer to that to easily discover more.
+
+### As a package
+Listed below are some of the more common use cases.
+For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/io/io.py)
+For an index of all HCPManager functionality, check out [the HCPManager source file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/hcp/hcp.py)
+Finally,
 
 #### Connect to the HCP
-Be careful not to list your access keys publically!
-
 ```python
-from hcp import HCPManager
+from HCPInterface import HCPManager
 
 endpoint = <>
 aws_access_key_id = <>
@@ -22,10 +76,7 @@ aws_secret_access_key = <>
 hcpm = HCPManager(endpoint, aws_access_key_id, aws_secret_access_key)
 ```
 
-#### Attach bucket and get all contents
-The class at present time only manages one bucket connection at a time.
-To work with multiple buckets at once, make two separate HCPManager instantiations and connect to the different buckets.
-
+#### Attach a bucket and get all contents
 ```python
 # Attach a bucket
 hcpm.attach_bucket(<bucket_name>)
@@ -38,57 +89,75 @@ hcpm.attach_bucket(<bucket_name_2)
 # Grab all object summaries in the attached bucket
 objects = hcpm.get_objects()
 ```
-
-#### Getting, searching, and downloading objects/files
-```python
-# Get an object with a known remote key and download it
-obj = hcpm.get_object(<remote_key>)
-hcpm.download_file(obj, <local_file_path>)
-
-# Download object directly from the known remote key
-hcpm.download_file(<remote_key>, <local_file_path>)  # Runs get_object() internally
-
+#### Mundane operations
+##### Use a search string to find files and download them
+```
 # Search for objects with keys containing query string and download them
 found_objs = hcpm.search_objects(<query_string>)
 for obj in found_objs:
     local_file_name = os.path.basename(obj.key)
-    hcpm.download_file(obj, <local_file_path>)
+    hcpm.download_file(obj, <local_file_path>,force=False,silent=True)
 ```
+##### Perform preliminary checks before uploading a fastq file
+```python
+from  HCPInterface.io  import  io
 
-#### Uploading a file
+io.verify_fq_suffix(<local_file_path>)
+io.verify_fq_content(<local_file_path>)
+io.generate_tagmap(<local_file_path>, "microbial", <output_file_path>) #Generates a json file that describes what pipeline to use on the HCP
+```
+##### Uploading a local file
 ```python
 
 # Upload a file
-hcpm.upload_file(<local_file_path>, <remote_key>)
+hcpm.upload_file(<local_file_path>, <remote_key>,silent=False)
 
 # Upload a file with metadata
 # Note that the maximum metadata size is rather small (2KB).
-hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value})
+hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value},silent=True)
 ```
-
-# HCI
-> HCI Search API tool 
-
-## Introduction
-
-Tool using the HCI Search API. Making it possible to search and query an index on HCI linked to data on the HCP.
-Use a password file for connection, if `-o` is used a json file with the results is produced, otherwise the result is printed in stdout.  
-
-### Usage
-
-#### For searching using query (e.g. sample name)
-
+#### HCI dependant operations (currently defunct)
+~~Rather than interfacing directly with the HCI. Files should be searched for using the HCI.~~
+~~This requires the use of a password file for connection.~~
+~~If `-o` is used a json file with the results is produced, otherwise the result is printed in stdout.~~
+##### ~~Search using query (e.g. sample name)~~
 ```
 ./hci.py query -i [index_name] -q [query] -p [password_file] -o [output]
 ```
-
-#### List all queryable indexes and their available fields
-
+##### ~~List all queryable indexes and their available fields~~
 ```
 # Lists all indexes and their fields on the HCI
 ./hci.py index -i all -p [password_file] -o [output]
-
 # Lists specified index and associated fields 
 ./hci.py index -i [index_name] -p [password_file] -o [output]
+```
 
+## Installation 
+### Requirements
+* [Anaconda](https://www.anaconda.com/products/individual-d) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html) installed
+* pip installed
+* HCP credentials 
+
+### Production build
+```
+pip install HCPInterface
+```
+
+### Development build
+``` 
+git clone git@github.com:genomic-medicine-sweden/HCPInterface.git
+cd HCPInterface
+bash setup.sh
+source activate hcpenv
+```
+### HCP Credentials
+
+* Receive your HCP credentials from your HCP admin
+* Edit HCPInterface/credentials.json
+```
+{
+"endpoint" : "https://ACCESSNODESERVERNAME:PORT",
+"aws_access_key_id" : "ALONGSTRINGOFCHARSTHATSYMBOLIZEYOURID",
+"aws_secret_access_key" : "ANEVENLONGERSTRINGOFCHARSTHATSYMBOLIZEYOURPASSWORD"
+}
 ```
