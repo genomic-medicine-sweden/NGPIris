@@ -47,8 +47,9 @@ Commands:
 #### Upload a file
 `hcpi -b BUCKETNAME -c CREDENTIALS_FILE upload -i FILE2UPLOAD -d /tmp/MYDUMBTESTFILE`
 
-This command will upload your test file, and a meta-data file, to /tmp/ on the bucket BUCKETNAME. 
- `-m` will specificy where the meta-data file will be stored locally. Without it the meta-data file will appear in your current directory.
+This command will upload your test file, and a meta-data file, to `/tmp/` on the bucket BUCKETNAME. 
+ `-m` will specificy where the meta-data file will be stored locally. 
+ Without it the meta-data file will appear in your current directory.
 
 #### Download a file
 `hcpi -b BUCKETNAME -c CREDENTIALS_FILE download -f -q /tmp/MYDUMBTESTFILE -d ./MYDUMBTESTFILE --silent`
@@ -62,9 +63,10 @@ This command will download your previously uploaded testfile, and put it in your
 
 ### As a package
 Listed below are some of the more common use cases.
+
 For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/io/io.py)
+
 For an index of all HCPManager functionality, check out [the HCPManager source file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/hcp/hcp.py)
-Finally,
 
 #### Connect to the HCP
 ```python
