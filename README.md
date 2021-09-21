@@ -45,7 +45,8 @@ Commands:
   upload    Upload fastq files / fastq folder structure
 ```
 #### Upload a file
-`hcpi -b BUCKETNAME -c CREDENTIALS_FILE upload -i FILE2UPLOAD -d /tmp/MYDUMBTESTFILE´`
+`hcpi -b BUCKETNAME -c CREDENTIALS_FILE upload -i FILE2UPLOAD -d /tmp/MYDUMBTESTFILE`
+
 This command will upload your test file, and a meta-data file, to /tmp/ on the bucket BUCKETNAME. 
  `-m` will specificy where the meta-data file will be stored locally. Without it the meta-data file will appear in your current directory.
 
