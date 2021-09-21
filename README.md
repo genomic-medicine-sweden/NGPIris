@@ -67,7 +67,7 @@ Finally,
 
 #### Connect to the HCP
 ```python
-from HCPInterface import HCPManager
+from HCPInterface.hcp import HCPManager
 
 endpoint = <>
 aws_access_key_id = <>
