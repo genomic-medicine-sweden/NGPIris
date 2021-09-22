@@ -246,7 +246,7 @@ class HCPManager:
             if not force:
                 raise LocalFileExistsError(f'Local file already exists: {local_path}')
 
-        cb = ProgressPercentage(local_path)
+        cb = ProgressPercentage(obj)
         if silent:
             cb = ""
         self.bucket.download_file(obj.key,
