@@ -4,6 +4,7 @@
 Module for file validation and generation
 """
 
+import csv
 import gzip
 import json
 import os
@@ -63,13 +64,70 @@ def read_credentials(credentials_path):
     """Set endpoint, aws id and aws key using a json-file"""
     with open(credentials_path, 'r') as inp:
         c = json.load(inp)
-        ep = c['endpoint']
-        aid = c['aws_access_key_id']
-        key = c['aws_secret_access_key']
-        log.debug("Credentials file successfully utilized")
+
+    ep = c['endpoint']
+    aid = c['aws_access_key_id']
+    key = c['aws_secret_access_key']
+    log.debug("Credentials file successfully utilized")
 
     if not all([c['endpoint'], c['aws_access_key_id'], c['aws_secret_access_key']]):
         raise MissingCredentialsError('One or more values missing from provided json.')
 
     return [ep,aid,key]
+
+def verify_metadata(fn, type=""):
+    """Verifies that the metadata contains expected values"""
+    if type == "covid"
+        verify_covidmd(fn)
+    else:
+        log.error("Cannot verify metadata without providing a type""")
+
+def verify_covidmd(fn):
+    """Verifies that covid metadata contains expected values"""
+    j = open(fn)
+    metad = json.load(j)
+
+    #Read fields definition
+    with open(f'{WD}/credentials/covidMetadataTemplate.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        fields = next(reader)
+        #for row in spamreader:
+        #    print(', '.join(row))
+
+    #Check field presence
+    warns = 0    
+    for f in fields:
+        if not f in metad.keys():
+            log.warning(f"Field '{f}' not present in {fn}")
+            warns = warns + 1
+    if warns > 0:
+        log.error(f"{warns} warnings produced when reading metadata file")
+
+    #Read fields definition
+    with open(f'{WD}/credentials/covidMetadataAllowedValues.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        fields = next(reader)
+ 
+
+    ##Check field allowed values
+    ##From xls template
+    #n = range(1,99)
+    #nums = [f'{i:02}' for i in nums] 
+    #if not j['regionkod'] in nums:
+    #    log.error(f"Regionkod contains invalid value {j['regionkod']")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
