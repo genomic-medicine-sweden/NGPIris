@@ -200,7 +200,7 @@ class HCPManager:
         return [obj for obj in self.objects if string in obj.key]
 
     @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={},silent=False):
+    def upload_file(self, local_path, remote_key, metadata={},callback=ProgressPercentage(local_path)):
         """Upload local file to remote as key with associated metadata."""
         # Force has been intentionally left out from upload functionality due to risk of overwriting clinical data. 
         # Should the need arise to remove erroneous data then it must be manually (and therefore fully intentionally) 
@@ -210,14 +210,11 @@ class HCPManager:
         #if force and prev_remote_obj is not None:
         #    self.delete_object(prev_remote_obj)
         #    log.info("Removed remote file prior to upload of local file.")
-        cb = ProgressPercentage(local_path)
-        if silent:
-            cb = ""
         self.bucket.upload_file(local_path,
                                 remote_key,
                                 ExtraArgs={'Metadata': metadata},
                                 Config=self.transfer_config,
-                                Callback=cb)
+                                Callback=callback)
         print('')  # Post progressbar correction for stdout
 
         remote_obj = self.get_object(remote_key)
@@ -228,7 +225,7 @@ class HCPManager:
             raise MismatchChecksumError('Local and remote file checksums differ. Removing remote file.')
 
     @bucketcheck
-    def download_file(self, obj, local_path, force=False, silent=False):
+    def download_file(self, obj, local_path, force=False, callback=ProgressPercentage(obj)):
         """Download objects file to specified local file."""
         if isinstance(obj, str):
             obj = self.get_object(obj)
@@ -240,12 +237,9 @@ class HCPManager:
             if not force:
                 raise LocalFileExistsError(f'Local file already exists: {local_path}')
 
-        cb = ProgressPercentage(obj)
-        if silent:
-            cb = ""
         self.bucket.download_file(obj.key,
                                   local_path,
-                                  Callback=cb)
+                                  Callback=callback)
         print('')  # Post progressbar correction for stdout
 
 

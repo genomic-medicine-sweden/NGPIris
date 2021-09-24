@@ -121,7 +121,10 @@ def upload(ctx, input, destination, tag, meta,silent):
 
 
     for file_pg in file_lst:
-        ctx['hcpm'].upload_file(file_pg, destination, silent=silent)
+        if silent:
+            ctx['hcpm'].upload_file(file_pg, destination, callback="")
+        else:
+            ctx['hcpm'].upload_file(file_pg, destination)
         #time.sleep(2)
         log.info("Uploading: {file_pg}")
 
@@ -152,15 +155,25 @@ def download(ctx, destination, query,fast, silent):
                 answer = sys.stdin.readline()
                 if answer[0].lower() == "y":
                     obj = ctx['hcpm'].get_object(query) # Get object with key.
-                    ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
+                    if silent:
+                        ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+                    else:
+                        ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
                     #log.info(f"Downloaded {obj.key}"
 
         elif len(found_objs) == 1:
             obj = ctx['hcpm'].get_object(query) # Get object with key.
-            ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
+            if silent:
+                ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+            else:
+                ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+ 
     elif fast:
         obj = ctx['hcpm'].get_object(query) # Get object with key.
-        ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
+        if silent:
+            ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+        else:
+            ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
 
 def main():
     pass

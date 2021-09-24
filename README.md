@@ -99,7 +99,7 @@ objects = hcpm.get_objects()
 found_objs = hcpm.search_objects(<query_string>)
 for obj in found_objs:
     local_file_name = os.path.basename(obj.key)
-    hcpm.download_file(obj, <local_file_path>,force=False,silent=True)
+    hcpm.download_file(obj, <local_file_path>,force=False,callback="")
 ```
 ##### Perform preliminary checks before uploading a fastq file
 ```python
@@ -113,11 +113,11 @@ io.generate_tagmap(<local_file_path>, "microbial", <output_file_path>) #Generate
 ```python
 
 # Upload a file
-hcpm.upload_file(<local_file_path>, <remote_key>,silent=False)
+hcpm.upload_file(<local_file_path>, <remote_key>)
 
 # Upload a file with metadata
 # Note that the maximum metadata size is rather small (2KB).
-hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value},silent=True)
+hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value},callback="")
 ```
 #### HCI dependant operations (currently defunct)
 ~~Rather than interfacing directly with the HCI. Files should be searched for using the HCI.~~
