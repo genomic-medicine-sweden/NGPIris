@@ -33,6 +33,10 @@ def test_version(runner):
     res = runner.invoke(root, '--version')
     assert res.exit_code == 0
 
+###
+### All the below test rely on bucket "ngs-test" existing!
+###
+
 def test_base(runner):
     cmd = f"-b ngs-test -c {credentials_path}"
     res = runner.invoke(root, cmd.split())
