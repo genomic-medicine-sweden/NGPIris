@@ -1,4 +1,5 @@
 # User specified ignores
+tests/*credentials.json
 *credentials.json
 *.swp
 *_query.json

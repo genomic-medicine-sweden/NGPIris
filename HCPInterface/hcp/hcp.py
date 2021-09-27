@@ -200,8 +200,12 @@ class HCPManager:
         return [obj for obj in self.objects if string in obj.key]
 
     @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={},callback=ProgressPercentage(local_path)):
+    def upload_file(self, local_path, remote_key, metadata={},callback="default"):
         """Upload local file to remote as key with associated metadata."""
+        #Stupid workaround
+        if callback == "default":
+            callback = ProgressPercentage(local_path)
+
         # Force has been intentionally left out from upload functionality due to risk of overwriting clinical data. 
         # Should the need arise to remove erroneous data then it must be manually (and therefore fully intentionally) 
         # deleted prior to uploading
@@ -225,8 +229,13 @@ class HCPManager:
             raise MismatchChecksumError('Local and remote file checksums differ. Removing remote file.')
 
     @bucketcheck
-    def download_file(self, obj, local_path, force=False, callback=ProgressPercentage(obj)):
+    def download_file(self, obj, local_path, force=False, callback="default"):
         """Download objects file to specified local file."""
+        #Stupid workaround
+        if callback == "default":
+            callback = ProgressPercentage(obj)
+ 
+
         if isinstance(obj, str):
             obj = self.get_object(obj)
 

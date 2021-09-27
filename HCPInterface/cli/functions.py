@@ -131,8 +131,10 @@ def upload(ctx, input, destination, tag, meta,silent):
     meta_fn = Path(meta).name
     
     # Uploads associated json files.
-    ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), silent=silent)
-
+    if silent:
+        ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), callback="")
+    else:
+        ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn))
 
 @click.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
