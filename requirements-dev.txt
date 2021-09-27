@@ -16,7 +16,6 @@ cryptography==3.4.8
 dataclasses==0.8
 docutils==0.15.2
 gitlint==0.15.1
-HCPInterface @ file:///home/xsylis/code/gms/HCPInterface
 idna==2.10
 importlib-metadata==4.8.1
 iniconfig==1.1.1
