@@ -64,7 +64,7 @@ This command will download your previously uploaded testfile, and put it in your
 ### As a package
 Listed below are some of the more common use cases.
 
-For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/io/io.py)
+For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/cli/functions.py)
 
 For an index of all HCPManager functionality, check out [the HCPManager source file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/hcp/hcp.py)
 
@@ -117,7 +117,9 @@ hcpm.upload_file(<local_file_path>, <remote_key>)
 
 # Upload a file with metadata
 # Note that the maximum metadata size is rather small (2KB).
+
 hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value},callback="")
+
 ```
 #### HCI dependant operations (currently defunct)
 ~~Rather than interfacing directly with the HCI. Files should be searched for using the HCI.~~
