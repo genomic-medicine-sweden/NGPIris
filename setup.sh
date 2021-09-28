@@ -18,6 +18,6 @@ conda config --add channels bioconda
 pip install -r ${scriptdir}/requirements.txt
 pip install -r ${scriptdir}/requirements-dev.txt
 
-echo "INFO - Installing HCPinterface"
+echo "INFO - Installing NGPIris"
 pip install .
 echo "INFO - Installation complete. Use 'source activate ${NAME}' !"

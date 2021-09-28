@@ -1,7 +1,7 @@
 import os
 
 from configparser import ConfigParser
-from HCPInterface import WD
+from NGPIris import WD
 
 from distutils.sysconfig import get_python_lib
 
@@ -12,7 +12,7 @@ def get_config():
     joiner = "" 
     while not foundpath:
         joiner = os.path.join(joiner, "..")
-        config_path=os.path.join(WD, joiner, 'HCPInterface', 'config.ini')
+        config_path=os.path.join(WD, joiner, 'NGPIris', 'config.ini')
         foundpath = os.path.isfile(config_path)
 
     config.read(config_path)

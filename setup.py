@@ -14,9 +14,9 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points={
-        "console_scripts": ["hcpi=HCPInterface.cli.base:root"],
+        "console_scripts": ["iris=NGPIris.cli.base:root"],
     },
-    data_files=[('HCPInterface', ['config.ini']),
+    data_files=[('NGPIris', ['config.ini']),
                 ('reference', ['reference/covidMetadataAllowedValues.csv', 'reference/covidMetadataTemplate.csv']),
                 ('testdata', ['tests/data/test_reads_R1.fasterq','tests/data/test_reads_R1.fastq.gz','tests/data/test.json'])
                ],

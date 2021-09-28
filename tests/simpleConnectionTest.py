@@ -1,5 +1,5 @@
-from HCPInterface import WD
-from HCPInterface.hcp import HCPManager
+from NGPIris import WD
+from NGPIris.hcp import HCPManager
 import pdb
 
 #pdb.set_trace()

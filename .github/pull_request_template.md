@@ -18,8 +18,8 @@
 ## Test Procedure
 
 ### Installation and initiation
-* `git clone git@github.com:genomic-medicine-sweden/HCPInterface.git`
-* `cd HCPInterface && git checkout <BRANCH>`
+* `git clone git@github.com:genomic-medicine-sweden/NGPIris.git`
+* `cd NGPIris && git checkout <BRANCH>`
 * `bash setup.sh`
 * `source activate hpcenv`
 

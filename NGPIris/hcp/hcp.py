@@ -18,13 +18,13 @@ from botocore.utils import fix_s3_host
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
 
-from HCPInterface.preproc import preproc
-from HCPInterface.hcp.helpers import calculate_etag
-from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
+from NGPIris.preproc import preproc
+from NGPIris.hcp.helpers import calculate_etag
+from NGPIris.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
                                      UnknownSourceTypeError, MismatchChecksumError, 
                                      ConnectionError, MissingCredentialsError)
-from HCPInterface.hcp.config import get_config
-from HCPInterface import log
+from NGPIris.hcp.config import get_config
+from NGPIris import log
 
 
 config = get_config()
