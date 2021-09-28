@@ -22,7 +22,7 @@ from unittest.mock import patch, mock_open
 testWD = os.path.join(WD, '..', 'tests')
 credentials_path = os.path.join(testWD, 'credentials.json')
 f1target =  os.path.join("unittest","test_reads_R1.fastq.gz") 
-bucket = "gms-mikro"
+bucket = "ngs-test"
 
 @pytest.fixture
 def runner():
@@ -52,7 +52,6 @@ def test_upload(runner):
     source = os.path.join(testWD,"data","test_reads_R1.fastq.gz")
 
     cmd = f"-b {bucket} -c {credentials_path} upload -i {source} -d {f1target} -m /tmp/meta.json --silent"
-    #import pdb; pdb.set_trace()
     log.debug(cmd)
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
@@ -72,7 +71,6 @@ def test_download(runner):
 def test_delete(runner):
     cmd1 = f"-b {bucket} -c {credentials_path} delete -q {f1target} -f"
     res1 = runner.invoke(root, cmd1.split())
-    #assert res.exit_code == 0
     cmd2 = f"-b {bucket} -c {credentials_path} delete -q {os.path.join('unittest','meta.json')} -f"
     res2 = runner.invoke(root, cmd2.split())
     assert res1.exit_code == 0

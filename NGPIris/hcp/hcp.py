@@ -154,6 +154,9 @@ class HCPManager:
         except ConnectionError:
             log.error("Invalid access, credentials or bucket")
 
+    def set_bucket(self, bucket):
+        self.bucket = bucket
+
     def attach_bucket(self, bucket):
         """Attempt to attach to the given bucket."""
         if bucket is None:
