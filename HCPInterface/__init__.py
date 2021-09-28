@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 
-__version__ = '2.1.3'
+__version__ = '2.2.0'
 logformat =  logging.Formatter("[%(asctime)s] - %(levelname)s: %(message)s")
 
 # File work directory
