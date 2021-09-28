@@ -5,3 +5,4 @@ include freeze.txt
 include profile.json
 include config.ini
 recursive-include tests/data/ *
+recursive-include reference/ *

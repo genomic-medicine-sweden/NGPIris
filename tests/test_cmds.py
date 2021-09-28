@@ -33,6 +33,10 @@ def test_version(runner):
     res = runner.invoke(root, '--version')
     assert res.exit_code == 0
 
+###
+### All the below test rely on bucket "ngs-test" existing!
+###
+
 def test_base(runner):
     cmd = f"-b ngs-test -c {credentials_path}"
     res = runner.invoke(root, cmd.split())
@@ -53,10 +57,10 @@ def test_upload(runner):
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
 
-#def test_search(runner):
-#    cmd = "-b ngs-test -c {0} search -q {1}".format(credentials_path, f1target)
-#    res = runner.invoke(root, cmd.split())
-#    assert res.exit_code == 0 
+def test_search(runner):
+    cmd = "-b ngs-test -c {0} search -q {1}".format(credentials_path, f1target)
+    res = runner.invoke(root, cmd.split())
+    assert res.exit_code == 0 
 
 def test_download(runner):
     dest =  os.path.join('tmp','tst.fq')

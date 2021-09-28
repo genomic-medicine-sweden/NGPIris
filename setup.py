@@ -16,4 +16,8 @@ setup(
     entry_points={
         "console_scripts": ["hcpi=HCPInterface.cli.base:root"],
     },
+    data_files=[('config', ['config.ini']),
+                ('reference', ['reference/covidMetadataAllowedValues.csv', 'reference/covidMetadataTemplate.csv']),
+                ('testdata', ['tests/data/test_reads_R1.fasterq','tests/data/test_reads_R1.fastq.gz','tests/data/test.json'])
+               ],
 )

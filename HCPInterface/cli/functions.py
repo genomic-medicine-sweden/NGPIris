@@ -13,7 +13,7 @@ from pathlib import Path
 
 from HCPInterface import log, TIMESTAMP
 from HCPInterface.hcp import HCPManager
-from HCPInterface.io import io
+from HCPInterface.preproc import preproc
 
 ##############################################
 
@@ -103,33 +103,38 @@ def upload(ctx, input, destination, tag, meta,silent):
         for root, dirs, files in os.walk(folder):
             for f in files:
                 try:
-                    io.verify_fq_suffix(os.path.join(root,f))
-                    io.verify_fq_content(os.path.join(root,f))
-                    io.generate_tagmap(os.path.join(root,f), tag, meta)
+                    preproc.verify_fq_suffix(os.path.join(root,f))
+                    preproc.verify_fq_content(os.path.join(root,f))
+                    preproc.generate_tagmap(os.path.join(root,f), tag, meta)
                     file_lst.append(os.path.join(root,f))
                 except Exception as e:
                     log.debug(f"{f} is not a valid upload file: {e}")
     else:
         input = os.path.abspath(input)
         try:
-            io.verify_fq_suffix(input)
-            io.verify_fq_content(input)
-            io.generate_tagmap(input, tag, meta)
+            preproc.verify_fq_suffix(input)
+            preproc.verify_fq_content(input)
+            preproc.generate_tagmap(input, tag, meta)
             file_lst.append(input)
         except Exception as e:
             log.debug(f"{input} is not a valid upload file: {e}")
 
 
     for file_pg in file_lst:
-        ctx['hcpm'].upload_file(file_pg, destination, silent=silent)
+        if silent:
+            ctx['hcpm'].upload_file(file_pg, destination, callback="")
+        else:
+            ctx['hcpm'].upload_file(file_pg, destination)
         #time.sleep(2)
         log.info("Uploading: {file_pg}")
 
     meta_fn = Path(meta).name
     
     # Uploads associated json files.
-    ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), silent=silent)
-
+    if silent:
+        ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), callback="")
+    else:
+        ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn))
 
 @click.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
@@ -152,15 +157,25 @@ def download(ctx, destination, query,fast, silent):
                 answer = sys.stdin.readline()
                 if answer[0].lower() == "y":
                     obj = ctx['hcpm'].get_object(query) # Get object with key.
-                    ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
+                    if silent:
+                        ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+                    else:
+                        ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
                     #log.info(f"Downloaded {obj.key}"
 
         elif len(found_objs) == 1:
             obj = ctx['hcpm'].get_object(query) # Get object with key.
-            ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
+            if silent:
+                ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+            else:
+                ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+ 
     elif fast:
         obj = ctx['hcpm'].get_object(query) # Get object with key.
-        ctx['hcpm'].download_file(obj, destination, force=True,silent=silent) # Downloads file.
+        if silent:
+            ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+        else:
+            ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
 
 def main():
     pass
