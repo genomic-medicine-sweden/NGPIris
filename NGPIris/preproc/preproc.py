@@ -10,9 +10,9 @@ import json
 import os
 import re
 
-from HCPInterface import log, WD, TIMESTAMP
+from NGPIris import log, WD, TIMESTAMP
 
-from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
+from NGPIris.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
                                      UnknownSourceTypeError, MismatchChecksumError,
                                      ConnectionError, MissingCredentialsError)
 

@@ -18,13 +18,13 @@ from botocore.utils import fix_s3_host
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
 
-from HCPInterface.preproc import preproc
-from HCPInterface.hcp.helpers import calculate_etag
-from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
+from NGPIris.preproc import preproc
+from NGPIris.hcp.helpers import calculate_etag
+from NGPIris.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
                                      UnknownSourceTypeError, MismatchChecksumError, 
                                      ConnectionError, MissingCredentialsError)
-from HCPInterface.hcp.config import get_config
-from HCPInterface import log
+from NGPIris.hcp.config import get_config
+from NGPIris import log
 
 
 config = get_config()
@@ -103,7 +103,8 @@ def bucketcheck(fn):
 
 
 class HCPManager:
-    def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", bucket=None,credentials_path="", debug=False):
+    def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", \
+                 bucket=None,credentials_path="", autotest=True, debug=False):
         self.bucket = bucket
         
         if credentials_path != "":
@@ -136,8 +137,9 @@ class HCPManager:
                                               multipart_chunksize=config.getint('hcp', 'chunk_size'))
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
-
-        self.test_connection()
+      
+        if autotest:
+            self.test_connection()
 
     def list_buckets(self):
         """List all available buckets at endpoint."""
@@ -151,6 +153,9 @@ class HCPManager:
             self.s3.meta.client.head_bucket(Bucket=self.bucket)
         except ConnectionError:
             log.error("Invalid access, credentials or bucket")
+
+    def set_bucket(self, bucket):
+        self.bucket = bucket
 
     def attach_bucket(self, bucket):
         """Attempt to attach to the given bucket."""

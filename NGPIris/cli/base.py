@@ -2,12 +2,12 @@ import click
 import logging
 import sys
 
-from HCPInterface import log, logformat
-from HCPInterface.hcp import HCPManager
-from HCPInterface.hci import hci
-from HCPInterface.preproc import preproc
-from HCPInterface.cli.functions import delete, search, upload, download
-from HCPInterface.cli.hci_functions import hci
+from NGPIris import log, logformat
+from NGPIris.hcp import HCPManager
+from NGPIris.hci import hci
+from NGPIris.preproc import preproc
+from NGPIris.cli.functions import delete, search, upload, download
+from NGPIris.cli.hci_functions import hci
 
 @click.group()
 @click.option('-c',"--credentials", help="File containing ep, id & key",type=click.Path(),required=True)
@@ -19,7 +19,7 @@ from HCPInterface.cli.hci_functions import hci
 @click.version_option()
 @click.pass_context
 def root(ctx, endpoint, access_key_id, access_key, bucket, credentials,logfile):
-    """HCP interfacing tool"""
+    """NGP intelligence and repository interface software"""
     [ep, aid, key] = preproc.read_credentials(credentials)
 
     if endpoint != "":

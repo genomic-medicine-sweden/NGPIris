@@ -9,9 +9,9 @@ import argparse
 import unittest
 import tempfile
 
-from HCPInterface import WD
-from HCPInterface.hcp.hcp import HCPManager
-from HCPInterface.hcp.helpers import calculate_etag
+from NGPIris import WD
+from NGPIris.hcp.hcp import HCPManager
+from NGPIris.hcp.helpers import calculate_etag
 
 testWD = os.path.join(WD, '..', 'tests')
 credentials_path = os.path.join(testWD, 'credentials.json')

@@ -11,7 +11,7 @@ import json
 import os
 import sys
 
-from HCPInterface import WD
+from NGPIris import WD
 
 # Creates template based on template. 
 def create_template(index, query):

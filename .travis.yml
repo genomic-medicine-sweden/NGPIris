@@ -17,13 +17,13 @@ install:
 - conda info
 - echo $LANG
                     
-## Install HCPInterface
-- bash <(curl https://raw.githubusercontent.com/genomic-medicine-sweden/HCPInterface/$branch/setup.sh) 
+## Install NGPIris
+- bash <(curl https://raw.githubusercontent.com/genomic-medicine-sweden/NGPIris/$branch/setup.sh) 
 - source activate hcpenv
 
 script:
     - pip check
-    - pytest --cov=HCPInterface tests/
+    - pytest --cov=NGPIris tests/
     #- git log -n 10|gitlint
 
 after_success: coveralls

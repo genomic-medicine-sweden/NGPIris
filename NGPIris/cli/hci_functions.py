@@ -9,9 +9,9 @@ import json
 import sys
 import time
 
-from HCPInterface import log, WD
-from HCPInterface.hcp import HCPManager
-from HCPInterface.hci import hci as HCI
+from NGPIris import log, WD
+from NGPIris.hcp import HCPManager
+from NGPIris.hci import hci as HCI
 
 ##############################################
 

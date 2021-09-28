@@ -1,12 +1,12 @@
-# HCP Interface
-HCP Interface is a light-weight tool for interacting with a [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html) backed Hitachi Content Platform. 
-HCP Interface is designed with two use cases in mind:
-* A simple, clear, real-time interaction with HCP file management
+# NGP Iris
+NGP Iris is a light-weight tool for interacting with a [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html) backed Hitachi Content Platform. 
+NGP Iris is designed with two use cases in mind:
+* A simple, clear, real-time interaction with NGPr file management
 * Improving process flow for performing off-site data analysis by using automated transfer scripts
 
 ## Introduction
 
-HCP Interface provides two  parts. 
+NGP Iris provides two  parts. 
 A command line interface for intuitive manipulation of single files.
 And a python package to import easy to use file manipulation functions
 
@@ -24,7 +24,7 @@ Run it in the terminal, and view the help for each subcommand.
 ```hcpi
 Usage: hcpi [OPTIONS] COMMAND [ARGS]...
 
-  HCP interfacing tool
+  NGP interfacing tool
 
 Options:
   -ep, --endpoint TEXT       Endpoint URL
@@ -38,7 +38,7 @@ Options:
   --help                     Show this message and exit.
 
 Commands:
-  delete    Delete a file on the HCP
+  delete    Delete a file on the NGPr
   download  Download files using a given query
   hci       HCI dependent commands
   search    List all file hits for a given query
@@ -64,13 +64,13 @@ This command will download your previously uploaded testfile, and put it in your
 ### As a package
 Listed below are some of the more common use cases.
 
-For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/cli/functions.py)
+For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/cli/functions.py)
 
-For an index of all HCPManager functionality, check out [the HCPManager source file](https://github.com/genomic-medicine-sweden/HCPInterface/blob/master/HCPInterface/hcp/hcp.py)
+For an index of all HCPManager functionality, check out [the HCPManager source file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/hcp/hcp.py)
 
 #### Connect to the HCP
 ```python
-from HCPInterface.hcp import HCPManager
+from NGPIris.hcp import HCPManager
 
 endpoint = <>
 aws_access_key_id = <>
@@ -82,7 +82,7 @@ hcpm = HCPManager(endpoint, aws_access_key_id, aws_secret_access_key)
 or more effectively
 
 ```python
-from HCPInterface.hcp import HCPManager
+from NGPIris.hcp import HCPManager
 
 hcpm = HCPManager(credentials_path="./credentials.json",bucket="ngs-test")
 hcpm.test_connection()
@@ -112,11 +112,11 @@ for obj in found_objs:
 ```
 ##### Perform preliminary checks before uploading a fastq file
 ```python
-from  HCPInterface.io  import  io
+from  NGPIris.io  import  io
 
 io.verify_fq_suffix(<local_file_path>)
 io.verify_fq_content(<local_file_path>)
-io.generate_tagmap(<local_file_path>, "microbial", <output_file_path>) #Generates a json file that describes what pipeline to use on the HCP
+io.generate_tagmap(<local_file_path>, "microbial", <output_file_path>) #Generates a json file that describes what pipeline to use on the NGPr
 ```
 ##### Uploading a local file
 ```python
@@ -150,24 +150,24 @@ hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value},callba
 ### Requirements
 * [Anaconda](https://www.anaconda.com/products/individual-d) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html) installed
 * pip installed
-* HCP credentials 
+* NGPr credentials 
 
 ### Production build
 ```
-pip install HCPInterface
+pip install NGPIris
 ```
 
 ### Development build
 ``` 
-git clone git@github.com:genomic-medicine-sweden/HCPInterface.git
-cd HCPInterface
+git clone git@github.com:genomic-medicine-sweden/NGPIris.git
+cd NGPIris
 bash setup.sh
 source activate hcpenv
 ```
-### HCP Credentials
+### NGPr Credentials
 
-* Receive your HCP credentials from your HCP admin
-* Edit HCPInterface/credentials.json
+* Receive your NGPr credentials from your local NGP admin
+* Edit NGPIris/credentials.json
 ```
 {
 "endpoint" : "https://ACCESSNODESERVERNAME:PORT",

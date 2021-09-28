@@ -11,9 +11,9 @@ import time
 
 from pathlib import Path
 
-from HCPInterface import log, TIMESTAMP
-from HCPInterface.hcp import HCPManager
-from HCPInterface.preproc import preproc
+from NGPIris import log, TIMESTAMP
+from NGPIris.hcp import HCPManager
+from NGPIris.preproc import preproc
 
 ##############################################
 
