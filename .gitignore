@@ -2,7 +2,7 @@
 tests/*credentials.json
 *credentials.json
 *.swp
-*_query.json
+#*_query.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
