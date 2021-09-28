@@ -103,7 +103,8 @@ def bucketcheck(fn):
 
 
 class HCPManager:
-    def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", bucket=None,credentials_path="", debug=False):
+    def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", \
+                 bucket=None,credentials_path="", autotest=True, debug=False):
         self.bucket = bucket
         
         if credentials_path != "":
@@ -136,8 +137,9 @@ class HCPManager:
                                               multipart_chunksize=config.getint('hcp', 'chunk_size'))
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
-
-        self.test_connection()
+      
+        if autotest:
+            self.test_connection()
 
     def list_buckets(self):
         """List all available buckets at endpoint."""
