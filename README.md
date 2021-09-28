@@ -79,6 +79,15 @@ aws_secret_access_key = <>
 hcpm = HCPManager(endpoint, aws_access_key_id, aws_secret_access_key)
 ```
 
+or more effectively
+
+```python
+from HCPInterface.hcp import HCPManager
+
+hcpm = HCPManager(credentials_path="./credentials.json",bucket="ngs-test")
+hcpm.test_connection()
+```
+
 #### Attach a bucket and get all contents
 ```python
 # Attach a bucket
