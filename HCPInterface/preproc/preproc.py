@@ -12,6 +12,11 @@ import re
 
 from HCPInterface import log, WD, TIMESTAMP
 
+from HCPInterface.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
+                                     UnknownSourceTypeError, MismatchChecksumError,
+                                     ConnectionError, MissingCredentialsError)
+
+
 def verify_fq_suffix(fn):
     """Makes sure the provided file looks like a fastq"""
 
