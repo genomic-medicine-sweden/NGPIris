@@ -12,8 +12,8 @@ import mock
 import os
 import sys
 
-from HCPInterface import log, WD
-from HCPInterface.cli.base import root
+from NGPIris import log, WD
+from NGPIris.cli.base import root
 
 from click.testing import CliRunner
 from distutils.sysconfig import get_python_lib
