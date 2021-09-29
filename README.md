@@ -18,11 +18,11 @@ The connection is made on a higher resource level rather than client level. This
 ## Usage
 
 ### Command Line Interface
-Successful installation means the command `hcpi` is active.
+Successful installation means the command `iris` is active.
 Run it in the terminal, and view the help for each subcommand.
 
-```hcpi
-Usage: hcpi [OPTIONS] COMMAND [ARGS]...
+```iris
+Usage: iris [OPTIONS] COMMAND [ARGS]...
 
   NGP interfacing tool
 
@@ -45,21 +45,21 @@ Commands:
   upload    Upload fastq files / fastq folder structure
 ```
 #### Upload a file
-`hcpi -b BUCKETNAME -c CREDENTIALS_FILE upload -i FILE2UPLOAD -d /tmp/MYDUMBTESTFILE`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE upload -i FILE2UPLOAD -d /tmp/MYDUMBTESTFILE`
 
 This command will upload your test file, and a meta-data file, to `/tmp/` on the bucket BUCKETNAME. 
  `-m` will specificy where the meta-data file will be stored locally. 
  Without it the meta-data file will appear in your current directory.
 
 #### Download a file
-`hcpi -b BUCKETNAME -c CREDENTIALS_FILE download -f -q /tmp/MYDUMBTESTFILE -d ./MYDUMBTESTFILE --silent`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE download -f -q /tmp/MYDUMBTESTFILE -d ./MYDUMBTESTFILE --silent`
 
 This command will download your previously uploaded testfile, and put it in your current directory.
 `-f` will overwrite any locally stored file with the same name
 `--silent` will remove the download progress bar. Which is sometimes useful when scripting
 
 #### Additional commands
-`hcpi` contains more commands and flags for additional operations. Such as search, deleting, or doing things in a more nuanced way. The help menu packaged with the program is always kept up to date, so refer to that to easily discover more.
+`iris` contains more commands and flags for additional operations. Such as search, deleting, or doing things in a more nuanced way. The help menu packaged with the program is always kept up to date, so refer to that to easily discover more.
 
 ### As a package
 Listed below are some of the more common use cases.
