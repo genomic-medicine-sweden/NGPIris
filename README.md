@@ -95,8 +95,8 @@ hcpm.attach_bucket(<bucket_name>)
 
 # Attaching to new bucket with already attached bucket
 # This flushes the previous buckets object listing
-hcpm.attach_bucket(<bucket_name_1)
-hcpm.attach_bucket(<bucket_name_2)
+hcpm.set_bucket("bucket_name_1")
+hcpm.attach_bucket(bucket_instance_1)
 
 # Grab all object summaries in the attached bucket
 objects = hcpm.get_objects()
