@@ -44,7 +44,7 @@ def search(ctx, query, file):
         #Search for each item in query file
         qdict = {}
         for line in lines:
-            log.info('[-- query: {line} --]')
+            log.info(f"[-- query: {line} --]")
             found_objs = ctx['hcpm'].search_objects(line)
             if len(found_objs) > 0:
                 for obj in found_objs:
