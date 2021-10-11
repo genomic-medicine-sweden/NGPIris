@@ -1,4 +1,4 @@
-# NGP Iris
+# NGP Iris 👁
 NGP Iris is a light-weight tool for interacting with a [Boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html) backed Hitachi Content Platform. 
 NGP Iris is designed with two use cases in mind:
 * A simple, clear, real-time interaction with NGPr file management
