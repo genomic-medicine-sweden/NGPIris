@@ -97,6 +97,8 @@ def upload(ctx, input, destination, tag, meta,silent):
 
     dstfld = Path(destination)
     dstfld = dstfld.parent
+    if dstfld.parts == ():
+        dstfld = ""
 
     if os.path.isdir(input):
         #Recursively loop over all folders
@@ -126,10 +128,9 @@ def upload(ctx, input, destination, tag, meta,silent):
         else:
             ctx['hcpm'].upload_file(file_pg, destination)
         #time.sleep(2)
-        log.info("Uploading: {file_pg}")
+        log.info(f"Uploading: {file_pg}")
 
     meta_fn = Path(meta).name
-    
     # Uploads associated json files.
     if silent:
         ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), callback="")
