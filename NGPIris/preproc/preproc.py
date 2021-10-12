@@ -32,7 +32,7 @@ def verify_fq_suffix(fn):
 
 def verify_fq_content(fn):
     """Makes sure fastq file contains fastq data"""
-    nuc = set("ATCG\n")
+    nuc = set("ATCGN\n")
     lineno = 0
     f1 = gzip.open(fn, "r")
     for line in f1:
