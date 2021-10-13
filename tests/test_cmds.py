@@ -75,3 +75,23 @@ def test_delete(runner):
     res2 = runner.invoke(root, cmd2.split())
     assert res1.exit_code == 0
     assert res2.exit_code == 0
+
+def test_upload_no_destination(runner):
+    source = os.path.join(testWD,"data","test_reads_R1.fastq.gz")
+    code_cnt = 0
+
+    dest = os.path.basename(source)
+
+    cmd = f"-b {bucket} -c {credentials_path} upload -i {source} -m /tmp/meta.json --silent"
+    log.debug(cmd)
+    res = runner.invoke(root, cmd.split())
+    code_cnt = code_cnt + res.exit_code
+    cmd1 = f"-b {bucket} -c {credentials_path} delete -q {dest} -f"
+    res1 = runner.invoke(root, cmd1.split())
+    cmd2 = f"-b {bucket} -c {credentials_path} delete -q meta.json -f"
+    res2 = runner.invoke(root, cmd2.split())
+    code_cnt = code_cnt + res1.exit_code
+    code_cnt = code_cnt + res2.exit_code
+    assert code_cnt == 0
+
+

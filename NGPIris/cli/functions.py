@@ -86,7 +86,7 @@ def delete(ctx,query,force):
 
 @click.command()
 @click.option('-i',"input", type=click.Path(exists=True), required=True)
-@click.option('-d',"--destination",help="Destination path on HCP")
+@click.option('-d',"--destination",help="Destination path on HCP", default="")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
 @click.option('-m',"--meta",help="Local path for generated metadata file",default=f"{os.getcwd()}/meta-{TIMESTAMP}.json")
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
@@ -94,6 +94,10 @@ def delete(ctx,query,force):
 def upload(ctx, input, destination, tag, meta,silent):
     """Upload fastq files / fastq folder structure"""
     file_lst = []
+
+    #Workaround
+    if destination == "":
+        destination = os.path.basename(input)
 
     dstfld = Path(destination)
     dstfld = dstfld.parent
