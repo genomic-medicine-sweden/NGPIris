@@ -63,7 +63,10 @@ class ProgressPercentage(object):
 
     def _trim_text(self, text):
         """Trim text to fit current terminal size."""
-        terminal_width = os.get_terminal_size()[0]
+
+        terminal_width = 80
+        if sys.platform != "win32":
+            terminal_width = os.get_terminal_size()[0]
 
         if len(text) > terminal_width:
             diff = len(text) - terminal_width
@@ -104,8 +107,9 @@ def bucketcheck(fn):
 
 class HCPManager:
     def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", \
-                 bucket=None,credentials_path="", autotest=True, debug=False):
-        self.bucket = bucket
+                 bucket=None, credentials_path="", autotest=True, debug=False):
+        self.bucketname = bucket
+        self.bucket = None
         
         if credentials_path != "":
             [ep, aid, key] = preproc.read_credentials(credentials_path)
@@ -137,7 +141,10 @@ class HCPManager:
                                               multipart_chunksize=config.getint('hcp', 'chunk_size'))
 
         self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
-      
+
+        if self.bucketname:
+            self.attach_bucket(bucket)
+
         if autotest:
             self.test_connection()
 
@@ -148,20 +155,20 @@ class HCPManager:
     def test_connection(self):
         """Validate the connection works with as little overhead as possible."""
         try:
-            if self.bucket is None:
+            if self.bucketname is None:
                 raise ConnectionError("No bucket assigned")
-            self.s3.meta.client.head_bucket(Bucket=self.bucket)
+            self.s3.meta.client.head_bucket(Bucket=self.bucketname)
         except ConnectionError:
             log.error("Invalid access, credentials or bucket")
 
     def set_bucket(self, bucket):
         self.bucket = bucket
 
-    def attach_bucket(self, bucket):
+    def attach_bucket(self, bucketname):
         """Attempt to attach to the given bucket."""
-        if bucket is None:
+        if bucketname is None:
             log.error("Attempted to attach bucket. But no bucket named.")
-        self.bucket = self.s3.Bucket(bucket)
+        self.bucket = self.s3.Bucket(bucketname)
         if hasattr(self, 'objects'):
             delattr(self, 'objects')  # Incase of already attached bucket
 
