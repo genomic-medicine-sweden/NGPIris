@@ -120,6 +120,7 @@ def upload(ctx, input, destination, tag, meta,silent):
             file_lst.append(input)
         except Exception as e:
             log.debug(f"{input} is not a valid upload file: {e}")
+            sys.exit(-1)
 
 
     for file_pg in file_lst:
