@@ -85,7 +85,7 @@ def delete(ctx,query,force):
 
 
 @click.command()
-@click.option('-i',"input", type=click.Path(exists=True), required=True)
+@click.option('-i',"input", type=click.Path(exists=True), required=True, help="File to upload")
 @click.option('-d',"--destination",help="Destination path on HCP", default="")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
 @click.option('-m',"--meta",help="Local path for generated metadata file",default=f"{os.getcwd()}/meta-{TIMESTAMP}.json")
