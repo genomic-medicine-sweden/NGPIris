@@ -166,7 +166,7 @@ class HCPManager:
             log.error("Invalid access, credentials or bucket")
 
     def set_bucket(self, bucket):
-        self.bucket = bucket
+        self.bucketname = bucket
 
     def attach_bucket(self, bucketname):
         """Attempt to attach to the given bucket."""
