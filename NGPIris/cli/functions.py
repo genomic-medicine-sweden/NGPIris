@@ -68,20 +68,20 @@ def delete(ctx,query,force):
         log.info(f"Found {len(objs)} files matching query")
         for obj in objs: 
             if not force: 
-                sys.stdout.write(f"[--] You are about to delete the file {obj.key}" \
+                sys.stdout.write(f"You are about to delete the file {obj.key} " \
                                  f"on {ctx['hcpm'].bucket.name}, are you sure? [Y/N]?\n")
                 sys.stdout.flush()
                 answer = sys.stdin.readline()
                 if answer[0].lower() == "y":
                     ctx['hcpm'].delete_object(obj) # Delete file.
                     time.sleep(2)
-                    log.info(f"[--] Deleting file \"{query}\" \n")
+                    log.info(f"Deleted file {obj.key} \n")
                 else:
-                    log.info(f"Skipped deleting \"{obj.key}\"\n")
+                    log.info(f"Skipped deleting {obj.key} \n")
             elif force:
                     ctx['hcpm'].delete_object(obj) # Delete file.
                     time.sleep(2)
-                    log.info(f"[--] Deleting file \"{query}\" \n")
+                    log.info(f"Deleted file {obj.key} \n")
 
 
 @click.command()
