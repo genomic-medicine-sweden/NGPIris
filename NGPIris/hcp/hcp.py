@@ -48,8 +48,10 @@ class ProgressPercentage(object):
 
         self._previous_time = time.time()
         self._previous_bytesize = self._seen_so_far
-        self._interval = 1
+        self._interval = 0.1
         self._speed = 0
+        self._callcount = 0
+        self._creation_time = time.time()
 
     def _calculate_speed(self):
         curr_time = time.time()
@@ -75,7 +77,9 @@ class ProgressPercentage(object):
         return text
 
     def __call__(self, bytes_amount):
+
         with self._lock:
+            self._callcount = 1 + self._callcount
             self._seen_so_far += bytes_amount
             speed = self._calculate_speed()
             percentage = (self._seen_so_far / self._size) * 100
@@ -85,10 +89,10 @@ class ProgressPercentage(object):
                                                     f'{speed}MB/s',
                                                     percentage)
             text = self._trim_text(text)
-
             sys.stdout.write(text)
             sys.stdout.flush()
-
+            #sys.stdout.write(str(self._callcount))
+ 
     def __exit__(self):
         sys.stdout.flush()
 
@@ -215,9 +219,10 @@ class HCPManager:
     def upload_file(self, local_path, remote_key, metadata={},callback="default"):
         """Upload local file to remote as key with associated metadata."""
         #Stupid workaround
+        cb = False
         if callback == "default":
             callback = ProgressPercentage(local_path)
-
+            cb = True
         # Force has been intentionally left out from upload functionality due to risk of overwriting clinical data. 
         # Should the need arise to remove erroneous data then it must be manually (and therefore fully intentionally) 
         # deleted prior to uploading
@@ -231,7 +236,10 @@ class HCPManager:
                                 ExtraArgs={'Metadata': metadata},
                                 Config=self.transfer_config,
                                 Callback=callback)
-        print('')  # Post progressbar correction for stdout
+        print('')  # Newline after progressbar for stdout
+        if cb:
+            avg_transfer_sec = callback._size/(callback._previous_time - callback._creation_time)
+            log.info(f"Average transfer speed {round(avg_transfer_sec/1000000,2)} MB/s") 
 
         remote_obj = self.get_object(remote_key)
         calculated_etag = calculate_etag(local_path)
@@ -243,13 +251,15 @@ class HCPManager:
     @bucketcheck
     def download_file(self, obj, local_path, force=False, callback="default"):
         """Download objects file to specified local file."""
-        #Stupid workaround
-        if callback == "default":
-            callback = ProgressPercentage(obj)
- 
-
         if isinstance(obj, str):
             obj = self.get_object(obj)
+
+        #Stupid workaround
+        cb = False
+        if callback == "default":
+            callback = ProgressPercentage(obj)
+            cb = True
+ 
 
         if os.path.isdir(local_path):
             local_path = os.path.join(local_path, os.path.basename(obj.key))
@@ -261,7 +271,10 @@ class HCPManager:
         self.bucket.download_file(obj.key,
                                   local_path,
                                   Callback=callback)
-        print('')  # Post progressbar correction for stdout
+        print('')  # Newline after progressbar for stdout
+        if cb:
+            avg_transfer_sec = callback._size/(callback._previous_time - callback._creation_time)
+            log.info(f"Average transfer speed {round(avg_transfer_sec/1000000,2)} MB/s") 
 
 
     @bucketcheck

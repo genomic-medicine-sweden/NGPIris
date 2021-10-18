@@ -51,27 +51,27 @@ def test_hci_base(runner):
 def test_upload(runner):
     source = os.path.join(testWD,"data","test_reads_R1.fastq.gz")
 
-    cmd = f"-b {bucket} -c {credentials_path} upload -i {source} -d {f1target} -m /tmp/meta.json --silent"
+    cmd = f"-b {bucket} -c {credentials_path} upload {source} -o {f1target} -m /tmp/meta.json --silent"
     log.debug(cmd)
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
 
 def test_search(runner):
-    cmd = f"-b {bucket} -c {credentials_path} search -q {f1target}"
+    cmd = f"-b {bucket} -c {credentials_path} search {f1target}"
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0 
 
 def test_download(runner):
     dest =  os.path.join('tmp','tst.fq')
-    cmd = f"-b {bucket} -c {credentials_path} download -f -q {f1target} -d /{dest} --silent"
+    cmd = f"-b {bucket} -c {credentials_path} download -f {f1target} -o /{dest} --silent"
     log.debug(cmd)
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
 
 def test_delete(runner):
-    cmd1 = f"-b {bucket} -c {credentials_path} delete -q {f1target} -f"
+    cmd1 = f"-b {bucket} -c {credentials_path} delete {f1target} -f"
     res1 = runner.invoke(root, cmd1.split())
-    cmd2 = f"-b {bucket} -c {credentials_path} delete -q {os.path.join('unittest','meta.json')} -f"
+    cmd2 = f"-b {bucket} -c {credentials_path} delete {os.path.join('unittest','meta.json')} -f"
     res2 = runner.invoke(root, cmd2.split())
     assert res1.exit_code == 0
     assert res2.exit_code == 0
@@ -82,13 +82,13 @@ def test_upload_no_destination(runner):
 
     dest = os.path.basename(source)
 
-    cmd = f"-b {bucket} -c {credentials_path} upload -i {source} -m /tmp/meta.json --silent"
+    cmd = f"-b {bucket} -c {credentials_path} upload {source} -m /tmp/meta.json --silent"
     log.debug(cmd)
     res = runner.invoke(root, cmd.split())
     code_cnt = code_cnt + res.exit_code
-    cmd1 = f"-b {bucket} -c {credentials_path} delete -q {dest} -f"
+    cmd1 = f"-b {bucket} -c {credentials_path} delete {dest} -f"
     res1 = runner.invoke(root, cmd1.split())
-    cmd2 = f"-b {bucket} -c {credentials_path} delete -q meta.json -f"
+    cmd2 = f"-b {bucket} -c {credentials_path} delete meta.json -f"
     res2 = runner.invoke(root, cmd2.split())
     code_cnt = code_cnt + res1.exit_code
     code_cnt = code_cnt + res2.exit_code
