@@ -88,6 +88,7 @@ def delete(ctx,query,force):
 @click.option('-i',"input", type=click.Path(exists=True), required=True, help="File to upload")
 @click.option('-d',"--destination",help="Destination path on HCP", default="")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
+@click.option('-m',"--meta",help="Local path for generated metadata file",default=f"")
 @click.option('-m',"--meta",help="Local path for generated metadata file",default=f"{os.getcwd()}/meta-{TIMESTAMP}.json")
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.pass_obj
@@ -111,7 +112,8 @@ def upload(ctx, input, destination, tag, meta,silent):
                 try:
                     preproc.verify_fq_suffix(os.path.join(root,f))
                     preproc.verify_fq_content(os.path.join(root,f))
-                    preproc.generate_tagmap(os.path.join(root,f), tag, meta)
+                    if meta != "":
+                        preproc.generate_tagmap(os.path.join(root,f), tag, meta)
                     file_lst.append(os.path.join(root,f))
                 except Exception as e:
                     log.debug(f"{f} is not a valid upload file: {e}")
@@ -120,7 +122,8 @@ def upload(ctx, input, destination, tag, meta,silent):
         try:
             preproc.verify_fq_suffix(input)
             preproc.verify_fq_content(input)
-            preproc.generate_tagmap(input, tag, meta)
+            if meta != "":
+                preproc.generate_tagmap(input, tag, meta)
             file_lst.append(input)
         except Exception as e:
             log.debug(f"{input} is not a valid upload file: {e}")
@@ -135,12 +138,13 @@ def upload(ctx, input, destination, tag, meta,silent):
         #time.sleep(2)
         log.info(f"Uploading: {file_pg}")
 
-    meta_fn = Path(meta).name
-    # Uploads associated json files.
-    if silent:
-        ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), callback="")
-    else:
-        ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn))
+    if meta != "":
+        meta_fn = Path(meta).name
+        # Uploads associated json files.
+        if silent:
+            ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), callback="")
+        else:
+            ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn))
 
 @click.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
