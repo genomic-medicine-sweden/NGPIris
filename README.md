@@ -24,35 +24,34 @@ Run it in the terminal, and view the help for each subcommand.
 ```iris
 Usage: iris [OPTIONS] COMMAND [ARGS]...
 
-  NGP interfacing tool
+  NGP intelligence and repository interface software
 
 Options:
-  -ep, --endpoint TEXT       Endpoint URL
-  -id, --access_key_id TEXT  Amazon key identifier
-  -key, --access_key TEXT    Amazon secret access key
-  -c, --credentials TEXT     File containing ep, id & key; instead of using
-                             the CLI.
-
+  -c, --credentials PATH     File containing ep, id & key  [required]
   -b, --bucket TEXT          Bucket name  [required]
+  -ep, --endpoint TEXT       Endpoint URL override
+  -id, --access_key_id TEXT  Amazon key identifier override
+  -key, --access_key TEXT    Amazon secret access key override
+  -l, --logfile PATH         Logs activity to provided file
   --version                  Show the version and exit.
   --help                     Show this message and exit.
 
 Commands:
-  delete    Delete a file on the NGPr
+  delete    Delete a file on the HCP
   download  Download files using a given query
   hci       HCI dependent commands
   search    List all file hits for a given query
   upload    Upload fastq files / fastq folder structure
 ```
 #### Upload a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE upload -i FILE2UPLOAD -d /tmp/MYDUMBTESTFILE`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE`
 
 This command will upload your test file, and a meta-data file, to `/tmp/` on the bucket BUCKETNAME. 
  `-m` will specificy where the meta-data file will be stored locally. 
  Without it the meta-data file will appear in your current directory.
 
 #### Download a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE download -f -q /tmp/MYDUMBTESTFILE -d ./MYDUMBTESTFILE --silent`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE download -f /tmp/MYDUMBTESTFILE -o ./MYDUMBTESTFILE --silent`
 
 This command will download your previously uploaded testfile, and put it in your current directory.
 `-f` will overwrite any locally stored file with the same name
