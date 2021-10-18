@@ -86,13 +86,13 @@ def delete(ctx,query,force):
 
 @click.command()
 @click.option('-i',"input", type=click.Path(exists=True), required=True, help="File to upload")
-@click.option('-d',"--destination",help="Destination path on HCP", default="")
+@click.option('-d',"--destination",help="Destination file name on HCP", default="")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
 @click.option('-m',"--meta",help="Local path for generated metadata file",default=f"")
-@click.option('-m',"--meta",help="Local path for generated metadata file",default=f"{os.getcwd()}/meta-{TIMESTAMP}.json")
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
+@click.option('-a',"--atypical",help="Allows upload of non-fastq file", is_flag=True,default=False)
 @click.pass_obj
-def upload(ctx, input, destination, tag, meta,silent):
+def upload(ctx, input, destination, tag, meta,silent,atypical):
     """Upload fastq files / fastq folder structure"""
     file_lst = []
 
@@ -110,8 +110,9 @@ def upload(ctx, input, destination, tag, meta,silent):
         for root, dirs, files in os.walk(folder):
             for f in files:
                 try:
-                    preproc.verify_fq_suffix(os.path.join(root,f))
-                    preproc.verify_fq_content(os.path.join(root,f))
+                    if not atypical:
+                        preproc.verify_fq_suffix(os.path.join(root,f))
+                        preproc.verify_fq_content(os.path.join(root,f))
                     if meta != "":
                         preproc.generate_tagmap(os.path.join(root,f), tag, meta)
                     file_lst.append(os.path.join(root,f))
@@ -120,8 +121,9 @@ def upload(ctx, input, destination, tag, meta,silent):
     else:
         input = os.path.abspath(input)
         try:
-            preproc.verify_fq_suffix(input)
-            preproc.verify_fq_content(input)
+            if not atypical: 
+                preproc.verify_fq_suffix(input)
+                preproc.verify_fq_content(input)
             if meta != "":
                 preproc.generate_tagmap(input, tag, meta)
             file_lst.append(input)
