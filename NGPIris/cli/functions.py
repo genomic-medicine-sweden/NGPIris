@@ -18,9 +18,9 @@ from NGPIris.preproc import preproc
 ##############################################
 
 @click.command()
-@click.pass_obj
-@click.option('-q',"--query",help="Specific search query", default="")
+@click.argument("query")
 @click.option("-f", "--file",help="The path to the file containing a list of queries",default="")
+@click.pass_obj
 def search(ctx, query, file):
     """List all file hits for a given query"""
     if query != "":
@@ -55,7 +55,7 @@ def search(ctx, query, file):
         log.info('A query or file needs to be specified if you are using the "search" option')
 
 @click.command()
-@click.option('-q',"--query",help="Specific search query", default="")
+@click.argument("query")
 @click.option('-f',"--force",is_flag=True,default=False)
 @click.pass_obj
 def delete(ctx,query,force):
@@ -91,22 +91,22 @@ def delete(ctx,query,force):
 
 
 @click.command()
-@click.option('-i',"input", type=click.Path(exists=True), required=True, help="File to upload")
-@click.option('-d',"--destination",help="Destination file name on HCP", default="")
+@click.argument("input")
+@click.option('-o',"--output",help="Destination file name on HCP", default="")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
 @click.option('-m',"--meta",help="Local path for generated metadata file",default=f"")
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.option('-a',"--atypical",help="Allows upload of non-fastq file", is_flag=True,default=False)
 @click.pass_obj
-def upload(ctx, input, destination, tag, meta,silent,atypical):
+def upload(ctx, input, output, tag, meta,silent,atypical):
     """Upload fastq files / fastq folder structure"""
     file_lst = []
 
     #Workaround
-    if destination == "":
-        destination = os.path.basename(input)
+    if output == "":
+        output = os.path.basename(input)
 
-    dstfld = Path(destination)
+    dstfld = Path(output)
     dstfld = dstfld.parent
     if dstfld.parts == ():
         dstfld = ""
@@ -140,9 +140,9 @@ def upload(ctx, input, destination, tag, meta,silent,atypical):
 
     for file_pg in file_lst:
         if silent:
-            ctx['hcpm'].upload_file(file_pg, destination, callback="")
+            ctx['hcpm'].upload_file(file_pg, output, callback="")
         else:
-            ctx['hcpm'].upload_file(file_pg, destination)
+            ctx['hcpm'].upload_file(file_pg, output)
         #time.sleep(2)
         log.info(f"Uploaded: {file_pg}")
 
@@ -155,12 +155,12 @@ def upload(ctx, input, destination, tag, meta,silent,atypical):
             ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn))
 
 @click.command()
-@click.option('-d',"--destination",help="Specify destination file to write to",required=True)
-@click.option('-q',"--query",help="Specific search query", default="", required=True)
+@click.argument("query")
+@click.option('-o',"--output",help="Specify output file to write to",required=True)
 @click.option('-f',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.pass_obj
-def download(ctx, destination, query,fast, silent):
+def download(ctx, query, output,fast, silent):
     """Download files using a given query"""
     if not fast:
         found_objs = ctx['hcpm'].search_objects(query)
@@ -176,24 +176,24 @@ def download(ctx, destination, query,fast, silent):
                 if answer[0].lower() == "y":
                     obj = ctx['hcpm'].get_object(query) # Get object with key.
                     if silent:
-                        ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+                        ctx['hcpm'].download_file(obj, output, force=True,callback="") # Downloads file.
                     else:
-                        ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+                        ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
                     #log.info(f"Downloaded {obj.key}"
 
         elif len(found_objs) == 1:
             obj = ctx['hcpm'].get_object(query) # Get object with key.
             if silent:
-                ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+                ctx['hcpm'].download_file(obj, output, force=True,callback="") # Downloads file.
             else:
-                ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+                ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
  
     elif fast:
         obj = ctx['hcpm'].get_object(query) # Get object with key.
         if silent:
-            ctx['hcpm'].download_file(obj, destination, force=True,callback="") # Downloads file.
+            ctx['hcpm'].download_file(obj, output, force=True,callback="") # Downloads file.
         else:
-            ctx['hcpm'].download_file(obj, destination, force=True) # Downloads file.
+            ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
 
 def main():
     pass
