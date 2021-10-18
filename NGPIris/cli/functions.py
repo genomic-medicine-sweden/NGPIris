@@ -138,7 +138,7 @@ def upload(ctx, input, destination, tag, meta,silent,atypical):
         else:
             ctx['hcpm'].upload_file(file_pg, destination)
         #time.sleep(2)
-        log.info(f"Uploading: {file_pg}")
+        log.info(f"Uploaded: {file_pg}")
 
     if meta != "":
         meta_fn = Path(meta).name
