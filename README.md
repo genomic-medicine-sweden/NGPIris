@@ -37,7 +37,7 @@ Options:
   --help                     Show this message and exit.
 
 Commands:
-  delete    Delete a file on the HCP
+  delete    Delete a file on the NGPr
   download  Download files using a given query
   hci       HCI dependent commands
   search    List all file hits for a given query
