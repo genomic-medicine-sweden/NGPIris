@@ -19,38 +19,17 @@ from NGPIris.preproc import preproc
 
 @click.command()
 @click.argument("query")
-@click.option("-f", "--file",help="The path to the file containing a list of queries",default="")
+@click.option("-m", "--mode",help="Restrict search to a file type", type=click.Choice(['all','file', 'dir'], case_sensitive=False),default='all')
 @click.pass_obj
-def search(ctx, query, file):
+def search(ctx, query, mode):
     """List all file hits for a given query"""
     if query != "":
-        found_objs = ctx['hcpm'].search_objects(query)
+        found_objs = ctx['hcpm'].search_objects(query,mode=mode)
         if len(found_objs) > 0:
             for obj in found_objs:
-                log.info(obj)
+                log.info(obj.key)
         else:
             log.info(f'No results found for: {query}')
-                
-    elif file != "":
-        #Read the query file line by line and store in list
-        infile = open(file, 'r')
-        lines = infile.readlines()
-        #Remove newlines
-        lines = map(lambda s: s.strip(), lines)
-        
-        #Load in all data on HCP
-        objects = ctx['hcpm'].get_objects()
-        
-        #Search for each item in query file
-        qdict = {}
-        for line in lines:
-            log.info(f"[-- query: {line} --]")
-            found_objs = ctx['hcpm'].search_objects(line)
-            if len(found_objs) > 0:
-                for obj in found_objs:
-                    log.info(obj)
-            else:
-                log.info('Nothing found')
     else:
         log.info('A query or file needs to be specified if you are using the "search" option')
 

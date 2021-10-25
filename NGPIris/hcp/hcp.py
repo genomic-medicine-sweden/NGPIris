@@ -6,6 +6,7 @@ Module for simple interfacing with the HCP cloud storage.
 
 import json
 import os
+import re
 import sys
 import time
 import boto3
@@ -208,12 +209,19 @@ class HCPManager:
         return self.objects
 
     @bucketcheck
-    def search_objects(self, string):
+    def search_objects(self, string, mode="all"):
         """Return all objects whose keys contain the given string."""
         if not hasattr(self, 'objects'):
             self.get_objects()
 
-        return [obj for obj in self.objects if string in obj.key]
+        cstr = re.compile(string)
+        if mode == "all":
+            return [obj for obj in self.objects if re.search(cstr, obj.key) ]
+        elif mode == "file":
+            return [obj for obj in self.objects if re.search(cstr, os.path.basename(obj.key))]
+        elif mode == "dir":
+            return [obj for obj in self.objects if re.search(cstr, obj.key) and obj.key[-1] == "/"]
+ 
 
     @bucketcheck
     def upload_file(self, local_path, remote_key, metadata={},callback="default"):
