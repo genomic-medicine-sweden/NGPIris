@@ -119,7 +119,8 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
             log.debug(f"{input} is not a valid upload file: {e}")
             sys.exit(-1)
 
-
+    if file_lst == []:
+        log.error(f"{input} could not be uploaded to NGPr. Try using an atypical upload")
     for file_pg in file_lst:
         if silent:
             ctx['hcpm'].upload_file(file_pg, output, callback="")
