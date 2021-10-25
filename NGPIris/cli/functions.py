@@ -102,9 +102,12 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
     """Upload fastq files / fastq folder structure"""
     file_lst = []
 
-    #Workaround
+    #Defaults output to input name
     if output == "":
         output = os.path.basename(input)
+    #If output is folder. Default file name to input name
+    elif output[-1] in ["/","\\"]:
+        output = os.path.join(output, os.path.basename(input))
 
     dstfld = Path(output)
     dstfld = dstfld.parent
@@ -162,6 +165,14 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 @click.pass_obj
 def download(ctx, query, output,fast, silent):
     """Download files using a given query"""
+
+    #Defaults output to input name
+    if output == "":
+        output = os.path.basename(query)
+    #If output is folder. Default file name to input name
+    elif output[-1] in ["/","\\"]:
+        output = os.path.join(output, os.path.basename(query))
+
     if not fast:
         found_objs = ctx['hcpm'].search_objects(query)
         if len(found_objs) == 0:
@@ -175,6 +186,12 @@ def download(ctx, query, output,fast, silent):
                 answer = sys.stdin.readline()
                 if answer[0].lower() == "y":
                     obj = ctx['hcpm'].get_object(query) # Get object with key.
+                    #Default output name to key
+                    if output == "":
+                        output = obj.key
+                    #If output is folder. Default file name to obj.key
+                    elif output[-1] in ["/","\\"]:
+                        output = os.path.join(output, obj.key)
                     if silent:
                         ctx['hcpm'].download_file(obj, output, force=True,callback="") # Downloads file.
                     else:
