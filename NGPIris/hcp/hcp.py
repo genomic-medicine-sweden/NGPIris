@@ -65,6 +65,8 @@ class ProgressPercentage(object):
 
     def _trim_text(self, text):
         """Trim text to fit current terminal size."""
+        if not os.isatty(0):
+            return ''
 
         terminal_width = 80
         if sys.platform != "win32":
