@@ -13,8 +13,14 @@ class UnknownSourceTypeError(Exception):
 class MismatchChecksumError(Exception):
     """Raise on local and remote checksums differing."""
 
+
 class ConnectionError(Exception):
     """Raise on issue highly likely due to a non-functional connection"""
 
+
 class MissingCredentialsError(Exception):
     """One or more credentials missing from json-file"""
+
+
+class ReadLargeFileError(Exception):
+    """Raise on trying to dynamically read a large file."""

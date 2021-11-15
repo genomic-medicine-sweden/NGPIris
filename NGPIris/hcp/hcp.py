@@ -21,8 +21,8 @@ from boto3.s3.transfer import TransferConfig
 from NGPIris.preproc import preproc
 from NGPIris.hcp.helpers import calculate_etag
 from NGPIris.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
-                                     UnknownSourceTypeError, MismatchChecksumError, 
-                                     ConnectionError, MissingCredentialsError)
+                                UnknownSourceTypeError, MismatchChecksumError,
+                                ReadLargeFileError, ConnectionError)
 from NGPIris.hcp.config import get_config
 from NGPIris import log
 
@@ -288,4 +288,4 @@ class HCPManager:
         if obj.content_length < 100000:  # NOTE Arbitrarily set
             return obj.get()['Body'].read().decode('utf-8')
         else:
-            return ''
+            raise ReadLargeFileError(f'Object size too large for reading: {obj.content_length}')
