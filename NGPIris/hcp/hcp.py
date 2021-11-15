@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-
 """
 Module for simple interfacing with the HCP cloud storage.
 """
-
-import json
 import os
 import sys
 import time
@@ -29,6 +26,7 @@ from NGPIris import log
 
 config = get_config()
 
+
 class ProgressPercentage(object):
     """Progressbar for both upload and download of files."""
     def __init__(self, source):
@@ -50,7 +48,6 @@ class ProgressPercentage(object):
         self._previous_bytesize = self._seen_so_far
         self._interval = 0.1
         self._speed = 0
-        self._callcount = 0
         self._creation_time = time.time()
 
     def _calculate_speed(self):
@@ -79,9 +76,7 @@ class ProgressPercentage(object):
         return text
 
     def __call__(self, bytes_amount):
-
         with self._lock:
-            self._callcount = 1 + self._callcount
             self._seen_so_far += bytes_amount
             speed = self._calculate_speed()
             percentage = (self._seen_so_far / self._size) * 100
@@ -91,12 +86,18 @@ class ProgressPercentage(object):
                                                     f'{speed}MB/s',
                                                     percentage)
             text = self._trim_text(text)
-            sys.stdout.write(text)
+            print(f'{text}', end='')
             sys.stdout.flush()
-            #sys.stdout.write(str(self._callcount))
- 
-    def __exit__(self):
-        sys.stdout.flush()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        print('')
+        avg_transfer_speed = self._size/(self._previous_time - self._creation_time)
+        avg_transfer_speed_mb = avg_transfer_speed / 1_000_000
+        rounded_speed = round(avg_transfer_speed_mb, 2)
+        print(f'Average transfer speed {rounded_speed} MB/s')
 
 
 def bucketcheck(fn):
@@ -218,30 +219,14 @@ class HCPManager:
         return [obj for obj in self.objects if string in obj.key]
 
     @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={},callback="default"):
+    def upload_file(self, local_path, remote_key, metadata={}):
         """Upload local file to remote as key with associated metadata."""
-        #Stupid workaround
-        cb = False
-        if callback == "default":
-            callback = ProgressPercentage(local_path)
-            cb = True
-        # Force has been intentionally left out from upload functionality due to risk of overwriting clinical data. 
-        # Should the need arise to remove erroneous data then it must be manually (and therefore fully intentionally) 
-        # deleted prior to uploading
-        prev_remote_obj = self.get_object(remote_key)
-
-        #if force and prev_remote_obj is not None:
-        #    self.delete_object(prev_remote_obj)
-        #    log.info("Removed remote file prior to upload of local file.")
-        self.bucket.upload_file(local_path,
-                                remote_key,
-                                ExtraArgs={'Metadata': metadata},
-                                Config=self.transfer_config,
-                                Callback=callback)
-        print('')  # Newline after progressbar for stdout
-        if cb:
-            avg_transfer_sec = callback._size/(callback._previous_time - callback._creation_time)
-            log.info(f"Average transfer speed {round(avg_transfer_sec/1000000,2)} MB/s") 
+        with ProgressPercentage(local_path) as progress:
+            self.bucket.upload_file(local_path,
+                                    remote_key,
+                                    ExtraArgs={'Metadata': metadata},
+                                    Config=self.transfer_config,
+                                    Callback=progress)
 
         remote_obj = self.get_object(remote_key)
         calculated_etag = calculate_etag(local_path)
@@ -251,17 +236,10 @@ class HCPManager:
             raise MismatchChecksumError('Local and remote file checksums differ. Removing remote file.')
 
     @bucketcheck
-    def download_file(self, obj, local_path, force=False, callback="default"):
+    def download_file(self, obj, local_path, force=False):
         """Download objects file to specified local file."""
         if isinstance(obj, str):
             obj = self.get_object(obj)
-
-        #Stupid workaround
-        cb = False
-        if callback == "default":
-            callback = ProgressPercentage(obj)
-            cb = True
- 
 
         if os.path.isdir(local_path):
             local_path = os.path.join(local_path, os.path.basename(obj.key))
@@ -270,14 +248,10 @@ class HCPManager:
             if not force:
                 raise LocalFileExistsError(f'Local file already exists: {local_path}')
 
-        self.bucket.download_file(obj.key,
-                                  local_path,
-                                  Callback=callback)
-        print('')  # Newline after progressbar for stdout
-        if cb:
-            avg_transfer_sec = callback._size/(callback._previous_time - callback._creation_time)
-            log.info(f"Average transfer speed {round(avg_transfer_sec/1000000,2)} MB/s") 
-
+        with ProgressPercentage(obj) as progress:
+            self.bucket.download_file(obj.key,
+                                      local_path,
+                                      Callback=progress)
 
     @bucketcheck
     def delete_object(self, obj):
