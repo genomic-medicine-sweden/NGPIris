@@ -140,7 +140,7 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 
     for file_pg in file_lst:
         if silent:
-            ctx['hcpm'].upload_file(file_pg, output, callback="")
+            ctx['hcpm'].upload_file(file_pg, output)
         else:
             ctx['hcpm'].upload_file(file_pg, output)
         #time.sleep(2)
@@ -150,7 +150,7 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
         meta_fn = Path(meta).name
         # Uploads associated json files.
         if silent:
-            ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn), callback="")
+            ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn))
         else:
             ctx['hcpm'].upload_file(meta, os.path.join(dstfld, meta_fn))
 
@@ -176,7 +176,7 @@ def download(ctx, query, output,fast, silent):
                 if answer[0].lower() == "y":
                     obj = ctx['hcpm'].get_object(query) # Get object with key.
                     if silent:
-                        ctx['hcpm'].download_file(obj, output, force=True,callback="") # Downloads file.
+                        ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
                     else:
                         ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
                     #log.info(f"Downloaded {obj.key}"
@@ -184,14 +184,14 @@ def download(ctx, query, output,fast, silent):
         elif len(found_objs) == 1:
             obj = ctx['hcpm'].get_object(query) # Get object with key.
             if silent:
-                ctx['hcpm'].download_file(obj, output, force=True,callback="") # Downloads file.
+                ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
             else:
                 ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
  
     elif fast:
         obj = ctx['hcpm'].get_object(query) # Get object with key.
         if silent:
-            ctx['hcpm'].download_file(obj, output, force=True,callback="") # Downloads file.
+            ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
         else:
             ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
 
