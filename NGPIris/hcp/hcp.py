@@ -219,14 +219,14 @@ class HCPManager:
         return [obj for obj in self.objects if string in obj.key]
 
     @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={}):
+    def upload_file(self, local_path, remote_key, metadata={}, callback=True):
         """Upload local file to remote as key with associated metadata."""
         with ProgressPercentage(local_path) as progress:
             self.bucket.upload_file(local_path,
                                     remote_key,
                                     ExtraArgs={'Metadata': metadata},
                                     Config=self.transfer_config,
-                                    Callback=progress)
+                                    Callback=progress if callback else None)
 
         remote_obj = self.get_object(remote_key)
         calculated_etag = calculate_etag(local_path)
@@ -236,7 +236,7 @@ class HCPManager:
             raise MismatchChecksumError('Local and remote file checksums differ. Removing remote file.')
 
     @bucketcheck
-    def download_file(self, obj, local_path, force=False):
+    def download_file(self, obj, local_path, force=False, callback=True):
         """Download objects file to specified local file."""
         if isinstance(obj, str):
             obj = self.get_object(obj)
@@ -251,7 +251,7 @@ class HCPManager:
         with ProgressPercentage(obj) as progress:
             self.bucket.download_file(obj.key,
                                       local_path,
-                                      Callback=progress)
+                                      Callback=progress if callback else None)
 
     @bucketcheck
     def delete_object(self, obj):
