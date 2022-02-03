@@ -55,14 +55,28 @@ def verify_fq_content(fn):
         raise Exception(f"File {fn} is missing data")
     log.debug(f'Verified that {fn} resembles a fastq')
 
-def generate_tagmap(fn, tag, out="{}/meta-{}.json".format(os.getcwd(), TIMESTAMP)):
+
+def generate_tagmap(fn, tag, output_path="{}/meta-{}.json".format(os.getcwd(), TIMESTAMP)):
     """Creates a json file with filenames and tags"""
-    mdict = dict()
-    mdict[fn] = {'tag':tag}
-    md = open(out, "a")
-    md.write(json.dumps(mdict, indent=4))
-    md.close()
-    log.debug(f'Generated metadata file {out}')
+    # Check if meta exists, else make it
+    if not os.path.exists(output_path):
+        data = {fn: {'tag': tag}}
+        with open(output_path, 'w') as out:
+            json.dump(data, out, indent=4)
+    else:
+        # Read the current meta
+        with open(output_path, 'r') as inp:
+            current_data = json.load(inp)
+
+        # New data
+        new_data = {fn: {'tag': tag}}
+        updated_data = {**current_data, **new_data}
+
+        # Write updated
+        with open(output_path, 'w') as out:
+            json.dump(updated_data, out, indent=4)
+
+    log.debug(f'Generated metadata file {output_path}')
 
 
 def read_credentials(credentials_path):

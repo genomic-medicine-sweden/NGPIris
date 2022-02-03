@@ -107,7 +107,7 @@ objects = hcpm.get_objects()
 found_objs = hcpm.search_objects(<query_string>)
 for obj in found_objs:
     local_file_name = os.path.basename(obj.key)
-    hcpm.download_file(obj, <local_file_path>,force=False,callback="")
+    hcpm.download_file(obj, <local_file_path>,force=False)
 ```
 ##### Perform preliminary checks before uploading a fastq file
 ```python
@@ -126,8 +126,16 @@ hcpm.upload_file(<local_file_path>, <remote_key>)
 # Upload a file with metadata
 # Note that the maximum metadata size is rather small (2KB).
 
-hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value},callback="")
+hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value})
 
+```
+##### Disable upload/download callback
+Upload and download of files per default utilize a progress tracker. This can be disabled by passing `callback=False` to `upload_file()` or `download_file()`.
+```python
+
+# Disable progress tracking
+hcpm.upload_file(<local_file_path>, <remote_key>, callback=False)
+hcpm.download_file(obj, <local_file_path>, callback=False)
 ```
 #### HCI dependant operations (currently defunct)
 ~~Rather than interfacing directly with the HCI. Files should be searched for using the HCI.~~
