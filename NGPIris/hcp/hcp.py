@@ -162,9 +162,9 @@ class HCPManager:
 
     def test_connection(self):
         """Validate the connection works with as little overhead as possible."""
+        if self.bucketname is None:
+            raise UnattachedBucketError("No bucket assigned for connection test")
         try:
-            if self.bucketname is None:
-                raise ConnectionError("No bucket assigned")
             self.s3.meta.client.head_bucket(Bucket=self.bucketname)
         except ConnectionError:
             log.error("Invalid access, credentials or bucket")
