@@ -115,7 +115,7 @@ def bucketcheck(fn):
 
 class HCPManager:
     def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", \
-                 bucket=None, credentials_path="", autotest=True, debug=False):
+                 bucket=None, credentials_path="", debug=False):
         self.bucketname = bucket
         self.bucket = None
         
@@ -152,9 +152,6 @@ class HCPManager:
 
         if self.bucketname:
             self.attach_bucket(bucket)
-
-        if autotest:
-            self.test_connection()
 
     def list_buckets(self):
         """List all available buckets at endpoint."""
