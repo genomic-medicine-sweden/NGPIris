@@ -115,7 +115,7 @@ def bucketcheck(fn):
 
 class HCPManager:
     def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", \
-                 bucket=None, credentials_path="", autotest=True, debug=False):
+                 bucket=None, credentials_path="", debug=False):
         self.bucketname = bucket
         self.bucket = None
         
@@ -153,18 +153,15 @@ class HCPManager:
         if self.bucketname:
             self.attach_bucket(bucket)
 
-        if autotest:
-            self.test_connection()
-
     def list_buckets(self):
         """List all available buckets at endpoint."""
         return [bucket.name for bucket in self.s3.buckets.all()]
 
     def test_connection(self):
         """Validate the connection works with as little overhead as possible."""
+        if self.bucketname is None:
+            raise UnattachedBucketError("No bucket assigned for connection test")
         try:
-            if self.bucketname is None:
-                raise ConnectionError("No bucket assigned")
             self.s3.meta.client.head_bucket(Bucket=self.bucketname)
         except ConnectionError:
             log.error("Invalid access, credentials or bucket")
