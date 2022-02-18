@@ -163,8 +163,8 @@ class HCPManager:
             raise UnattachedBucketError("No bucket assigned for connection test")
         try:
             self.s3.meta.client.head_bucket(Bucket=self.bucketname)
-        except ConnectionError:
-            log.error("Invalid access, credentials or bucket")
+        except Exception:
+            raise ConnectionError("Invalid access, credentials or bucket specified.")
 
     def set_bucket(self, bucket):
         self.bucketname = bucket
