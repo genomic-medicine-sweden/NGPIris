@@ -105,7 +105,7 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
                         preproc.generate_tagmap(os.path.join(root,f), tag, meta)
                     file_lst.append(os.path.join(root,f))
                 except Exception as e:
-                    log.debug(f"{f} is not a valid upload file: {e}")
+                    log.warning(f"{f} is not a valid upload file: {e}")
     else:
         input = os.path.abspath(input)
         try:
@@ -116,7 +116,7 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
                 preproc.generate_tagmap(input, tag, meta)
             file_lst.append(input)
         except Exception as e:
-            log.debug(f"{input} is not a valid upload file: {e}")
+            log.warning(f"{input} is not a valid upload file: {e}")
             sys.exit(-1)
 
     if file_lst == []:
