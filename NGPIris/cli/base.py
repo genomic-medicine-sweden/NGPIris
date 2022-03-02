@@ -32,6 +32,7 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, credentials,logfile):
     ctx.obj = {}
     hcpm = HCPManager(ep, aid, key, bucket=bucket)
     hcpm.attach_bucket(bucket)
+    hcpm.test_connection()
     ctx.obj["hcpm"] = hcpm
 
     if logfile != "":
