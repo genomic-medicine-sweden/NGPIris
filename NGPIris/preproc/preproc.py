@@ -88,8 +88,7 @@ def read_credentials(credentials_path):
     aid = c['aws_access_key_id']
     key = c['aws_secret_access_key']
     log.debug("Credentials file successfully utilized")
-
-    if not all([c['endpoint'], c['aws_access_key_id'], c['aws_secret_access_key']]):
+    if not (isinstance(ep,str) and isinstance(aid,str) and isinstance(key,str)):
         raise MissingCredentialsError('One or more values missing from provided json.')
 
     return [ep,aid,key]
