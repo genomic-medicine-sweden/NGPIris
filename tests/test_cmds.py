@@ -22,7 +22,7 @@ from distutils.sysconfig import get_python_lib
 from unittest.mock import patch, mock_open
 
 testWD = os.path.join(WD, '..', 'tests')
-credentials_path = os.path.join(testWD, 'credentials.json')
+credentials_path = os.path.join(testWD, '..', 'credentials.json')
 f1target =  os.path.join("unittest","test_reads_R1.fastq.gz") 
 bucket = "ngs-test"
 

@@ -14,7 +14,7 @@ from NGPIris.hcp.hcp import HCPManager
 from NGPIris.hcp.helpers import calculate_etag
 
 testWD = os.path.join(WD, '..', 'tests')
-credentials_path = os.path.join(testWD, 'credentials.json')
+credentials_path = os.path.join(testWD, '..', 'credentials.json')
 
 hcpm = HCPManager(credentials_path=credentials_path)
 hcpm.attach_bucket("ngs-test")
