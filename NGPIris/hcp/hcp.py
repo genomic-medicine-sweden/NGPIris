@@ -246,12 +246,16 @@ class HCPManager:
         if isinstance(obj, str):
             obj = self.get_object(obj)
 
-        if os.path.isdir(local_path):
-            local_path = os.path.join(local_path, os.path.basename(obj.key))
-
         if os.path.exists(local_path):
             if not force:
                 raise LocalFileExistsError(f'Local file already exists: {local_path}')
+
+        dirname = os.path.dirname(local_path)
+        if dirname != "":
+            os.makedirs(dirname, exist_ok=True)
+
+        if os.path.isdir(local_path):
+            local_path = os.path.join(local_path, os.path.basename(obj.key))
 
         with ProgressPercentage(obj) as progress:
             self.bucket.download_file(obj.key,

@@ -159,7 +159,7 @@ def download(ctx, query, output,fast, silent):
             log.info(f"File: {query} does not exist on {ctx['hcpm'].bucket.name}")
         elif len(found_objs) > 1:
             for obj in found_objs:
-                log.info(f"Found {len(found_obj)} files matching query")
+                log.info(f"Found {len(found_objs)} files matching query")
                 log.info(f"Download {obj}? [Y/N]")
                 sys.stdout.write(f"[--] Do you wish to download {obj.key} on {ctx['hcpm'].bucket.name}? [Y/N]?\n")
                 sys.stdout.flush()

@@ -14,6 +14,9 @@ Both of these modes of interaction pipe processes to the HCPManager class. This 
 
 The connection is made on a higher resource level rather than client level. This will come to change in the future as more advanced features are introduced.
 
+## Easy installation
+
+`pip install NGPIris --upgrade` 
 
 ## Usage
 
