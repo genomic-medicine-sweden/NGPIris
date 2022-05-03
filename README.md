@@ -4,6 +4,10 @@ NGP Iris is designed with two use cases in mind:
 * A simple, clear, real-time interaction with NGPr file management
 * Improving process flow for performing off-site data analysis by using automated transfer scripts
 
+## Easy installation
+
+`pip install NGPIris --upgrade` 
+
 ## Introduction
 
 NGP Iris provides two  parts. 
@@ -14,9 +18,6 @@ Both of these modes of interaction pipe processes to the HCPManager class. This 
 
 The connection is made on a higher resource level rather than client level. This will come to change in the future as more advanced features are introduced.
 
-## Easy installation
-
-`pip install NGPIris --upgrade` 
 
 ## Usage
 
