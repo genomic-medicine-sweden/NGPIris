@@ -13,7 +13,15 @@ import sys
 
 from NGPIris import WD
 
-address = "10.248.192.3:8888"
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+address = "10.248.192.3"
+mainport = "8000"
+apiport = "8888"
+
 
 # Creates template based on template. 
 def create_template(index, query):
@@ -30,9 +38,7 @@ def generate_token(password):
     """Generate a security token from a password"""
     with open(password) as pw:
         admin_pass = str(pw.readline()).strip()
-    my_key = requests.post(f"https://{address}/auth/oauth/", verify=False)
-     
-    my_key = requests.post(f"https://{address}/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
+    my_key = requests.post(f"https://{address}:{mainport}/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
             "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
         
     return ast.literal_eval(my_key.text)["access_token"].lstrip()
@@ -42,7 +48,7 @@ def query(token):
     """Queries the HCI using a token"""
     with open ("{}/hci/written_query.json".format(WD), "r") as mqj:
         json_data = json.load(mqj)
-    response = requests.post("https://{address}/api/search/query", headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
+    response = requests.post(f"https://{address}:{apiport}/api/search/query", headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
                              json=json_data, verify=False) 
     return response.text
 
@@ -54,14 +60,14 @@ def pretty_query(token):
 # If using index, it searches through all indexes if nothing else is specified. 
 def index_lister(token, index="all"):
     if index == "all":
-        response = requests.get("https://{address}/api/search/indexes", headers={"accept": "application/json",
+        response = requests.get(f"https://{address}:{apiport}/api/search/indexes", headers={"accept": "application/json",
                                 "Authorization": f"Bearer {token}"}, verify=False)
         response_string = response.text
         fixed_response = ast.literal_eval(response_string.replace("true", "True").replace("false", "False"))
         return fixed_response
 
     else:
-        response = requests.get("https://{address}/api/search/indexes", headers={"accept": "application/json",
+        response = requests.get(f"https://{address}:{apiport}/api/search/indexes", headers={"accept": "application/json",
                                 "Authorization": f"Bearer {token}"}, verify=False)
         response_string = response.text
         fixed_response = response_string.replace("true", "True").replace("false", "False")
@@ -94,9 +100,9 @@ def main():
    
 
     if args.which == "query":        
-        create_template(args)
+        create_template(args.index, args.query)
         token = generate_token(args.password)
-        pretty = json.loads(query(token, args.index))
+        pretty = json.loads(query(token))
         if args.output:
             with open(args.output, "w+") as result:
                 result.write(json.dumps(pretty, indent=4))

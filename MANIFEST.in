@@ -4,5 +4,6 @@ include requirements.txt
 include freeze.txt
 include profile.json
 include config.ini
+include NGPIris/hci/template_query.json
 recursive-include tests/data/ *
 recursive-include reference/ *
