@@ -102,7 +102,8 @@ def main():
     if args.which == "query":        
         create_template(args.index, args.query)
         token = generate_token(args.password)
-        pretty = json.loads(query(token))
+        resp = query(token)
+        pretty = json.loads(resp)
         if args.output:
             with open(args.output, "w+") as result:
                 result.write(json.dumps(pretty, indent=4))
