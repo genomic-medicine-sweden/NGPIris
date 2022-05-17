@@ -13,7 +13,7 @@ import sys
 
 from NGPIris import WD
 
-address = "10.248.2.93:8888"
+address = "10.248.192.3:8888"
 
 # Creates template based on template. 
 def create_template(index, query):
@@ -30,10 +30,12 @@ def generate_token(password):
     """Generate a security token from a password"""
     with open(password) as pw:
         admin_pass = str(pw.readline()).strip()
-        my_key = requests.post(f"https://{address}/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
+    my_key = requests.post(f"https://{address}/auth/oauth/", verify=False)
+     
+    my_key = requests.post(f"https://{address}/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{admin_pass}", "scope": "*", 
             "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
         
-        return ast.literal_eval(my_key.text)["access_token"].lstrip()
+    return ast.literal_eval(my_key.text)["access_token"].lstrip()
 
 
 def query(token):
