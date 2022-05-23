@@ -24,16 +24,14 @@ def query_hci(query, index, password):
     return hci_query
 
 @click.group()
-@click.option("-i", "--index", type=str,default="",help="Specify index from HCI to parse",required=True)
-@click.option("-p","--password",default="",help="File with HCI password",required=True)
 @click.pass_context
-def hci(ctx, index, password):
-    """HCI dependent commands"""
+def utils(ctx):
+    """Advanced commands for specific purposes"""
     ctx.obj["index"] = index
     ctx.obj["password"] = password
 
 
-@hci.command()
+@utils.command()
 @click.option('-q',"--query",help="Specific search query", default="", required=True)
 @click.pass_obj
 def search(ctx, query):
@@ -55,7 +53,7 @@ def search(ctx, query):
     except:
         log.info(f"File(s) does not exists: {query}")
 
-@hci.command()
+@utils.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
 @click.option('-l',"--legacy",help="Legacy mode to download files on the old NGS buckets",default=False,is_flag=True)
 @click.option('-q',"--query",help="Specific search query", default="", required=True)
@@ -92,6 +90,23 @@ def download(ctx, destination, legacy, query):
                     ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(name)}") # Downloads file.
                 else:
                     log.error(f"File: '{name}' does not exist in bucket '{bucket}' on the HCP")
+
+@utils.command()
+@click.argument("query")
+@click.option("-m", "--mode",help="Restrict search to a file type", type=click.Choice(['all','file', 'dir'], case_sensitive=False),default='all')
+@click.pass_obj
+def slow_search(ctx, query, mode):
+    """List all file hits for a given query by directly calling HCP"""
+    if query != "":
+        found_objs = ctx['hcpm'].search_objects(query,mode=mode)
+        if len(found_objs) > 0:
+            for obj in found_objs:
+                log.info(obj.key)
+        else:
+            log.info(f'No results found for: {query}')
+    else:
+        log.info('A query or file needs to be specified if you are using the "search" option')
+
 
 def main():
     pass
