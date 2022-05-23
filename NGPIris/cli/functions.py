@@ -18,37 +18,51 @@ from NGPIris.preproc import preproc
 
 
 @click.command()
-@click.argument("index")
 @click.argument("query")
+@click.option("-i","--index",help="NGPi index name")
 @click.option("-o","--output",help="Specify output file to write to",default="")
 @click.option("-v" "--verbose",is_flag=True,default=False)
+@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
 @click.pass_obj
-def search(ctx, index, query, verbose):
+def search(ctx, index, query, verbose,mode):
     """List all file hits for a given query by directly calling HCP"""
+  
+    if not query != "":
+        log.info('A query or file needs to be specified if you are using the "search" option')
+        sys.exit(-1)
 
-    hcim = ctx['hcim']
+    if mode == "ngpr":
+        found_objs = ctx['hcpm'].search_objects(query,mode=mode)
+        if len(found_objs) > 0:
+            for obj in found_objs:
+                log.info(obj.key)
+        else:
+            log.info(f'No results found for: {query}')
 
-    hcim.create_template(index, query)
-    token = hcim.generate_token()
+    elif mode == "ngpi":
+        hcim = ctx['hcim']
 
-    if verbose:
-        resp = hcim.query(token)
-        pretty = json.loads(resp)
-        print(json.dumps(pretty, indent=4))
+        hcim.create_template(index, query)
+        token = hcim.generate_token()
 
-    else:
-        results = hcim.pretty_query(token)
-        for item in results:
-            itm = item["metadata"]
-            meta = itm["HCI_displayName"]
-            samples = itm["samples_Fastq_paths"]
-            string = "".join(samples).strip("[]").strip("{]}'")
-            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
-        log.info(f"Metadata file: {meta}")
-        for i in lst:
-            if query in i or query in os.path.basename(i):
-                log.info("Check: ",i)
-                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+        if verbose:
+            resp = hcim.query(token)
+            pretty = json.loads(resp)
+            print(json.dumps(pretty, indent=4))
+
+        else:
+            results = hcim.pretty_query(token)
+            for item in results:
+                itm = item["metadata"]
+                meta = itm["HCI_displayName"]
+                samples = itm["samples_Fastq_paths"]
+                string = "".join(samples).strip("[]").strip("{]}'")
+                lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
+                log.info(f"Metadata file: {meta}")
+            for i in lst:
+                if query in i or query in os.path.basename(i):
+                    log.info("File: ",i)
+                    name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
 @click.command()
 @click.argument("query")
