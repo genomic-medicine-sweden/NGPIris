@@ -13,16 +13,68 @@ from pathlib import Path
 
 from NGPIris import log, TIMESTAMP
 from NGPIris.hcp import HCPManager
+from NGPIris.hci import HCIManager
 from NGPIris.preproc import preproc
 
 ##############################################
+
+
+@click.command()
+@click.argument("index")
+@click.argument("query")
+@click.option("-o","--output",help="Specify output file to write to")
+@click.pass_obj
+def search(ctx, index, query):
+    """List all file hits for a given query by directly calling HCP"""
+            parser = argparse.ArgumentParser(prog="Fetch information from the HCI")
+
+            subparsers = parser.add_subparsers(help="help for subcommand")
+
+            parser_query = subparsers.add_parser("query", help="Query the specified index")
+            parser_query.set_defaults(which="query")
+            parser_query.add_argument("-q", "--query", nargs="?", action="store", type=str, help="Specify search query, e.g. sample name")
+            parser_query.add_argument("-i", "--index", nargs="?", action="store", type=str, help="Specify index from HCI to parse")
+            parser_query.add_argument("-o", "--output", nargs="?", action="store", type=str, help="Specify file to store outputs")
+            parser_query.add_argument("-p", "--password", nargs="?", action="store", type=str, help="Admin password file")
+
+            parser_index = subparsers.add_parser("index", help="List all queryable indexes and their available fields")
+            parser_index.set_defaults(which="index")
+            parser_index.add_argument("-i", "--index", nargs="?", action="store", type=str, help="Specify index from HCI to parse, if 'all' list every index and fields")
+            parser_index.add_argument("-o", "--output", nargs="?", action="store", type=str, help="Specify file to store outputs")
+            parser_index.add_argument("-p", "--password", nargs="?", action="store", type=str, help="Admin password file")
+
+            args = parser.parse_args()
+
+
+            if args.which == "query":
+                create_template(args.index, args.query)
+                token = generate_token(args.password)
+                resp = query(token)
+                pretty = json.loads(resp)
+                if args.output:
+                    with open(args.output, "w+") as result:
+                        result.write(json.dumps(pretty, indent=4))
+                else:
+                    print(json.dumps(pretty, indent=4))
+
+            elif args.which == "index":
+                token = generate_token(args.password)
+                index_list = index_lister(token, index=args.index)
+                pretty = json.dumps(index_list)
+                if args.output:
+                    with open(args.output, "w+") as result:
+                        result.write(json.dumps(pretty, indent=4))
+                else:
+                    print(json.dumps(pretty, indent=4))
+
+
 
 @click.command()
 @click.argument("query")
 @click.option("-m", "--mode",help="Restrict search to a file type", type=click.Choice(['all','file', 'dir'], case_sensitive=False),default='all')
 @click.pass_obj
-def search(ctx, query, mode):
-    """List all file hits for a given query"""
+def slow_search(ctx, query, mode):
+    """List all file hits for a given query by directly calling HCP"""
     if query != "":
         found_objs = ctx['hcpm'].search_objects(query,mode=mode)
         if len(found_objs) > 0:
