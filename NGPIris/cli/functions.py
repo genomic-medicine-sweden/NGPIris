@@ -171,12 +171,11 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 @click.command()
 @click.argument("query")
 @click.option('-o',"--output",help="Specify output file to write to",required=True)
-@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr','none'], case_sensitive=False),default='ngpr')
+@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr','none','legacy-ngpi'], case_sensitive=False),default='ngpr')
 @click.option('-f',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.pass_obj
 def download(ctx, query, output,mode, silent):
- 
     """Download files using a given query"""
 
     #Defaults output to input name
@@ -186,40 +185,41 @@ def download(ctx, query, output,mode, silent):
     elif output[-1] in ["/","\\"]:
         output = os.path.join(output, os.path.basename(query))
 
-    if mode == "ngpi":
+    if mode == "ngpi" or mode == "ngpi-legacy":
         hcim = ctx['hcim']
         hcim.create_template(index, query)
         token = hcim.generate_token()
         results = hcim.pretty_query(token)
 
-        if legacy:
-        for item in results:
-            itm = item["metadata"]
-            samples = itm["samples_Fastq_paths"]
-        for i in samples:
-            obj = ctx["hcpm"].get_object(i) # Get object with json.
-            if obj is not None:
-            ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(i)}") # Downloads file.
-            else:
-            log.error(f"File: '{s}' does not exist in bucket '{bucket}' on the HCP")
+        if mode == "ngpi-legacy":
+            for item in results:
+                itm = item["metadata"]
+                samples = itm["samples_Fastq_paths"]
+            for i in samples:
+                obj = ctx["hcpm"].get_object(i) # Get object with json.
+                if obj is not None:
+                    ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(i)}") # Downloads file.
+                else:
+                    log.error(f"File: '{s}' does not exist in bucket '{bucket}' on the HCP")
 
-        elif not legacy:
-        for item in results:
-            itm = item["metadata"]
-            samples = itm["samples_Fastq_paths"]
-            string = "".join(samples).strip("[]").strip("{]}'")
-            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
+        else:
+            for item in results:
+                itm = item["metadata"]
+                samples = itm["samples_Fastq_paths"]
+                string = "".join(samples).strip("[]").strip("{]}'")
+                lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
 
-        for i in lst:
-            if query in os.path.basename(i) or query in i:
-            s = os.path.basename(i)
-            log.info("Downloading:",s.replace(".fastq.gz", ".fasterq").strip())
-            name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
-            obj = ctx["hcpm"].get_object(name) # Get object with json.
-            if obj is not None:
-                ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(name)}") # Downloads file.
-            else:
-                log.error(f"File: '{name}' does not exist in bucket '{bucket}' on the HCP")
+            for i in lst:
+                if query in os.path.basename(i) or query in i:
+                    if not silent:
+                        s = os.path.basename(i)
+                        log.info("Downloading:",s.replace(".fastq.gz", ".fasterq").strip())
+                    name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+                    obj = ctx["hcpm"].get_object(name) # Get object with json.
+                if obj is not None:
+                    ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(name)}") # Downloads file.
+                else:
+                    log.error(f"File: '{name}' does not exist in bucket '{bucket}' on the HCP")
 
     elif mode == "ngpr":
         found_objs = ctx['hcpm'].search_objects(query)

@@ -119,7 +119,7 @@ class HCPManager:
                  bucket=None, credentials_path="", debug=False):
         self.bucketname = bucket
         self.bucket = None
-        
+       
         if credentials_path != "":
             c = preproc.read_credentials(credentials_path)
             self.set_credentials(c['endpoint'], c['aws_access_key_id'], c['aws_secret_access_key'])  
@@ -164,7 +164,9 @@ class HCPManager:
         try:
             self.s3.meta.client.head_bucket(Bucket=self.bucketname)
         except Exception:
-            raise ConnectionError("Invalid access, credentials or bucket specified.")
+            log.error("Invalid access, credentials or bucket specified.")
+            sys.exit(-1)
+            #raise ConnectionError("Invalid access, credentials or bucket specified.")
 
     def set_bucket(self, bucket):
         self.bucketname = bucket

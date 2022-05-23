@@ -21,16 +21,23 @@ from NGPIris.cli.utils import utils
 @click.pass_context
 def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password, logfile):
     """NGP intelligence and repository interface software"""
-    [ep, aid, key] = preproc.read_credentials(credentials)
+    c = preproc.read_credentials(credentials)
+
+    ep = c['endpoint']
+    aid = c['aws_access_key_id'] 
+    key = c['aws_secret_access_key']
+    if 'ngpi_password' in c:
+        pw = c['ngpi_password'] 
+
 
     if endpoint != "":
-      ep = endpoint
+        ep = endpoint
     if access_key_id != "":
-      aid = access_key_id
+        aid = access_key_id
     if access_key != "":
-      key = access_key
+        key = access_key
     if password != "":
-      pw= password
+        pw = password
 
     ctx.obj = {}
     hcpm = HCPManager(ep, aid, key, bucket=bucket)
@@ -38,8 +45,8 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password
     hcpm.test_connection()
     ctx.obj["hcpm"] = hcpm
 
-    if password != "":
-        hcim = HCIManager(password)
+    if pw in locals():
+        hcim = HCIManager(pw)
         ctx.obj["hcpi"] = hcpi
 
     if logfile != "":

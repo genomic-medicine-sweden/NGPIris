@@ -83,14 +83,18 @@ def read_credentials(credentials_path):
     """Reads sensitive information from a json-file"""
     with open(credentials_path, 'r') as inp:
         c = json.load(inp)
-
-    pw = c['ngpi_password']
+    try:
+        pw = c['ngpi_password']
+    except Exception as e:
+        pass
     log.debug("Credentials file successfully utilized")
 
     if c.get('endpoint') is None or c.get('aws_access_key_id') is None or c.get('aws_secret_access_key') is None:
-        raise MissingCredentialsError('One or more critical values missing from provided json.')
+        raise MissingCredentialsError('One or more values missing from provided json.')
+        log.error('One or more critical values missing from provided json.')
+        sys.exit(-1)
 
     if c.get('ngpi_password') is None:
-        log.warning('Credentials file like NGPi credentials')
+        log.warning('Credentials file lack NGPi credentials')
 
     return c
