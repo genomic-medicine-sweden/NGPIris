@@ -27,38 +27,26 @@ def query_hci(query, index, password):
 @click.pass_context
 def utils(ctx):
     """Advanced commands for specific purposes"""
-    ctx.obj["index"] = index
-    ctx.obj["password"] = password
-
+    pass
 
 @utils.command()
-@click.option('-q',"--query",help="Specific search query", default="", required=True)
+@click.option('-i',"--index",help="List indices present on NGPi", default="all", required=True)
 @click.pass_obj
-def search(ctx, query):
+def indices(ctx, index):
     """Displays file hits for a given query"""
-    try:
-        results= query_hci(query, ctx["index"], ctx["password"])
-        for item in results:
-            itm = item["metadata"]
-            meta = itm["HCI_displayName"]
-            samples = itm["samples_Fastq_paths"]
-            string = "".join(samples).strip("[]").strip("{]}'")
-            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
-        log.info(f"Metadata file: {meta}")
-        for i in lst:
-            if query in i or query in os.path.basename(i):
-                log.info("check: ",i)
-                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+    hcim = ctx['hcim']
+    token = hcim.generate_token()
+    index_list = hcim.get_index(token, index=index)
+    pretty = json.dumps(index_list)
+    print(json.dumps(pretty, indent=4))
 
-    except:
-        log.info(f"File(s) does not exists: {query}")
 
 @utils.command()
 @click.option('-d',"--destination",help="Specify destination file to write to",required=True)
 @click.option('-l',"--legacy",help="Legacy mode to download files on the old NGS buckets",default=False,is_flag=True)
 @click.option('-q',"--query",help="Specific search query", default="", required=True)
 @click.pass_obj
-def download(ctx, destination, legacy, query):
+def hci_download(ctx, destination, legacy, query):
     """Download files matching a given query"""
     results= query_hci(query, ctx["index"], ctx["password"])
 

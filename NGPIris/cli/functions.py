@@ -12,8 +12,6 @@ import time
 from pathlib import Path
 
 from NGPIris import log, TIMESTAMP
-from NGPIris.hcp import HCPManager
-from NGPIris.hci import HCIManager
 from NGPIris.preproc import preproc
 
 ##############################################
@@ -22,68 +20,35 @@ from NGPIris.preproc import preproc
 @click.command()
 @click.argument("index")
 @click.argument("query")
-@click.option("-o","--output",help="Specify output file to write to")
+@click.option("-o","--output",help="Specify output file to write to",default="")
+@click.option("-v" "--verbose",is_flag=True,default=False)
 @click.pass_obj
-def search(ctx, index, query):
+def search(ctx, index, query, verbose):
     """List all file hits for a given query by directly calling HCP"""
-            parser = argparse.ArgumentParser(prog="Fetch information from the HCI")
 
-            subparsers = parser.add_subparsers(help="help for subcommand")
+    hcim = ctx['hcim']
 
-            parser_query = subparsers.add_parser("query", help="Query the specified index")
-            parser_query.set_defaults(which="query")
-            parser_query.add_argument("-q", "--query", nargs="?", action="store", type=str, help="Specify search query, e.g. sample name")
-            parser_query.add_argument("-i", "--index", nargs="?", action="store", type=str, help="Specify index from HCI to parse")
-            parser_query.add_argument("-o", "--output", nargs="?", action="store", type=str, help="Specify file to store outputs")
-            parser_query.add_argument("-p", "--password", nargs="?", action="store", type=str, help="Admin password file")
+    hcim.create_template(index, query)
+    token = hcim.generate_token()
 
-            parser_index = subparsers.add_parser("index", help="List all queryable indexes and their available fields")
-            parser_index.set_defaults(which="index")
-            parser_index.add_argument("-i", "--index", nargs="?", action="store", type=str, help="Specify index from HCI to parse, if 'all' list every index and fields")
-            parser_index.add_argument("-o", "--output", nargs="?", action="store", type=str, help="Specify file to store outputs")
-            parser_index.add_argument("-p", "--password", nargs="?", action="store", type=str, help="Admin password file")
+    if verbose:
+        resp = hcim.query(token)
+        pretty = json.loads(resp)
+        print(json.dumps(pretty, indent=4))
 
-            args = parser.parse_args()
-
-
-            if args.which == "query":
-                create_template(args.index, args.query)
-                token = generate_token(args.password)
-                resp = query(token)
-                pretty = json.loads(resp)
-                if args.output:
-                    with open(args.output, "w+") as result:
-                        result.write(json.dumps(pretty, indent=4))
-                else:
-                    print(json.dumps(pretty, indent=4))
-
-            elif args.which == "index":
-                token = generate_token(args.password)
-                index_list = index_lister(token, index=args.index)
-                pretty = json.dumps(index_list)
-                if args.output:
-                    with open(args.output, "w+") as result:
-                        result.write(json.dumps(pretty, indent=4))
-                else:
-                    print(json.dumps(pretty, indent=4))
-
-
-
-@click.command()
-@click.argument("query")
-@click.option("-m", "--mode",help="Restrict search to a file type", type=click.Choice(['all','file', 'dir'], case_sensitive=False),default='all')
-@click.pass_obj
-def slow_search(ctx, query, mode):
-    """List all file hits for a given query by directly calling HCP"""
-    if query != "":
-        found_objs = ctx['hcpm'].search_objects(query,mode=mode)
-        if len(found_objs) > 0:
-            for obj in found_objs:
-                log.info(obj.key)
-        else:
-            log.info(f'No results found for: {query}')
     else:
-        log.info('A query or file needs to be specified if you are using the "search" option')
+        results = hcim.pretty_query(token)
+        for item in results:
+            itm = item["metadata"]
+            meta = itm["HCI_displayName"]
+            samples = itm["samples_Fastq_paths"]
+            string = "".join(samples).strip("[]").strip("{]}'")
+            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
+        log.info(f"Metadata file: {meta}")
+        for i in lst:
+            if query in i or query in os.path.basename(i):
+                log.info("Check: ",i)
+                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
 @click.command()
 @click.argument("query")
@@ -192,10 +157,47 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 @click.command()
 @click.argument("query")
 @click.option('-o',"--output",help="Specify output file to write to",required=True)
+@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr','none'], case_sensitive=False),default='ngpr')
 @click.option('-f',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.pass_obj
 def download(ctx, query, output,fast, silent):
+    hcim = ctx['hcim']
+
+    hcim.create_template(index, query)
+    token = hcim.generate_token()
+    results = hcim.pretty_query(token)
+
+    if legacy:
+        for item in results:
+            itm = item["metadata"]
+            samples = itm["samples_Fastq_paths"]
+        for i in samples:
+            obj = ctx["hcpm"].get_object(i) # Get object with json.
+            if obj is not None:
+                ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(i)}") # Downloads file.
+            else:
+                log.error(f"File: '{s}' does not exist in bucket '{bucket}' on the HCP")
+
+    elif not legacy:
+        for item in results:
+            itm = item["metadata"]
+            samples = itm["samples_Fastq_paths"]
+            string = "".join(samples).strip("[]").strip("{]}'")
+            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
+
+        for i in lst:
+            if query in os.path.basename(i) or query in i:
+                s = os.path.basename(i)
+                log.info("Downloading:",s.replace(".fastq.gz", ".fasterq").strip())
+                name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+                obj = ctx["hcpm"].get_object(name) # Get object with json.
+                if obj is not None:
+                    ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(name)}") # Downloads file.
+                else:
+                    log.error(f"File: '{name}' does not exist in bucket '{bucket}' on the HCP")
+
+
     """Download files using a given query"""
 
     #Defaults output to input name
