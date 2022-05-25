@@ -23,10 +23,10 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password
     """NGP intelligence and repository interface software"""
     c = preproc.read_credentials(credentials)
 
-    ep = endpoint if endpoint else c('endpoint','')
-    aid = key_id if key_id else c('aws_access_key_id','') 
-    key = access_key if access_key else c('aws_secret_access_key','')
-    pw = password if password else c('ngpi_password', '')
+    ep = endpoint if endpoint else c.get('endpoint','')
+    aid = access_key_id if access_key_id else c.get('aws_access_key_id','') 
+    key = access_key if access_key else c.get('aws_secret_access_key','')
+    pw = password if password else c.get('ngpi_password', '')
 
     ctx.obj = {}
     hcpm = HCPManager(ep, aid, key, bucket=bucket)

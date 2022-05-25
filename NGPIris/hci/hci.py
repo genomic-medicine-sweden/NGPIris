@@ -18,13 +18,16 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # Disable w
 
 class HCIManager:
     
-    def __init__(self,password=""):
-        self.password = password
+    def __init__(self,password="", credentials_path=""):
+        if credentials_path:
+            c = preproc.read_credentials(credentials_path)
+
+        self.password = password if password else c('password','')
         self.address = "10.248.192.3"
         self.authport = "8000"
         self.apiport = "8888"
 
-    def get_password():
+    def get_password(self):
         return self.password
 
     # Creates template based on template. 
@@ -40,8 +43,9 @@ class HCIManager:
 
     def generate_token(self):
         """Generate a security token from a password"""
-        my_key = requests.post(f"https://{self.address}:{self.authport}/auth/oauth/", data={"grant_type": "password", "username": "admin", "password": f"{self.password}", "scope": "*", 
-                "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
+        my_key = requests.post(f"https://{self.address}:{self.authport}/auth/oauth/", 
+                 data={"grant_type": "password", "username": "admin", "password": f"{self.password}", "scope": "*",  
+                 "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
             
         return ast.literal_eval(my_key.text)["access_token"].lstrip()
 
@@ -50,7 +54,7 @@ class HCIManager:
         """Queries the HCI using a token"""
         with open ("{}/hci/package.json".format(WD), "r") as signal:
             json_data = json.load(signal)
-        response = requests.post(f"https://{self.address}:{self.apiport}/api/search/query", \
+        response = requests.post(f"https://{self.address}:{self.apiport}/api/search/query", 
                    headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
                    json=json_data, verify=False) 
         return response.text
@@ -63,15 +67,15 @@ class HCIManager:
     # If using index, it searches through all indexes if nothing else is specified. 
     def get_index(self, token, index="all"):
         if index == "all":
-            response = requests.get(f"https://{self.address}:{self.apiport}/api/search/indexes", headers={"accept": "application/json",
-                            "Authorization": f"Bearer {token}"}, verify=False)
+            response = requests.get(f"https://{self.address}:{self.apiport}/api/search/indexes", 
+                       headers={"accept": "application/json","Authorization": f"Bearer {token}"}, verify=False)
             response_string = response.text
             fixed_response = ast.literal_eval(response_string.replace("true", "True").replace("false", "False"))
             return fixed_response
 
         else:
-            response = requests.get(f"https://{self.address}:{self.apiport}/api/search/indexes", headers={"accept": "application/json",
-                            "Authorization": f"Bearer {token}"}, verify=False)
+            response = requests.get(f"https://{self.address}:{self.apiport}/api/search/indexes", 
+                       headers={"accept": "application/json","Authorization": f"Bearer {token}"}, verify=False)
             response_string = response.text
             fixed_response = response_string.replace("true", "True").replace("false", "False")
 
