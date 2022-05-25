@@ -18,14 +18,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # Disable w
 
 class HCIManager:
     
-    def __init__(self,credentials_path=""):
-        if credentials_path != "":
-            c = preproc.read_credentials(credentials_path)
-            self.password = c['ngpi_password']
-
-            self.address = "10.248.192.3"
-            self.authport = "8000"
-            self.apiport = "8888"
+    def __init__(self,password=""):
+        self.password = password
+        self.address = "10.248.192.3"
+        self.authport = "8000"
+        self.apiport = "8888"
 
     def get_password():
         return self.password
@@ -37,8 +34,8 @@ class HCIManager:
             data["indexName"] = index
             data["queryString"] = query
 
-        with open(f"{WD}/hci/written_query.json", "w") as dumpyboi:
-            json.dump(data, dumpyboi, indent=4)
+        with open(f"{WD}/hci/package.json", "w") as signal:
+            json.dump(data, signal, indent=4)
 
 
     def generate_token(self):
@@ -51,15 +48,16 @@ class HCIManager:
 
     def query(self, token):
         """Queries the HCI using a token"""
-        with open ("{}/hci/written_query.json".format(WD), "r") as mqj:
-            json_data = json.load(mqj)
-        response = requests.post(f"https://{self.address}:{self.apiport}/api/search/query", headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
-                             json=json_data, verify=False) 
+        with open ("{}/hci/package.json".format(WD), "r") as signal:
+            json_data = json.load(signal)
+        response = requests.post(f"https://{self.address}:{self.apiport}/api/search/query", \
+                   headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
+                   json=json_data, verify=False) 
         return response.text
 
     def pretty_query(self, token):
        """Return the result of a query in json loaded format"""
-       return json.loads(query(token))["results"]
+       return json.loads(self.query(token))["results"]
 
 
     # If using index, it searches through all indexes if nothing else is specified. 

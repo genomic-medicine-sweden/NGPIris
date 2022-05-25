@@ -48,17 +48,17 @@ def search(ctx, index, query, verbose,mode):
         if verbose:
             resp = hcim.query(token)
             pretty = json.loads(resp)
-            print(json.dumps(pretty, indent=4))
+            click.secho(json.dumps(pretty, indent=4))
 
         else:
             results = hcim.pretty_query(token)
             for item in results:
-                itm = item["metadata"]
-                meta = itm["HCI_displayName"]
-                samples = itm["samples_Fastq_paths"]
-                string = "".join(samples).strip("[]").strip("{]}'")
+                md = item["metadata"]
+                hci_name = md["HCI_displayName"]
+                path = md["samples_Fastq_paths"]
+                string = "".join(path).strip("[]").strip("{]}'")
                 lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
-                log.info(f"Metadata file: {meta}")
+                log.info(f"Metadata file: {hci_name}")
             for i in lst:
                 if query in i or query in os.path.basename(i):
                     log.info("File: ",i)
@@ -193,9 +193,9 @@ def download(ctx, query, output,mode, silent):
 
         if mode == "ngpi-legacy":
             for item in results:
-                itm = item["metadata"]
-                samples = itm["samples_Fastq_paths"]
-            for i in samples:
+                md = item["metadata"]
+                path = md["samples_Fastq_paths"]
+            for i in path:
                 obj = ctx["hcpm"].get_object(i) # Get object with json.
                 if obj is not None:
                     ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(i)}") # Downloads file.
@@ -204,9 +204,9 @@ def download(ctx, query, output,mode, silent):
 
         else:
             for item in results:
-                itm = item["metadata"]
-                samples = itm["samples_Fastq_paths"]
-                string = "".join(samples).strip("[]").strip("{]}'")
+                md = item["metadata"]
+                path = md["samples_Fastq_paths"]
+                string = "".join(path).strip("[]").strip("{]}'")
                 lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
 
             for i in lst:

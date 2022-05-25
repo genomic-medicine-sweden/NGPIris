@@ -4,7 +4,7 @@ import sys
 
 from NGPIris import log, logformat
 from NGPIris.hcp import HCPManager
-from NGPIris.hci import hci
+from NGPIris.hci import HCIManager
 from NGPIris.preproc import preproc
 from NGPIris.cli.functions import delete, search, upload, download
 from NGPIris.cli.utils import utils
@@ -23,21 +23,10 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password
     """NGP intelligence and repository interface software"""
     c = preproc.read_credentials(credentials)
 
-    ep = c['endpoint']
-    aid = c['aws_access_key_id'] 
-    key = c['aws_secret_access_key']
-    if 'ngpi_password' in c:
-        pw = c['ngpi_password'] 
-
-
-    if endpoint != "":
-        ep = endpoint
-    if access_key_id != "":
-        aid = access_key_id
-    if access_key != "":
-        key = access_key
-    if password != "":
-        pw = password
+    ep = endpoint if endpoint else c('endpoint','')
+    aid = key_id if key_id else c('aws_access_key_id','') 
+    key = access_key if access_key else c('aws_secret_access_key','')
+    pw = password if password else c('ngpi_password', '')
 
     ctx.obj = {}
     hcpm = HCPManager(ep, aid, key, bucket=bucket)
@@ -45,9 +34,9 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password
     hcpm.test_connection()
     ctx.obj["hcpm"] = hcpm
 
-    if pw in locals():
+    if pw:
         hcim = HCIManager(pw)
-        ctx.obj["hcpi"] = hcpi
+        ctx.obj["hcpi"] = hcim
 
     if logfile != "":
         fh = logging.FileHandler(logfile)
