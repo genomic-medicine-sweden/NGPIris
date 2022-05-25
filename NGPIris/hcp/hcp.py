@@ -25,8 +25,6 @@ from NGPIris.hcp.config import get_config
 from NGPIris import log
 config = get_config()
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # Disable warnings about missing SLL certificate.
-
 class ProgressPercentage(object):
     """Progressbar for both upload and download of files."""
     def __init__(self, source):
@@ -165,7 +163,7 @@ class HCPManager:
             self.s3.meta.client.head_bucket(Bucket=self.bucketname)
         except Exception:
             log.error("Invalid access, credentials or bucket specified.")
-            sys.exit(-1)
+            #sys.exit(-1)
             #raise ConnectionError("Invalid access, credentials or bucket specified.")
 
     def set_bucket(self, bucket):

@@ -1,6 +1,10 @@
 import logging
 import os
+import urllib3
+
 from datetime import datetime
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # Disable warnings about missing SLL certificate.
 
 logformat =  logging.Formatter("[%(asctime)s] - %(levelname)s: %(message)s")
 

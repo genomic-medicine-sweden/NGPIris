@@ -21,10 +21,10 @@ from NGPIris.preproc import preproc
 @click.argument("query")
 @click.option("-i","--index",help="NGPi index name")
 @click.option("-o","--output",help="Specify output file to write to",default="")
-@click.option("-v" "--verbose",is_flag=True,default=False)
+@click.option("-v","--verbose",is_flag=True,default=False)
 @click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
 @click.pass_obj
-def search(ctx, index, query, verbose,mode):
+def search(ctx, query, index, output, verbose, mode):
     """List all file hits for a given query by directly calling HCP"""
   
     if not query != "":

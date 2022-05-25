@@ -14,8 +14,6 @@ import urllib3
 
 from NGPIris import WD
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # Disable warnings about missing SLL certificate.
-
 class HCIManager:
     
     def __init__(self,password="", credentials_path=""):
