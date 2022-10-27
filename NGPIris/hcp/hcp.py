@@ -67,8 +67,13 @@ class ProgressPercentage(object):
             return ''
 
         terminal_width = 80
-        if sys.platform != "win32":
+        if sys.platform == "win32":
+            pass
+        elif sys.platform == "linux":
+            pass
+        else:
             terminal_width = os.get_terminal_size()[0]
+
 
         if len(text) > terminal_width:
             diff = len(text) - terminal_width
