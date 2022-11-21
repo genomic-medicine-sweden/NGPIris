@@ -25,7 +25,8 @@ pip install NGPIris
 {
 "endpoint" : "https://ACCESSNODESERVERNAME:PORT",
 "aws_access_key_id" : "ALONGSTRINGOFCHARSTHATSYMBOLIZEYOURID",
-"aws_secret_access_key" : "ANEVENLONGERSTRINGOFCHARSTHATSYMBOLIZEYOURPASSWORD"
+"aws_secret_access_key" : "ANEVENLONGERSTRINGOFCHARSTHATSYMBOLIZEYOURPASSWORD",
+"ngpi_password": "p@ssw0rd"
 }
 ```
 
