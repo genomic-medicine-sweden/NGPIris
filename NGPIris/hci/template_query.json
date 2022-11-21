@@ -7,8 +7,8 @@
   "facetRequests": [
     {
       "modelVersion": "1.1.0",
-      "fieldName": "HCI_namespace",
       "minCount": 0,
+      "fieldName": "HCI_snippet",
       "maxCount": 10,
       "facetPrefix": "string"
     }

@@ -1,1 +1,1 @@
-from .hci import main 
+from .hci import HCIManager

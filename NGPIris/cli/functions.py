@@ -12,26 +12,53 @@ import time
 from pathlib import Path
 
 from NGPIris import log, TIMESTAMP
-from NGPIris.hcp import HCPManager
 from NGPIris.preproc import preproc
 
 ##############################################
 
+
 @click.command()
 @click.argument("query")
-@click.option("-m", "--mode",help="Restrict search to a file type", type=click.Choice(['all','file', 'dir'], case_sensitive=False),default='all')
+@click.option("-i","--index",help="NGPi index name")
+@click.option("-o","--output",help="Specify output file to write to",default="")
+@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
 @click.pass_obj
-def search(ctx, query, mode):
-    """List all file hits for a given query"""
-    if query != "":
-        found_objs = ctx['hcpm'].search_objects(query,mode=mode)
-        if len(found_objs) > 0:
+def search(ctx, query, index, output, mode):
+    """List all file hits for a given query by directly calling HCP"""
+  
+    #Todo: Input search by file-with-list-of-items
+
+    found_objs = ctx['hcpm'].search_objects(query,mode=mode)
+    if mode == "ngpr":
+        if not (found_objs is None) and len(found_objs) > 0:
             for obj in found_objs:
                 log.info(obj.key)
         else:
             log.info(f'No results found for: {query}')
-    else:
-        log.info('A query or file needs to be specified if you are using the "search" option')
+
+    elif mode == "ngpi":
+        hcim = ctx['hcim']
+
+        hcim.create_template(index, query)
+        token = hcim.generate_token()
+
+        #if verbose:
+        #    resp = hcim.query(token)
+        #    pretty = json.loads(resp)
+        #    click.secho(json.dumps(pretty, indent=4))
+
+        results = hcim.pretty_query(token)
+        for item in results:
+            md = item["metadata"]
+            hci_name = md["HCI_displayName"]
+            path = md["samples_Fastq_paths"]
+            string = "".join(path).strip("[]").strip("{]}'")
+            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
+            log.info(f"Metadata file: {hci_name}")
+        for i in lst:
+            if query in i or query in os.path.basename(i):
+                log.info("File: ",i)
+                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
 @click.command()
 @click.argument("query")
@@ -139,11 +166,11 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 
 @click.command()
 @click.argument("query")
-@click.option('-o',"--output",help="Specify output file to write to",required=True)
-@click.option('-f',"--fast",help="Downloads without searching (Faster)", is_flag=True,default=False)
+@click.option('-o',"--output",help="Specify output file to write to",default="")
+@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr','none','legacy-ngpi'], case_sensitive=False),default='ngpr')
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.pass_obj
-def download(ctx, query, output,fast, silent):
+def download(ctx, query, output,mode, silent):
     """Download files using a given query"""
 
     #Defaults output to input name
@@ -153,7 +180,43 @@ def download(ctx, query, output,fast, silent):
     elif output[-1] in ["/","\\"]:
         output = os.path.join(output, os.path.basename(query))
 
-    if not fast:
+    if mode == "ngpi" or mode == "ngpi-legacy":
+        hcim = ctx['hcim']
+        hcim.create_template(index, query)
+        token = hcim.generate_token()
+        results = hcim.pretty_query(token)
+
+        if mode == "ngpi-legacy":
+            for item in results:
+                md = item["metadata"]
+                path = md["samples_Fastq_paths"]
+            for i in path:
+                obj = ctx["hcpm"].get_object(i) # Get object with json.
+                if obj is not None:
+                    ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(i)}") # Downloads file.
+                else:
+                    log.error(f"File: '{s}' does not exist in bucket '{bucket}' on the HCP")
+
+        else:
+            for item in results:
+                md = item["metadata"]
+                path = md["samples_Fastq_paths"]
+                string = "".join(path).strip("[]").strip("{]}'")
+                lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
+
+            for i in lst:
+                if query in os.path.basename(i) or query in i:
+                    if not silent:
+                        s = os.path.basename(i)
+                        log.info("Downloading:",s.replace(".fastq.gz", ".fasterq").strip())
+                    name = s.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+                    obj = ctx["hcpm"].get_object(name) # Get object with json.
+                if obj is not None:
+                    ctx["hcpm"].download_file(obj, f"{destination}/{os.path.basename(name)}") # Downloads file.
+                else:
+                    log.error(f"File: '{name}' does not exist in bucket '{bucket}' on the HCP")
+
+    elif mode == "ngpr":
         found_objs = ctx['hcpm'].search_objects(query)
         if len(found_objs) == 0:
             log.info(f"File: {query} does not exist on {ctx['hcpm'].bucket.name}")
@@ -185,7 +248,7 @@ def download(ctx, query, output,fast, silent):
             else:
                 ctx['hcpm'].download_file(obj, output, force=True) # Downloads file.
  
-    elif fast:
+    elif mode =="none":
         obj = ctx['hcpm'].get_object(query) # Get object with key.
         if silent:
             ctx['hcpm'].download_file(obj, output, force=True, callback=False) # Downloads file.

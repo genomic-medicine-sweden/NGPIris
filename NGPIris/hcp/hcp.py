@@ -23,10 +23,7 @@ from NGPIris.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
                                 ReadLargeFileError, ConnectionError)
 from NGPIris.hcp.config import get_config
 from NGPIris import log
-
-
 config = get_config()
-
 
 class ProgressPercentage(object):
     """Progressbar for both upload and download of files."""
@@ -119,14 +116,16 @@ def bucketcheck(fn):
 
 
 class HCPManager:
+
+
     def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", \
                  bucket=None, credentials_path="", debug=False):
         self.bucketname = bucket
         self.bucket = None
-        
+       
         if credentials_path != "":
-            [ep, aid, key] = preproc.read_credentials(credentials_path)
-            self.set_credentials(ep, aid, key)  
+            c = preproc.read_credentials(credentials_path)
+            self.set_credentials(c['endpoint'], c['aws_access_key_id'], c['aws_secret_access_key'])  
         else:
             self.set_credentials(endpoint, aws_access_key_id, aws_secret_access_key)
 
@@ -134,14 +133,13 @@ class HCPManager:
         if debug:
             boto3.set_stream_logger(name='botocore')
 
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # Disable warnings about missing SLL certificate.
-
         session = boto3.session.Session(
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key)
 
         s3_config = Config(s3={'addressing_style': 'path',
-                               'payload_signing_enabled': True},
+                               'payload_signing_enabled': True
+                               },
                            signature_version='s3v4')
 
         self.s3 = session.resource('s3',
@@ -169,7 +167,9 @@ class HCPManager:
         try:
             self.s3.meta.client.head_bucket(Bucket=self.bucketname)
         except Exception:
-            raise ConnectionError("Invalid access, credentials or bucket specified.")
+            log.error("Invalid access, credentials or bucket specified.")
+            #sys.exit(-1)
+            #raise ConnectionError("Invalid access, credentials or bucket specified.")
 
     def set_bucket(self, bucket):
         self.bucketname = bucket
@@ -218,7 +218,6 @@ class HCPManager:
         """Return all objects whose keys contain the given string."""
         if not hasattr(self, 'objects'):
             self.get_objects()
-
         cstr = re.compile(string)
         if mode == "all":
             return [obj for obj in self.objects if re.search(cstr, obj.key) ]

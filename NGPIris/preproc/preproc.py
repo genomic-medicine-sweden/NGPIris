@@ -80,16 +80,21 @@ def generate_tagmap(fn, tag, output_path="{}/meta-{}.json".format(os.getcwd(), T
 
 
 def read_credentials(credentials_path):
-    """Set endpoint, aws id and aws key using a json-file"""
+    """Reads sensitive information from a json-file"""
     with open(credentials_path, 'r') as inp:
         c = json.load(inp)
-
-    ep = c['endpoint']
-    aid = c['aws_access_key_id']
-    key = c['aws_secret_access_key']
+    try:
+        pw = c['ngpi_password']
+    except Exception as e:
+        pass
     log.debug("Credentials file successfully utilized")
-    if not (isinstance(ep,str) and isinstance(aid,str) and isinstance(key,str)):
+
+    if c.get('endpoint') is None or c.get('aws_access_key_id') is None or c.get('aws_secret_access_key') is None:
         raise MissingCredentialsError('One or more values missing from provided json.')
+        log.error('One or more critical values missing from provided json.')
+        sys.exit(-1)
 
-    return [ep,aid,key]
+    if c.get('ngpi_password') is None:
+        log.warning('Credentials file lack NGPi credentials')
 
+    return c

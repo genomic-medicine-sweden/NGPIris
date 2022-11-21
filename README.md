@@ -4,9 +4,30 @@ NGP Iris is designed with two use cases in mind:
 * A simple, clear, real-time interaction with NGPr file management
 * Improving process flow for performing off-site data analysis by using automated transfer scripts
 
-## Easy installation
+## Getting started
 
-`pip install NGPIris --upgrade` 
+### Easy installation
+```
+pip install NGPIris
+```
+
+### Requirements
+* [Anaconda](https://www.anaconda.com/products/individual-d) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html) for conda environment
+* pip installed
+* NGPr credentials 
+
+### NGPr Credentials
+
+* Receive your NGPr credentials from your local NGP admin
+* Edit NGPIris/credentials.json
+
+```
+{
+"endpoint" : "https://ACCESSNODESERVERNAME:PORT",
+"aws_access_key_id" : "ALONGSTRINGOFCHARSTHATSYMBOLIZEYOURID",
+"aws_secret_access_key" : "ANEVENLONGERSTRINGOFCHARSTHATSYMBOLIZEYOURPASSWORD"
+}
+```
 
 ## Introduction
 
@@ -157,32 +178,10 @@ hcpm.download_file(obj, <local_file_path>, callback=False)
 ./hci.py index -i [index_name] -p [password_file] -o [output]
 ```
 
-## Installation 
-### Requirements
-* [Anaconda](https://www.anaconda.com/products/individual-d) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html) installed
-* pip installed
-* NGPr credentials 
-
-### Production build
-```
-pip install NGPIris
-```
-
 ### Development build
 ``` 
 git clone git@github.com:genomic-medicine-sweden/NGPIris.git
 cd NGPIris
 bash setup.sh
 source activate hcpenv
-```
-### NGPr Credentials
-
-* Receive your NGPr credentials from your local NGP admin
-* Edit NGPIris/credentials.json
-```
-{
-"endpoint" : "https://ACCESSNODESERVERNAME:PORT",
-"aws_access_key_id" : "ALONGSTRINGOFCHARSTHATSYMBOLIZEYOURID",
-"aws_secret_access_key" : "ANEVENLONGERSTRINGOFCHARSTHATSYMBOLIZEYOURPASSWORD"
-}
 ```
