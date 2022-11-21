@@ -28,6 +28,7 @@ def search(ctx, query, index, output, mode):
   
     #Todo: Input search by file-with-list-of-items
 
+    found_objs = ctx['hcpm'].search_objects(query,mode=mode)
     if mode == "ngpr":
         if not (found_objs is None) and len(found_objs) > 0:
             for obj in found_objs:
@@ -168,7 +169,6 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 @click.option('-o',"--output",help="Specify output file to write to",default="")
 @click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr','none','legacy-ngpi'], case_sensitive=False),default='ngpr')
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
-@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
 @click.pass_obj
 def download(ctx, query, output,mode, silent):
     """Download files using a given query"""
