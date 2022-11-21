@@ -213,7 +213,6 @@ class HCPManager:
         """Return all objects whose keys contain the given string."""
         if not hasattr(self, 'objects'):
             self.get_objects()
-
         cstr = re.compile(string)
         if mode == "all":
             return [obj for obj in self.objects if re.search(cstr, obj.key) ]
