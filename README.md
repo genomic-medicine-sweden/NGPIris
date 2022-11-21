@@ -77,7 +77,7 @@ This command will upload your test file, and a meta-data file, to `/tmp/` on the
  Without it the meta-data file will appear in your current directory.
 
 #### Download a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE download -f /tmp/MYDUMBTESTFILE -o ./MYDUMBTESTFILE --silent`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE download /tmp/MYDUMBTESTFILE -o ./MYDUMBTESTFILE --silent`
 
 This command will download your previously uploaded testfile, and put it in your current directory.
 `-f` will overwrite any locally stored file with the same name
