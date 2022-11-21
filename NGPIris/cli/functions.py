@@ -21,18 +21,14 @@ from NGPIris.preproc import preproc
 @click.argument("query")
 @click.option("-i","--index",help="NGPi index name")
 @click.option("-o","--output",help="Specify output file to write to",default="")
-@click.option("-v","--verbose",is_flag=True,default=False)
 @click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
 @click.pass_obj
-def search(ctx, query, index, output, verbose, mode):
+def search(ctx, query, index, output, mode):
     """List all file hits for a given query by directly calling HCP"""
   
-    if not query != "":
-        log.info('A query or file needs to be specified if you are using the "search" option')
-        sys.exit(-1)
+    #Todo: Input search by file-with-list-of-items
 
     if mode == "ngpr":
-        found_objs = ctx['hcpm'].search_objects(query)
         if not (found_objs is None) and len(found_objs) > 0:
             for obj in found_objs:
                 log.info(obj.key)
@@ -45,24 +41,23 @@ def search(ctx, query, index, output, verbose, mode):
         hcim.create_template(index, query)
         token = hcim.generate_token()
 
-        if verbose:
-            resp = hcim.query(token)
-            pretty = json.loads(resp)
-            click.secho(json.dumps(pretty, indent=4))
+        #if verbose:
+        #    resp = hcim.query(token)
+        #    pretty = json.loads(resp)
+        #    click.secho(json.dumps(pretty, indent=4))
 
-        else:
-            results = hcim.pretty_query(token)
-            for item in results:
-                md = item["metadata"]
-                hci_name = md["HCI_displayName"]
-                path = md["samples_Fastq_paths"]
-                string = "".join(path).strip("[]").strip("{]}'")
-                lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
-                log.info(f"Metadata file: {hci_name}")
-            for i in lst:
-                if query in i or query in os.path.basename(i):
-                    log.info("File: ",i)
-                    name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
+        results = hcim.pretty_query(token)
+        for item in results:
+            md = item["metadata"]
+            hci_name = md["HCI_displayName"]
+            path = md["samples_Fastq_paths"]
+            string = "".join(path).strip("[]").strip("{]}'")
+            lst = string.replace('"','').replace("\\","").replace("[","").replace("]","").replace(";",",").split(",")
+            log.info(f"Metadata file: {hci_name}")
+        for i in lst:
+            if query in i or query in os.path.basename(i):
+                log.info("File: ",i)
+                name = i.replace(".fastq.gz", ".fasterq").strip() # Replace suffix. 
 
 @click.command()
 @click.argument("query")
@@ -170,11 +165,13 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 
 @click.command()
 @click.argument("query")
-@click.option('-o',"--output",help="Specify output file to write to",required=True)
+@click.option('-o',"--output",help="Specify output file to write to",default="")
 @click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr','none','legacy-ngpi'], case_sensitive=False),default='ngpr')
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
+@click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
+@click.option("-d", "--document",help="Restrict search to a document type", category=click.Choice(['all','file', 'dir'], case_sensitive=False),default='all')
 @click.pass_obj
-def download(ctx, query, output,mode, silent):
+def download(ctx, query, output,mode, silent,document):
     """Download files using a given query"""
 
     #Defaults output to input name

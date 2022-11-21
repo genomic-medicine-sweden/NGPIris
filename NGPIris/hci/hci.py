@@ -14,6 +14,8 @@ import urllib3
 
 from NGPIris import WD
 
+from NGPIris.preproc import preproc
+
 class HCIManager:
     
     def __init__(self,password="", credentials_path=""):
@@ -28,8 +30,8 @@ class HCIManager:
     def get_password(self):
         return self.password
 
-    # Creates template based on template. 
     def create_template(self, index, query):
+        """Reorganises query to standard format"""
         with open(f"{WD}/hci/template_query.json", "r") as sample:
             data = json.load(sample)
             data["indexName"] = index
