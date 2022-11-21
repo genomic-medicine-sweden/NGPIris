@@ -169,9 +169,8 @@ def upload(ctx, input, output, tag, meta,silent,atypical):
 @click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr','none','legacy-ngpi'], case_sensitive=False),default='ngpr')
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
-@click.option("-d", "--document",help="Restrict search to a document type", category=click.Choice(['all','file', 'dir'], case_sensitive=False),default='all')
 @click.pass_obj
-def download(ctx, query, output,mode, silent,document):
+def download(ctx, query, output,mode, silent):
     """Download files using a given query"""
 
     #Defaults output to input name
