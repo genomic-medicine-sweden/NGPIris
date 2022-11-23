@@ -218,7 +218,9 @@ class HCPManager:
         """Return all objects whose keys contain the given string."""
         if not hasattr(self, 'objects'):
             self.get_objects()
-        cstr = re.compile(string)
+        string = string.replace('.', '\.') #escape dots
+        string = string.replace('*','.*') #support normie asterix
+        cstr = re.compile(f'.*{string}.*') #pad string with 'any' on both sides
         if mode == "all":
             return [obj for obj in self.objects if re.search(cstr, obj.key) ]
         elif mode == "file":
