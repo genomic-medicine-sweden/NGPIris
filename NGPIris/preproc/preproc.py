@@ -77,7 +77,7 @@ def generate_tagmap(fn, tag, output_path="{}/meta-{}.json".format(os.getcwd(), T
             json.dump(updated_data, out, indent=4)
 
     log.debug(f'Generated metadata file {output_path}')
-
+    return output_path
 
 def read_credentials(credentials_path):
     """Reads sensitive information from a json-file"""
@@ -98,3 +98,50 @@ def read_credentials(credentials_path):
         log.warning('Credentials file lack NGPi credentials')
 
     return c
+
+def folder_to_list(folder, metadata=""):
+    file_lst = []
+    md_lst= []
+    #Recursively loop over all folders
+    for root, dirs, files in os.walk(folder):
+        for f in files:
+            try:
+                #Auto-generate metadata
+                #if metadata == "":
+                #    metadata = preproc.generate_tagmap(os.path.join(root,f), tag,"meta-{}.json".format(TIMESTAMP))
+                file_lst.append(os.path.join(root,f))
+            except Exception as e:
+                log.warning(f"{f} is not a valid upload file: {e}")
+    return [file_lst, metadata]
+
+def verify_upload_folder(folder, metadata=""):
+    file_lst = []
+    md_lst= []
+    #Recursively loop over all folders
+    for root, dirs, files in os.walk(folder):
+        for f in files:
+            try:
+                verify_fq_suffix(os.path.join(root,f))
+                verify_fq_content(os.path.join(root,f))
+                #Auto-generate metadata
+                #if metadata == "":
+                #    metadata = preproc.generate_tagmap(os.path.join(root,f), tag,"meta-{}.json".format(TIMESTAMP))
+                file_lst.append(os.path.join(root,f))
+            except Exception as e:
+                log.warning(f"{f} is not a valid upload file: {e}")
+    return [file_lst, metadata]
+
+def verify_upload_file(source, metadata=""):
+    source = os.path.abspath(source)
+    dst = []
+    try:
+        verify_fq_suffix(source)
+        verify_fq_content(source)
+        #Auto-generate metadata
+        #if metadata == "":
+        #    metadata = preproc.generate_tagmap(source, tag)
+        dst = source
+        file_lst.append(mdfile)
+    except Exception as e:
+        log.warning(f"{source} is not a valid upload file: {e}")
+    return [dst, metadata]

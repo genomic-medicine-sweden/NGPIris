@@ -40,6 +40,21 @@ def indices(ctx, index):
     pretty = json.dumps(index_list)
     print(json.dumps(pretty, indent=4))
 
+@utils.command()
+@click.pass_obj
+def list_buckets(ctx):
+    """Lists all accessible buckets for the provided credentials"""
+    hcpm = ctx['hcpm']
+    ls = hcpm.list_buckets()
+    log.info(f"Buckets: {ls}")
+
+@utils.command()
+@click.pass_obj
+def test_connection(ctx):
+    """Tests credentials for validity"""
+    if not (40 in log._cache or 30 in log._cache):
+        log.info(f"A successful connection has been established!")
+
 def main():
     pass
 
