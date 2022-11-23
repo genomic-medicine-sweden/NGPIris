@@ -28,7 +28,7 @@ def search(ctx, query, index, output, mode):
   
     #Todo: Input search by file-with-list-of-items
 
-    found_objs = ctx['hcpm'].search_objects(query,mode=mode)
+    found_objs = ctx['hcpm'].search_objects(query)
     if mode == "ngpr":
         if not (found_objs is None) and len(found_objs) > 0:
             for obj in found_objs:
