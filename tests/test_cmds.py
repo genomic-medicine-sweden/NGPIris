@@ -70,14 +70,14 @@ def test_search(runner):
 
 def test_download(runner):
     dest =  os.path.join('tmp','tst.fq')
-    cmd = f"-b {bucket} -c {credentials_path} download {f1target} -m none -o /{dest} --silent"
+    cmd = f"-b {bucket} -c {credentials_path} download {f1target} -m none -f -o /{dest} --silent"
     log.debug(cmd)
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0
 
 def test_download_ngpr(runner):
     dest =  os.path.join('tmp','tst.fq')
-    cmd = f"-b {bucket} -c {credentials_path} download {f1target} -m ngpr -o /{dest} --silent"
+    cmd = f"-b {bucket} -c {credentials_path} download {f1target} -m ngpr -f -o /{dest} --silent"
     log.debug(cmd)
     res = runner.invoke(root, cmd.split())
     assert res.exit_code == 0

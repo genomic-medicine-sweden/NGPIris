@@ -5,6 +5,7 @@ import sys
 from NGPIris import log, logformat
 from NGPIris.hcp import HCPManager
 from NGPIris.hci import HCIManager
+from NGPIris.hcp.interactive import HCPInteracter
 from NGPIris.preproc import preproc
 from NGPIris.cli.functions import delete, search, upload, download
 from NGPIris.cli.utils import utils
@@ -33,6 +34,8 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password
     hcpm.attach_bucket(bucket)
     hcpm.test_connection()
     ctx.obj["hcpm"] = hcpm
+    interact = HCPInteracter(hcpm)
+    ctx.obj['interactive'] = interact
 
     if pw:
         hcim = HCIManager(pw)
