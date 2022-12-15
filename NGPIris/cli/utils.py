@@ -43,7 +43,7 @@ def indices(ctx, index):
 @utils.command()
 @click.pass_obj
 def list_buckets(ctx):
-    """Lists all accessible buckets for the provided credentials"""
+    """Lists all administered buckets for the provided credentials"""
     hcpm = ctx['hcpm']
     ls = hcpm.list_buckets()
     log.info(f"Buckets: {ls}")
