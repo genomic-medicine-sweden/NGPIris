@@ -14,10 +14,9 @@ from NGPIris import log
 @click.command()
 @click.argument("query")
 @click.option("-i","--index",help="NGPi index name")
-@click.option("-o","--output",help="Specify output file to write to",default="")
 @click.option("-m", "--mode",help="Search mode", type=click.Choice(['ngpi','ngpr'], case_sensitive=False),default='ngpr')
 @click.pass_obj
-def search(ctx, query, index, output, mode):
+def search(ctx, query, index, mode):
     """List all file hits for a given query by directly calling HCP"""
   
     #Todo: Input search by file-with-list-of-items

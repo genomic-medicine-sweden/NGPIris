@@ -70,19 +70,37 @@ Commands:
   upload    Upload fastq files / fastq folder structure
   utils     Advanced commands for specific purposes
 ```
-#### Upload a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE`
 
-This command will upload your test file, and a meta-data file, to `/tmp/` on the bucket BUCKETNAME. 
- `-m` will specificy where the meta-data file will be stored locally. 
- Without it the meta-data file will appear in your current directory.
+#### Search for a file
+`iris -b BUCKETNAME -c CREDENTIALS_FILE search MYDU*TESTFILE --mode ngpr`
+
+This command will search the bucket BUCKETNAME for the object `MYDU*TESTFILE`.  
+The search command supports both asterix (*) completion and most regex.  
+
+`--mode ngpr` uses the NGPr search mode to find this file. This is the slowest mode, but also the one that has existed the longest.  
 
 #### Download a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE download /tmp/MYDUMBTESTFILE -o ./MYDUMBTESTFILE --silent`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE download /tmp/MYDUMBTESTFILE -o ./MYLOCALTESTFILE --silent --mode ngpr -f`
 
-This command will download your previously uploaded testfile, and put it in your current directory.
-`-f` will overwrite any locally stored file with the same name
-`--silent` will remove the download progress bar. Which is sometimes useful when scripting
+This command will download your previously uploaded testfile, and put it in your current directory.  
+`--mode ngpr` uses the NGPr search mode to find this file. This is the slowest mode, but also the one that has existed the longest. 
+Alternatively use `--mode None` to skip searching for the file altogether. This is lightening fast. But requires the file name to be exactly correct.   
+`-f` will overwrite any locally stored file with the same name  
+`--silent` will remove the download progress bar. Which is sometimes useful when scripting  
+
+#### Upload a file
+`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE -a -s`
+
+This command will upload your test file as `MYDUMBTESTFILE` on the bucket BUCKETNAME.  
+`-a` allows non-fastq file formats.  
+`-s` removes the transfer speed info. Which can get very spammy in scripts.  
+
+#### Delete a file
+`iris -b BUCKETNAME -c CREDENTIALS_FILE delete MYDUMBTESTFILE`
+
+This command will delete the file MYDUMBTESTFILE.  
+By default you will be prompted that you are certain that you wish to remove your file.  
+
 
 #### Additional commands
 `iris` contains more commands and flags for additional operations. Such as search, deleting, or doing things in a more nuanced way. The help menu packaged with the program is always kept up to date, so refer to that to easily discover more.
