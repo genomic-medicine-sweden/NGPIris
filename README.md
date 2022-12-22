@@ -44,8 +44,8 @@ The connection is made on a higher resource level rather than client level. This
 ## Usage
 
 ### Command Line Interface
-Successful installation means the command `iris` is active.
-Run it in the terminal, and view the help for each subcommand.
+Successful installation means the command `iris --help` is active.
+Iris is constructed to have additional help for each subcommand. So, e.g., run `iris -c CREDENTIALS -b BUCKET download --help` to recieve all the download information.
 
 ```iris
 Usage: iris [OPTIONS] COMMAND [ARGS]...
@@ -89,12 +89,12 @@ This command will download your previously uploaded testfile, and put it in your
 For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/cli/functions.py)
 
 ## As a package
-For usage of Iris as a package see ['the package documentation'](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/docs/package.md)
+For usage of Iris as a package see the [package documentation](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/docs/package.md)
 
-For an index of all HCPManager functionality, check out [the HCPManager source file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/hcp/hcp.py)
+For an index of all HCPManager functionality, check out the [source file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/hcp/hcp.py)
 
 
-### Development build
+## Development build
 ``` 
 git clone git@github.com:genomic-medicine-sweden/NGPIris.git
 cd NGPIris
