@@ -83,7 +83,8 @@ class HCPInteracter:
                     self.hcpm.download_file(obj, destination, force=force, callback=(not silent)) # Downloads file.
                     #log.info(f"Downloaded {obj.key}"
 
-    def upload_interactive(self, source, destination="", fastq_only=False, metadata="", silent=False):
+    def upload_interactive(self, source, destination="", fastq_only=False, metadata="", force=False, silent=False):
+        """ Uploads a file/folder-of-files and verifies its content """
         file_lst = []
         ###Sets destinations
         #Defaults destination to source name
@@ -104,14 +105,15 @@ class HCPInteracter:
             log.error(f"{source} could not be uploaded to NGPr. Try using an atypical (-a) upload")
 
         if os.path.isdir(source):
-            for file_pg in file_lst:
-                self.hcpm.upload_file(file_pg, destination, callback=(not silent))
-                #time.sleep(2)
-                log.info(f"Uploaded: {file_pg}")
+            pass
+            #for file_pg in file_lst:
+            #    self.hcpm.upload_file(file_pg, destination, force=force, callback=(not silent))
+            #    #time.sleep(2)
+            #    log.info(f"Uploaded: {file_pg}")
         else:
-            self.hcpm.upload_file(file_lst, destination, callback=(not silent))
+            self.hcpm.upload_file(source, destination, force=force, callback=(not silent))
             #time.sleep(2)
-            log.info(f"Uploaded: {file_lst}")
+            log.info(f"Uploaded: {destination}")
 
         #Upload metadata
         #dstfld = Path(destination)

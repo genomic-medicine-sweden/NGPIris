@@ -81,7 +81,7 @@ class ProgressPercentage(object):
     def __call__(self, bytes_amount):
         with self._lock:
             self._seen_so_far += bytes_amount
-            speed = self._calculate_speed()
+            speed = abs(self._calculate_speed())
             percentage = (self._seen_so_far / self._size) * 100
             text = "\r%s  %s / %s  %s  (%.2f%%)" % (self._source,
                                                     self._seen_so_far,
@@ -99,7 +99,9 @@ class ProgressPercentage(object):
         print('')
         avg_transfer_speed = self._size/(self._previous_time - self._creation_time)
         avg_transfer_speed_mb = avg_transfer_speed / 1_000_000
-        rounded_speed = round(avg_transfer_speed_mb, 2)
+        rounded_speed = abs(round(avg_transfer_speed_mb, 2))
+        if rounded_speed == 0.0:
+            rounded_speed = "Inf."
         print(f'Average transfer speed {rounded_speed} MB/s')
 
 
@@ -230,8 +232,12 @@ class HCPManager:
  
 
     @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={}, callback=True):
-        """Upload local file to remote as key with associated metadata."""
+    def upload_file(self, local_path, remote_key, metadata={}, force=False, callback=True):
+        """Upload local file to remote as path with associated metadata."""
+        if force:
+            self.delete_key(remote_key)
+
+
         with ProgressPercentage(local_path) as progress:
             self.bucket.upload_file(local_path,
                                     remote_key,
@@ -272,6 +278,11 @@ class HCPManager:
     def delete_object(self, obj):
         """Delete the provided object."""
         self.bucket.delete_objects(Delete={'Objects': [{'Key': obj.key}]})
+
+    @bucketcheck
+    def delete_key(self, key):
+        """Delete an object using the provided key."""
+        self.bucket.delete_objects(Delete={'Objects': [{'Key': key}]})
 
     @bucketcheck
     def read_object(self, obj):

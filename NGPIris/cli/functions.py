@@ -67,12 +67,13 @@ def delete(ctx,query,force):
 @click.option('-o',"--output",help="Destination file name on HCP", default="")
 @click.option('-t',"--tag", default="None", help="Tag for downstream pipeline execution")
 @click.option('-m',"--meta",help="Local path for metadata file",default=f"")
+@click.option('-f',"--force",help="Overwrites any remote file with same name if present",is_flag=True, default=False)
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
 @click.option('-a',"--atypical",help="Allows upload of non-fastq file", is_flag=True,default=False)
 @click.pass_obj
-def upload(ctx, input, output, tag, meta, silent,atypical):
+def upload(ctx, input, output, tag, meta, force, silent,atypical):
     """Upload fastq files / fastq folder structure"""
-    ctx['interactive'].upload_interactive(input, output, fastq_only=(not atypical), metadata=meta, silent=silent)
+    ctx['interactive'].upload_interactive(input, output, fastq_only=(not atypical), force=force, metadata=meta, silent=silent)
 
 @click.command()
 @click.argument("query")
