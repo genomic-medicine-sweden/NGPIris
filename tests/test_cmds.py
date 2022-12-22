@@ -49,11 +49,6 @@ def test_base(runner):
     #Command should complain about lack of subcommand
     assert res.exit_code == 2
 
-def test_hci_base(runner):
-    cmd = f"-b {bucket} -c {credentials_path} hci"
-    res = runner.invoke(root, cmd.split())
-    assert res.exit_code == 0
-
 def test_upload(runner):
     source = os.path.join(testWD,"data","test_reads_R1.fastq.gz")
 

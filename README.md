@@ -58,16 +58,17 @@ Options:
   -ep, --endpoint TEXT       Endpoint URL override
   -id, --access_key_id TEXT  Amazon key identifier override
   -key, --access_key TEXT    Amazon secret access key override
+  -p, --password TEXT        NGPintelligence password
   -l, --logfile PATH         Logs activity to provided file
   --version                  Show the version and exit.
   --help                     Show this message and exit.
 
 Commands:
-  delete    Delete a file on the NGPr
+  delete    Delete a file on the HCP
   download  Download files using a given query
-  hci       HCI dependent commands
-  search    List all file hits for a given query
+  search    List all file hits for a given query by directly calling HCP
   upload    Upload fastq files / fastq folder structure
+  utils     Advanced commands for specific purposes
 ```
 #### Upload a file
 `iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE`
