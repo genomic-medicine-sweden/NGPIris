@@ -44,8 +44,8 @@ The connection is made on a higher resource level rather than client level. This
 ## Usage
 
 ### Command Line Interface
-Successful installation means the command `iris` is active.
-Run it in the terminal, and view the help for each subcommand.
+Successful installation means the command `iris --help` is active.
+Iris is constructed to have additional help for each subcommand. So, e.g., run `iris -c CREDENTIALS -b BUCKET download --help` to recieve all the download information.
 
 ```iris
 Usage: iris [OPTIONS] COMMAND [ARGS]...
@@ -58,131 +58,65 @@ Options:
   -ep, --endpoint TEXT       Endpoint URL override
   -id, --access_key_id TEXT  Amazon key identifier override
   -key, --access_key TEXT    Amazon secret access key override
+  -p, --password TEXT        NGPintelligence password
   -l, --logfile PATH         Logs activity to provided file
   --version                  Show the version and exit.
   --help                     Show this message and exit.
 
 Commands:
-  delete    Delete a file on the NGPr
+  delete    Delete a file on the HCP
   download  Download files using a given query
-  hci       HCI dependent commands
-  search    List all file hits for a given query
+  search    List all file hits for a given query by directly calling HCP
   upload    Upload fastq files / fastq folder structure
+  utils     Advanced commands for specific purposes
 ```
-#### Upload a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE`
 
-This command will upload your test file, and a meta-data file, to `/tmp/` on the bucket BUCKETNAME. 
- `-m` will specificy where the meta-data file will be stored locally. 
- Without it the meta-data file will appear in your current directory.
+#### Search for a file
+`iris -b BUCKETNAME -c CREDENTIALS_FILE search MYDU*TESTFILE --mode ngpr`
+
+This command will search the bucket BUCKETNAME for the object `MYDU*TESTFILE`.  
+The search command supports both asterix (*) completion and most regex.  
+
+`--mode ngpr` uses the NGPr search mode to find this file. This is the slowest mode, but also the one that has existed the longest.  
 
 #### Download a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE download /tmp/MYDUMBTESTFILE -o ./MYDUMBTESTFILE --silent`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE download /tmp/MYDUMBTESTFILE -o ./MYLOCALTESTFILE --silent --mode ngpr -f`
 
-This command will download your previously uploaded testfile, and put it in your current directory.
-`-f` will overwrite any locally stored file with the same name
-`--silent` will remove the download progress bar. Which is sometimes useful when scripting
+This command will download your previously uploaded testfile, and put it in your current directory.  
+`--mode ngpr` uses the NGPr search mode to find this file. This is the slowest mode, but also the one that has existed the longest. 
+Alternatively use `--mode None` to skip searching for the file altogether. This is lightening fast. But requires the file name to be exactly correct.   
+`-f` will overwrite any locally stored file with the same name  
+`--silent` will remove the download progress bar. Which is sometimes useful when scripting  
+
+#### Upload a file
+`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE -a -s`
+
+This command will upload your test file as `MYDUMBTESTFILE` on the bucket BUCKETNAME.  
+`-a` allows non-fastq file formats.  
+`-s` removes the transfer speed info. Which can get very spammy in scripts.  
+
+#### Delete a file
+`iris -b BUCKETNAME -c CREDENTIALS_FILE delete MYDUMBTESTFILE`
+
+This command will delete the file MYDUMBTESTFILE.  
+By default you will be prompted that you are certain that you wish to remove your file.  
+
 
 #### Additional commands
 `iris` contains more commands and flags for additional operations. Such as search, deleting, or doing things in a more nuanced way. The help menu packaged with the program is always kept up to date, so refer to that to easily discover more.
 
-### As a package
-Listed below are some of the more common use cases.
-
 For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/cli/functions.py)
 
-For an index of all HCPManager functionality, check out [the HCPManager source file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/hcp/hcp.py)
+## As a package
+For usage of Iris as a package see the [package documentation](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/docs/package.md)
 
-#### Connect to the HCP
-```python
-from NGPIris.hcp import HCPManager
+For an index of all HCPManager functionality, check out the [source file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/hcp/hcp.py)
 
-endpoint = <>
-aws_access_key_id = <>
-aws_secret_access_key = <>
 
-hcpm = HCPManager(endpoint, aws_access_key_id, aws_secret_access_key)
-```
-
-or more effectively
-
-```python
-from NGPIris.hcp import HCPManager
-
-hcpm = HCPManager(credentials_path="./credentials.json",bucket="ngs-test")
-hcpm.test_connection()
-```
-
-#### Attach a bucket and get all contents
-```python
-# Attach a bucket
-hcpm.attach_bucket(<bucket_name>)
-
-# Attaching to new bucket with already attached bucket
-# This flushes the previous buckets object listing
-hcpm.set_bucket("bucket_name_1")
-hcpm.attach_bucket(bucket_instance_1)
-
-# Grab all object summaries in the attached bucket
-objects = hcpm.get_objects()
-```
-#### Mundane operations
-##### Use a search string to find files and download them
-```
-# Search for objects with keys containing query string and download them
-found_objs = hcpm.search_objects(<query_string>)
-for obj in found_objs:
-    local_file_name = os.path.basename(obj.key)
-    hcpm.download_file(obj, <local_file_path>,force=False)
-```
-##### Perform preliminary checks before uploading a fastq file
-```python
-from  NGPIris.io  import  io
-
-io.verify_fq_suffix(<local_file_path>)
-io.verify_fq_content(<local_file_path>)
-io.generate_tagmap(<local_file_path>, "microbial", <output_file_path>) #Generates a json file that describes what pipeline to use on the NGPr
-```
-##### Uploading a local file
-```python
-
-# Upload a file
-hcpm.upload_file(<local_file_path>, <remote_key>)
-
-# Upload a file with metadata
-# Note that the maximum metadata size is rather small (2KB).
-
-hcpm.upload_file(<local_file_path>, <remote_key>, metadata={'key': value})
-
-```
-##### Disable upload/download callback
-Upload and download of files per default utilize a progress tracker. This can be disabled by passing `callback=False` to `upload_file()` or `download_file()`.
-```python
-
-# Disable progress tracking
-hcpm.upload_file(<local_file_path>, <remote_key>, callback=False)
-hcpm.download_file(obj, <local_file_path>, callback=False)
-```
-#### HCI dependant operations (currently defunct)
-~~Rather than interfacing directly with the HCI. Files should be searched for using the HCI.~~
-~~This requires the use of a password file for connection.~~
-~~If `-o` is used a json file with the results is produced, otherwise the result is printed in stdout.~~
-##### ~~Search using query (e.g. sample name)~~
-```
-./hci.py query -i [index_name] -q [query] -p [password_file] -o [output]
-```
-##### ~~List all queryable indexes and their available fields~~
-```
-# Lists all indexes and their fields on the HCI
-./hci.py index -i all -p [password_file] -o [output]
-# Lists specified index and associated fields 
-./hci.py index -i [index_name] -p [password_file] -o [output]
-```
-
-### Development build
+## Development build
 ``` 
 git clone git@github.com:genomic-medicine-sweden/NGPIris.git
 cd NGPIris
-bash setup.sh
-source activate hcpenv
+bash setup.sh iris
+source activate iris
 ```
