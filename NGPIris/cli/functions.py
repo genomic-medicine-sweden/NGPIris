@@ -30,17 +30,17 @@ def search(ctx, query, index, mode):
             log.info(f'No results found for: {query}')
 
     elif mode == "ngpi":
-        hcim = ctx['hcim']
+        hcpi = ctx['hcpi']
 
-        hcim.create_template(index, query)
-        token = hcim.generate_token()
+        hcpi.create_template(index, query)
+        token = hcpi.generate_token()
 
         #if verbose:
-        #    resp = hcim.query(token)
+        #    resp = hcpi.query(token)
         #    pretty = json.loads(resp)
         #    click.secho(json.dumps(pretty, indent=4))
 
-        results = hcim.pretty_query(token)
+        results = hcpi.pretty_query(token)
         for item in results:
             md = item["metadata"]
             hci_name = md["HCI_displayName"]
@@ -92,10 +92,10 @@ def download(ctx, query, output,mode, silent,force):
         output = os.path.join(output, os.path.basename(query))
 
     if mode == "ngpi" or mode == "ngpi-legacy":
-        hcim = ctx['hcim']
-        hcim.create_template(index, query)
-        token = hcim.generate_token()
-        results = hcim.pretty_query(token)
+        hcpi = ctx['hcpi']
+        hcpi.create_template(index, query)
+        token = hcpi.generate_token()
+        results = hcpi.pretty_query(token)
 
         if mode == "ngpi-legacy":
             for item in results:
