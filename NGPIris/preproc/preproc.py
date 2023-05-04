@@ -95,7 +95,7 @@ def read_credentials(credentials_path):
         sys.exit(-1)
 
     if c.get('ngpi_password') is None:
-        log.warning('Credentials file lack NGPi credentials')
+        log.debug('Credentials file lack NGPi credentials')
 
     return c
 
