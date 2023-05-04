@@ -34,9 +34,9 @@ def utils(ctx):
 @click.pass_obj
 def indices(ctx, index):
     """Displays file hits for a given query"""
-    hcim = ctx['hcim']
-    token = hcim.generate_token()
-    index_list = hcim.get_index(token, index=index)
+    hcpi = ctx['hcpi']
+    token = hcpi.generate_token()
+    index_list = hcpi.get_index(token, index=index)
     pretty = json.dumps(index_list)
     print(json.dumps(pretty, indent=4))
 

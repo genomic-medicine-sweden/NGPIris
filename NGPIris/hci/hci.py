@@ -12,7 +12,7 @@ import os
 import sys
 import urllib3
 
-from NGPIris import WD
+from NGPIris import WD, log
 
 from NGPIris.preproc import preproc
 
@@ -23,7 +23,7 @@ class HCIManager:
             c = preproc.read_credentials(credentials_path)
 
         self.password = password if password else c('password','')
-        self.address = "10.248.192.3"
+        self.address = "10.81.222.13"
         self.authport = "8000"
         self.apiport = "8888"
 
@@ -46,7 +46,8 @@ class HCIManager:
         my_key = requests.post(f"https://{self.address}:{self.authport}/auth/oauth/", 
                  data={"grant_type": "password", "username": "admin", "password": f"{self.password}", "scope": "*",  
                  "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
-            
+        if my_key.status_code == 401:
+            raise Exception("Invalid index password specified")
         return ast.literal_eval(my_key.text)["access_token"].lstrip()
 
 
