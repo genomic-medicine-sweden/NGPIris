@@ -103,7 +103,20 @@ By default you will be prompted that you are certain that you wish to remove you
 
 
 #### Additional commands
-`iris` contains more commands and flags for additional operations. Such as search, deleting, or doing things in a more nuanced way. The help menu packaged with the program is always kept up to date, so refer to that to easily discover more.
+
+`iris -c CREDENTIALS_FILE -b BUCKETNAME utils test-connection`
+
+This command tests if you can successfully connect to NGPRepository.  
+
+If it doesn't crash, it means you have correct credentials and an uninterrupted path to NGPRepository.
+
+`iris -c CREDENTIALS_FILE -b anything utils list-buckets`
+
+This command lists all the buckets of a tenent, that you at some point had admin access to. 
+Note that you do not need to provide a _valid_ bucketname for this command to successfully execute.
+
+
+`iris` contains more commands and flags for additional operations. The help menu packaged with the program is always kept up to date, so refer to that to easily discover more.
 
 For more use cases, check out [the CLI file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/cli/functions.py)
 
@@ -113,10 +126,12 @@ For usage of Iris as a package see the [package documentation](https://github.co
 For an index of all HCPManager functionality, check out the [source file](https://github.com/genomic-medicine-sweden/NGPIris/blob/master/NGPIris/hcp/hcp.py)
 
 
-## Development build
+## Development installation
 ``` 
 git clone git@github.com:genomic-medicine-sweden/NGPIris.git
 cd NGPIris
-bash setup.sh iris
-source activate iris
+bash setup.sh ENVNAME
+source activate ENVNAME
+Edit credentials.json
+pytest tests/
 ```
