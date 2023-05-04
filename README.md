@@ -132,4 +132,6 @@ git clone git@github.com:genomic-medicine-sweden/NGPIris.git
 cd NGPIris
 bash setup.sh ENVNAME
 source activate ENVNAME
+Edit credentials.json
+pytest tests/
 ```
