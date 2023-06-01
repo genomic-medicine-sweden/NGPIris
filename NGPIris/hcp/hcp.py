@@ -51,7 +51,8 @@ class ProgressPercentage(object):
     def _calculate_speed(self):
         curr_time = time.time()
         if curr_time - self._interval > self._previous_time:
-            speed = (self._seen_so_far - self._previous_bytesize) / (curr_time - self._previous_time)
+            delta_time = curr_time - self._previous_time or 0.0001  # Avoid division by zero
+            speed = (self._seen_so_far - self._previous_bytesize) / delta_time
             self._speed = round(speed / (1024 ** 2), 2)
             self._previous_time = curr_time
             self._previous_bytesize = self._seen_so_far
@@ -97,7 +98,8 @@ class ProgressPercentage(object):
 
     def __exit__(self, *args, **kwargs):
         print('')
-        avg_transfer_speed = self._size/(self._previous_time - self._creation_time)
+        delta_time = (self._previous_time - self._creation_time) or 0.0001  # Avoid division by zero
+        avg_transfer_speed = self._size/delta_time
         avg_transfer_speed_mb = avg_transfer_speed / 1_000_000
         rounded_speed = abs(round(avg_transfer_speed_mb, 2))
         if rounded_speed == 0.0:
