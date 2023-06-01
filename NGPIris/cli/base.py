@@ -7,7 +7,7 @@ from NGPIris.hcp import HCPManager
 from NGPIris.hci import HCIManager
 from NGPIris.hcp.interactive import HCPInteracter
 from NGPIris.preproc import preproc
-from NGPIris.cli.functions import delete, search, upload, download
+from NGPIris.cli.functions import delete, search, upload, download, quick_upload, quick_download
 from NGPIris.cli.utils import utils
 
 @click.group()
@@ -50,7 +50,9 @@ def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password
 root.add_command(delete)
 root.add_command(search)
 root.add_command(upload)
+root.add_command(quick_upload)
 root.add_command(download)
+root.add_command(quick_download)
 root.add_command(utils)
 
 
