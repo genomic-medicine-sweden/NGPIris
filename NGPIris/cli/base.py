@@ -11,7 +11,7 @@ from NGPIris.cli.functions import delete, search, upload, download, quick_upload
 from NGPIris.cli.utils import utils
 
 @click.group()
-@click.option('-c',"--credentials", help="File containing ep, id & key",type=click.Path(),required=True)
+@click.option('-c',"--credentials", help="File containing ep, id & key",type=click.Path())
 @click.option("-b","--bucket",help="Bucket name",type=str,required=True)
 @click.option("-ep","--endpoint",help="Endpoint URL override",type=str,default="")
 @click.option("-id","--access_key_id",help="Amazon key identifier override",type=str,default="")
@@ -22,12 +22,18 @@ from NGPIris.cli.utils import utils
 @click.pass_context
 def root(ctx, endpoint, access_key_id, access_key, bucket, credentials, password, logfile):
     """NGP intelligence and repository interface software"""
-    c = preproc.read_credentials(credentials)
+    if credentials:
+        c = preproc.read_credentials(credentials)
+    else:
+        c = {}
 
     ep = endpoint if endpoint else c.get('endpoint','')
     aid = access_key_id if access_key_id else c.get('aws_access_key_id','') 
     key = access_key if access_key else c.get('aws_secret_access_key','')
     pw = password if password else c.get('ngpi_password', '')
+
+    if not all([ep, aid, key]):
+        print("Missing essential HCP credentials. Please provide them manually or via a credentials file.")
 
     ctx.obj = {}
     hcpm = HCPManager(ep, aid, key, bucket=bucket)
