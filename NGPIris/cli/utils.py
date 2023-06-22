@@ -46,7 +46,7 @@ def list_buckets(ctx):
     """Lists all administered buckets for the provided credentials"""
     hcpm = ctx['hcpm']
     ls = hcpm.list_buckets()
-    log.info(f"Buckets: {ls}")
+    log.info(f"Administrated buckets: {ls}")
 
 @utils.command()
 @click.pass_obj
