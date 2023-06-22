@@ -68,11 +68,11 @@ def delete(ctx,query,force):
 @click.option('-m',"--meta",help="Local path for metadata file",default=f"")
 @click.option('-f',"--force",help="Overwrites any remote file with same name if present",is_flag=True, default=False)
 @click.option('-s',"--silent",help="Suppresses file progress output",is_flag=True,default=False)
-@click.option('-a',"--atypical",help="Allows upload of non-fastq file", is_flag=True,default=False)
+@click.option('-q',"--fastq",help="Verifies that files exclusively contain valid fastq", is_flag=True,default=False)
 @click.pass_obj
-def upload(ctx, input, output, tag, meta, force, silent,atypical):
+def upload(ctx, input, output, tag, meta, force, silent,fastq):
     """Upload fastq files / fastq folder structure"""
-    ctx['interactive'].upload_interactive(input, output, fastq_only=(not atypical), force=force, metadata=meta, silent=silent)
+    ctx['interactive'].upload_interactive(input, output, fastq_only=fastq, force=force, metadata=meta, silent=silent)
 
 
 @click.command()
