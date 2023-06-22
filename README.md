@@ -92,11 +92,15 @@ Alternatively use `--mode None` to skip searching for the file altogether. This 
 `--silent` will remove the download progress bar. Which is sometimes useful when scripting  
 
 #### Upload a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE -a -s`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FILE2UPLOAD -o /tmp/MYDUMBTESTFILE -s`
 
 This command will upload your test file as `MYDUMBTESTFILE` on the bucket BUCKETNAME.  
-`-a` allows non-fastq file formats.  
+`-q` verifies that only fastq files are uploaded
 `-s` removes the transfer speed info. Which can get very spammy in scripts.  
+
+`iris -b BUCKETNAME -c CREDENTIALS_FILE upload FOLDER2UPLOAD/`
+
+This command will upload your entire folder, its contents and the substructure.
 
 #### Delete a file
 `iris -b BUCKETNAME -c CREDENTIALS_FILE delete MYDUMBTESTFILE`
