@@ -85,31 +85,38 @@ class HCPInteracter:
 
     def upload_interactive(self, source, destination="", fastq_only=False, metadata="", force=False, silent=False):
         """ Uploads a file/folder-of-files and verifies its content """
+
         file_lst = []
-        ###Sets destinations
-        #Defaults destination to source name
-        if destination == "":
-            destination = os.path.basename(source)
-        #If destination is folder. Default file name to source name
-        elif destination[-1] in ["/","\\"]:
-            destination = os.path.join(destination, os.path.basename(source))
+        if not os.path.isdir(source):
+            ###Sets destinations
+            #Defaults destination to source name
+            if destination == "":
+                destination = os.path.basename(source)
+            #If destination is folder. Default file name to source name
+            elif destination[-1] in ["/","\\"]:
+                destination = os.path.join(destination, os.path.basename(source))
+            #Run fastq verification
+            if fastq_only:
+                [file_lst, mdfile]=preproc.verify_upload_file(source, metadata=metadata)
 
         ###Verify fastq contents and metadata existence
-        if os.path.isdir(source) and fastq_only:
-            [file_lst, mdfile]=preproc.verify_upload_folder(source, metadata=metadata)
-        elif os.path.isdir(source):
-            [file_lst, mdfile]=preproc.folder_to_list(source, metadata=metadata)
-        elif fastq_only:
-            [file_lst, mdfile]=preproc.verify_upload_file(source, metadata=metadata)
-        if fastq_only and file_lst == []:
-            log.error(f"{source} could not be uploaded to NGPr. Try using an atypical (-a) upload")
+        elif os.path.isdir(source) and fastq_only:
+            [file_lst, out_lst, mdfile]=preproc.verify_upload_folder(source, metadata=metadata)
+        else:
+            [file_lst, out_lst, mdfile]=preproc.folder_to_list(source, metadata=metadata)
 
+        #Error if no valid fastq in valid fastq only mode
+        if fastq_only and file_lst == []:
+            log.error(f"{source} could not be uploaded to NGPr. Try disabling fastq (-q) upload")
+
+        #Upload folder
         if os.path.isdir(source):
-            pass
-            #for file_pg in file_lst:
-            #    self.hcpm.upload_file(file_pg, destination, force=force, callback=(not silent))
-            #    #time.sleep(2)
-            #    log.info(f"Uploaded: {file_pg}")
+            for file_pg in file_lst:
+                out_pg = out_lst[file_lst.index(file_pg)] #Find destination counterpart to file_pg
+                self.hcpm.upload_file(file_pg, out_pg, force=force, callback=(not silent))
+                #time.sleep(2)
+                log.info(f"Uploaded: {file_pg}")
+        #Upload file
         else:
             self.hcpm.upload_file(source, destination, force=force, callback=(not silent))
             #time.sleep(2)

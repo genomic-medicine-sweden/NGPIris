@@ -9,6 +9,7 @@ import gzip
 import json
 import os
 import re
+import pathlib
 
 from NGPIris import log, WD, TIMESTAMP
 
@@ -100,25 +101,34 @@ def read_credentials(credentials_path):
     return c
 
 def folder_to_list(folder, metadata=""):
+    folder = pathlib.Path(os.path.abspath(os.path.normpath(folder))) #Input folder is now super-safe
     file_lst = []
+    out_lst = []
     md_lst= []
     #Recursively loop over all folders
     for root, dirs, files in os.walk(folder):
+        rshort = os.path.relpath(root, folder.parent)
         for f in files:
             try:
                 #Auto-generate metadata
                 #if metadata == "":
                 #    metadata = preproc.generate_tagmap(os.path.join(root,f), tag,"meta-{}.json".format(TIMESTAMP))
+                #log.debug(f"Dirs {dirs} Files {files}")
+                out_lst.append(os.path.join(rshort,f))
                 file_lst.append(os.path.join(root,f))
+                log.debug(f"Root {rshort} File {f}")
             except Exception as e:
                 log.warning(f"{f} is not a valid upload file: {e}")
-    return [file_lst, metadata]
+    return [file_lst, out_lst, metadata]
 
 def verify_upload_folder(folder, metadata=""):
+    folder = pathlib.Path(os.path.abspath(os.path.normpath(folder))) #Input folder is now super-safe
     file_lst = []
     md_lst= []
+    out_lst = []
     #Recursively loop over all folders
     for root, dirs, files in os.walk(folder):
+        rshort = os.path.relpath(root, folder.parent)
         for f in files:
             try:
                 verify_fq_suffix(os.path.join(root,f))
@@ -127,9 +137,10 @@ def verify_upload_folder(folder, metadata=""):
                 #if metadata == "":
                 #    metadata = preproc.generate_tagmap(os.path.join(root,f), tag,"meta-{}.json".format(TIMESTAMP))
                 file_lst.append(os.path.join(root,f))
+                out_lst.append(os.path.join(rshort,f))
             except Exception as e:
                 log.warning(f"{f} is not a valid upload file: {e}")
-    return [file_lst, metadata]
+    return [file_lst, out_lst, metadata]
 
 def verify_upload_file(source, metadata=""):
     source = os.path.abspath(source)
