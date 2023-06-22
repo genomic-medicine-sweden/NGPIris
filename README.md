@@ -72,12 +72,15 @@ Commands:
 ```
 
 #### Search for a file
-`iris -b BUCKETNAME -c CREDENTIALS_FILE search MYDU*TESTFILE --mode ngpr`
+`iris -b BUCKETNAME -c CREDENTIALS_FILE search "MYDU*TESTFILE" --mode ngpr`
 
 This command will search the bucket BUCKETNAME for the object `MYDU*TESTFILE`.  
 The search command supports both asterix (*) completion and most regex.  
 
 `--mode ngpr` uses the NGPr search mode to find this file. This is the slowest mode, but also the one that has existed the longest.  
+
+To list the contents the entire bucket, use the command `iris -b BUCKETNAME -c CREDENTIALS_FILE search "*" --mode ngpr`
+The ngpr mode will take long while to complete this process, which is why other modes are in development.
 
 #### Download a file
 `iris -b BUCKETNAME -c CREDENTIALS_FILE download /tmp/MYDUMBTESTFILE -o ./MYLOCALTESTFILE --silent --mode ngpr -f`
