@@ -71,7 +71,7 @@ def delete(ctx,query,force):
 @click.option('-q',"--fastq",help="Verifies that files exclusively contain valid fastq", is_flag=True,default=False)
 @click.pass_obj
 def upload(ctx, input, output, tag, meta, force, silent,fastq):
-    """Upload fastq files / fastq folder structure"""
+    """Upload a file or folder structure"""
     ctx['interactive'].upload_interactive(input, output, fastq_only=fastq, force=force, metadata=meta, silent=silent)
 
 
