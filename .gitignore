@@ -1,3 +1,5 @@
 
 .pytype/pytype_temp
 .vscode/settings.json
+credentials and tokens/*.json
+!credentials and tokens/credentials_template.json
