@@ -8,7 +8,7 @@ import configparser as cfp
 
 class HCPHandler:
 
-    def __init__(self, credentials_path) -> None:
+    def __init__(self, credentials_path : str) -> None:
         credentials_handler = pc.CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
         self.endpoint = self.hcp["endpoint"]
@@ -44,3 +44,6 @@ class HCPHandler:
             multipart_chunksize = ini_config.getint('hcp', 'chunk_size')
         )
 
+    def list_buckets(self):
+        """List all available buckets at endpoint."""
+        return [bucket.name for bucket in self.s3.buckets.all()]
