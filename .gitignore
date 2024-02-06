@@ -3,3 +3,6 @@
 .vscode/settings.json
 credentials and tokens/*.json
 !credentials and tokens/credentials_template.json
+.DS_Store
+hci/__pycache__/hci.cpython-311.pyc
+parse_credentials/__pycache__/parse_credentials.cpython-311.pyc
