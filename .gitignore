@@ -6,6 +6,5 @@ credentials and tokens/*.json
 queries/*.json
 !queries/query_template.json
 .DS_Store
-hci/__pycache__/hci.cpython-311.pyc
-parse_credentials/__pycache__/parse_credentials.cpython-311.pyc
 test.py
+*.pyc
