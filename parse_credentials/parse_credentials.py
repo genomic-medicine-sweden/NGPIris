@@ -6,6 +6,6 @@ def parse_credentials(credentials_path : str) -> dict[str,str]:
     with open(credentials_path, 'r') as inp:
         credentials = json.load(inp)
         
-        # Raise conditions for incomplete credentials here
+        # Raise exceptions for incomplete credentials here
 
         return credentials
