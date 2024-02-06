@@ -1,5 +1,5 @@
 
-import parse_credentials.parse_credentials as pc
+import NGPIris2.parse_credentials.parse_credentials as pc
 import requests
 import json
 

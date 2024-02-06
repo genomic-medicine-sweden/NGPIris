@@ -1,5 +1,5 @@
 
-import parse_credentials.parse_credentials as pc
+import NGPIris2.parse_credentials.parse_credentials as pc
 import boto3
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
