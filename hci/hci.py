@@ -48,6 +48,7 @@ class HCIHandler:
 
         if response.status_code != 200:
             print(response.text)
+            # To-Do: Add exception handling
         
         return [entry["name"]for entry in response.json()]
 
@@ -69,6 +70,6 @@ class HCIHandler:
 
         if response.status_code != 200:
             print(response.text)
-            exit()
+            # To-Do: Add exception handling
         
         return response.json()
