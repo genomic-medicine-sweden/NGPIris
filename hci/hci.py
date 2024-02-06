@@ -51,9 +51,6 @@ class HCIHandler:
         
         return [entry["name"]for entry in response.json()]
 
-    def get_index(self, index = "all") -> None:
-        pass
-
     def query(self, query_path : str) -> dict:
         with open(query_path, "r") as inp:
 
