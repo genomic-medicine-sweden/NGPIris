@@ -12,8 +12,9 @@ class HCIHandler:
         self.address = self.hci["address"]
         self.auth_port = self.hci["auth_port"]
         self.api_port = self.hci["api_port"]
+        self.token = ""
     
-    def get_token(self) -> str:
+    def get_token(self, set_token_attribute = False) -> str:
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
         data = {
             "grant_type": "password", 
@@ -26,6 +27,8 @@ class HCIHandler:
         }
         response : requests.Response = requests.post(url, data = data, verify = False)
         token : str = response.json()["access_token"]
+        if set_token_attribute:
+            self.token = token
         return token
 
     def get_index(self, token, index = "all") -> None:
