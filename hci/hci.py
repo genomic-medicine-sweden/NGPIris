@@ -3,6 +3,11 @@ import parse_credentials.parse_credentials as pc
 import requests
 import json
 
+# TO BE REMOVED LATER
+import urllib3
+urllib3.disable_warnings()
+
+
 class HCIHandler:
     def __init__(self, credentials_path : str) -> None:
         credentials_handler = pc.CredentialsHandler(credentials_path)
@@ -49,5 +54,24 @@ class HCIHandler:
     def get_index(self, index = "all") -> None:
         pass
 
-    def query(self, token, index_name, query_string) -> None:
-        pass    def query(self, token : str, query_path : str) -> dict:
+    def query(self, query_path : str) -> dict:
+        with open(query_path, "r") as inp:
+
+            url     : str            = "https://" + self.address + ":" + self.api_port + "/api/search/query/"
+            query   : dict[str, str] = json.load(inp)
+            headers : dict[str, str] = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Bearer " + self.token
+            }
+        response : requests.Response = requests.post(
+            url, 
+            json.dumps(query), 
+            headers=headers, 
+            verify = False)
+
+        if response.status_code != 200:
+            print(response.text)
+            exit()
+        
+        return response.json()
