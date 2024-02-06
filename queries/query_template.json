@@ -1,0 +1,24 @@
+{
+    "indexName": "",
+    "queryString": "",
+    "facetRequests": [
+        {
+            "fieldName": "position"
+        },
+        {
+            "fieldName": "alt"
+        },
+        {
+            "fieldName": "ref"
+        },
+        {
+            "fieldName": "originalFileName"
+        },
+        {
+            "fieldName": "HCI_id"
+        },
+        {
+            "fieldName": "line"
+        }
+    ]
+}
