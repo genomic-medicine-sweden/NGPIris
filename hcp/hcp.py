@@ -44,6 +44,6 @@ class HCPHandler:
             multipart_chunksize = ini_config.getint('hcp', 'chunk_size')
         )
 
-    def list_buckets(self):
+    def list_buckets(self) -> list[str]:
         """List all available buckets at endpoint."""
         return [bucket.name for bucket in self.s3.buckets.all()]
