@@ -7,7 +7,6 @@ import configparser as cfp
 
 
 class HCPHandler:
-
     def __init__(self, credentials_path : str) -> None:
         credentials_handler = pc.CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
