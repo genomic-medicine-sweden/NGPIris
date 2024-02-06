@@ -14,7 +14,7 @@ class HCIHandler:
         self.api_port = self.hci["api_port"]
         self.token = ""
     
-    def get_token(self, set_token_attribute = False) -> str:
+    def request_token(self) -> None:
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
         data = {
             "grant_type": "password", 
@@ -27,11 +27,26 @@ class HCIHandler:
         }
         response : requests.Response = requests.post(url, data = data, verify = False)
         token : str = response.json()["access_token"]
-        if set_token_attribute:
-            self.token = token
-        return token
+        self.token = token
 
-    def get_index(self, token, index = "all") -> None:
+    def list_index_names(self) -> list[str]:
+        url     : str            = "https://" + self.address + ":" + self.api_port + "/api/search/indexes/"
+        headers : dict[str, str] = {
+                "Accept": "application/json",
+                "Authorization": "Bearer " + self.token
+        }
+        
+        response : requests.Response = requests.get(
+            url,
+            headers = headers,
+            verify = False)
+
+        if response.status_code != 200:
+            print(response.text)
+        
+        return [entry["name"]for entry in response.json()]
+
+    def get_index(self, index = "all") -> None:
         pass
 
     def query(self, token, index_name, query_string) -> None:
