@@ -6,6 +6,8 @@ from boto3.s3.transfer import TransferConfig
 import configparser as cfp
 from typing import Any, List
 
+import os
+
 
 class HCPHandler:
     def __init__(self, credentials_path : str) -> None:
@@ -93,3 +95,22 @@ class HCPHandler:
 
         return out
 
+
+
+    def download_all_object_files(self, local_folder_path : str) -> None:
+        """Downloads all objects in the mounted bucket to a local folder"""
+        list_of_objects : list[dict] = self.list_objects()
+
+        for object in list_of_objects:
+            key : str = object["Key"]
+            path : str = local_folder_path + key
+
+            if not os.path.exists(local_folder_path):
+                os.makedirs(local_folder_path)
+
+            self.s3_client.download_file(
+                self.bucket_name,
+                key,
+                path,
+                Config = self.transfer_config
+            )
