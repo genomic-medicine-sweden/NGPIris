@@ -8,3 +8,4 @@ queries/*.json
 .DS_Store
 test.py
 *.pyc
+credentials/myCredentials.json
