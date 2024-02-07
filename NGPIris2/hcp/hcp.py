@@ -78,12 +78,15 @@ class HCPHandler:
         list_of_buckets : list[dict] = response["Buckets"]
         return [bucket["Name"] for bucket in list_of_buckets]
     
-    def list_objects(self) -> list[dict]:
+    def list_objects(self, name_only = False) -> list[dict]:
         response_list_objects : dict = self.s3_client.list_objects_v2(
             Bucket = self.bucket_name
         )
         list_of_objects : list[dict] = response_list_objects["Contents"]
-        return list_of_objects
+        if name_only:
+            return [object["Key"] for object in list_of_objects]
+        else:
+            return list_of_objects
     
     def download_object_file(self, key : str, local_file_path : str) -> None:
         # To-Do: add exception handling
