@@ -44,6 +44,7 @@ class HCPHandler:
         """List all available buckets at endpoint."""
         response : dict = self.s3_client.list_buckets()
         list_of_buckets : list[dict] = response["Buckets"]
+        return [bucket["Name"] for bucket in list_of_buckets]
     
     def mount_bucket(self, bucket_name : str) -> None:
         # Check if bucket exist
