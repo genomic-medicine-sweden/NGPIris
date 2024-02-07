@@ -95,8 +95,6 @@ class HCPHandler:
 
         return out
 
-
-
     def download_all_object_files(self, 
                                   local_folder_path : str, 
                                   keys_exluced : list[str] = []) -> None:
