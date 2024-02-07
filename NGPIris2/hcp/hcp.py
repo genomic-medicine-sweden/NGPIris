@@ -4,6 +4,7 @@ import boto3
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
 import configparser as cfp
+from typing import Any, List
 
 
 class HCPHandler:
