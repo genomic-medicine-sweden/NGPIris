@@ -6,6 +6,7 @@ from boto3.s3.transfer import TransferConfig
 import configparser as cfp
 from typing import Any, List
 import os
+import json
 
 
 class HCPHandler:
@@ -125,7 +126,12 @@ class HCPHandler:
             file_name = os.path.split(local_file_path)[1]
             key = file_name
         
-        self.s3_client.upload_file(local_file_path, self.bucket_name, key)
+        self.s3_client.upload_file(
+            local_file_path, 
+            self.bucket_name, 
+            key,
+            Config = self.transfer_config
+        )
         pass
 
     def upload_object_folder(self, local_folder_path : str) -> None:
@@ -138,11 +144,19 @@ class HCPHandler:
         for filename in filenames:
             self.upload_object_file(local_folder_path + filename)
 
-    def delete_objects(self):
-        pass
+    def delete_objects(self, keys : list[str], verbose = True):
+        object_list = []
+        for key in keys:
+            object_list.append({"Key" : key})
 
-    def delete_key(self):
-        pass
+        deletion_dict = {"Objects": object_list}
+
+        response : dict = self.s3_client.delete_objects(
+            Bucket = self.bucket_name,
+            Delete = deletion_dict
+        )
+        if verbose:
+            print(json.dumps(response, indent=4))
 
     def search_objects(self):
         pass
