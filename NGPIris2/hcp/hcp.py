@@ -5,7 +5,6 @@ from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
 import configparser as cfp
 from typing import Any, List
-
 import os
 
 
@@ -117,3 +116,25 @@ class HCPHandler:
                 path,
                 Config = self.transfer_config
             )
+
+    def upload_object_file(self, local_file_path : str, key : str = ""):
+        if not key:
+            file_name = os.path.split(local_file_path)[1]
+            key = file_name
+        
+        self.s3_client.upload_file(local_file_path, self.bucket_name, key)
+        pass
+
+    def upload_object_folder(self, local_folder_path : str):
+
+        pass
+
+    def delete_objects(self):
+        pass
+
+    def delete_key(self):
+        pass
+
+    def search_objects(self):
+        pass
+
