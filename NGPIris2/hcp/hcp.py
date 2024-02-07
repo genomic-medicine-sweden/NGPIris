@@ -176,4 +176,10 @@ class HCPHandler:
                 search_result.append(key)
         return search_result
 
+    def add_object_acl(self):
+        # self.s3_client.put_object_acl()
+        pass
 
+    def add_bucket_acl(self):
+        # self.s3_client.put_bucket_acl()
+        pass
