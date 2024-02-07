@@ -166,17 +166,14 @@ class HCPHandler:
         Case insensitive by default.
         """
         search_result : list[str] = []
-        p = self.s3_client.get_paginator("list_objects_v2")
-        page_iterator = p.paginate(Bucket = self.bucket_name)
-        for page in page_iterator:
-            for object in page["Contents"]:
-                parse_object = parse.search(
-                    search_string, 
-                    object["Key"], 
-                    case_sensitive = case_sensitive
-                )
-                if type(parse_object) is parse.Result:
-                    search_result.append(object["Key"])
+        for key in self.list_objects(True):
+            parse_object = parse.search(
+                search_string, 
+                key, 
+                case_sensitive = case_sensitive
+            )
+            if type(parse_object) is parse.Result:
+                search_result.append(key)
         return search_result
 
 
