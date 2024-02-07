@@ -14,11 +14,6 @@ class HCPHandler:
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
 
-        session = boto3.Session(
-            self.aws_access_key_id, 
-            self.aws_secret_access_key
-        )
-
         ini_config = cfp.ConfigParser()
         ini_config.read("config.ini")
 
@@ -30,10 +25,12 @@ class HCPHandler:
             signature_version = 's3v4'
         )
 
-        self.s3 = session.resource(
-            's3',
+        self.s3_client = boto3.client(
+            "s3", 
+            aws_access_key_id = self.aws_access_key_id, 
+            aws_secret_access_key = self.aws_secret_access_key,
             endpoint_url = self.endpoint,
-            verify = False,  # Checks for SLL certificate. Disables because of already "secure" solution.
+            verify = False,
             config = s3_config
         )
 
@@ -42,7 +39,9 @@ class HCPHandler:
             max_concurrency = ini_config.getint('hcp', 'max_concurrency'),
             multipart_chunksize = ini_config.getint('hcp', 'chunk_size')
         )
-
+    
     def list_buckets(self) -> list[str]:
         """List all available buckets at endpoint."""
-        return [bucket.name for bucket in self.s3.buckets.all()]
+        response : dict = self.s3_client.list_buckets()
+        list_of_buckets : list[dict] = response["Buckets"]
+        return [bucket["Name"] for bucket in list_of_buckets]
