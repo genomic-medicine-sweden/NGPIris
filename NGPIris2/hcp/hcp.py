@@ -44,4 +44,18 @@ class HCPHandler:
         """List all available buckets at endpoint."""
         response : dict = self.s3_client.list_buckets()
         list_of_buckets : list[dict] = response["Buckets"]
-        return [bucket["Name"] for bucket in list_of_buckets]
+    
+    def mount_bucket(self, bucket_name : str) -> None:
+        # Check if bucket exist
+        # Note: We could add the ExpectedBucketOwner parameter for checking user permissions
+        response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
+
+        if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
+            # To-Do: Add exceptions 
+            print("Error: HTTPStatusCode was " + response["ResponseMetadata"]["HTTPStatusCode"])
+            exit()
+    
+        self.bucket_name = bucket_name
+        self.bucket_objects = None
+
+    
