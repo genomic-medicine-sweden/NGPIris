@@ -43,12 +43,6 @@ class HCPHandler:
             multipart_chunksize = ini_config.getint('hcp', 'chunk_size')
         )
     
-    def list_buckets(self) -> list[str]:
-        """List all available buckets at endpoint."""
-        response : dict = self.s3_client.list_buckets()
-        list_of_buckets : list[dict] = response["Buckets"]
-        return [bucket["Name"] for bucket in list_of_buckets]
-    
     def mount_bucket(self, bucket_name : str) -> None:
         # Check if bucket exist
         # Note: We could add the ExpectedBucketOwner parameter for checking user permissions
@@ -61,22 +55,6 @@ class HCPHandler:
     
         self.bucket_name = bucket_name
         self.bucket_objects = None
-
-    def list_objects(self) -> list[dict]:
-        response_list_objects : dict = self.s3_client.list_objects_v2(
-            Bucket = self.bucket_name
-        )
-        list_of_objects : list[dict] = response_list_objects["Contents"]
-        return list_of_objects
-
-    def download_object_file(self, key : str, local_file_path : str) -> None:
-        # To-Do: add exception handling
-        self.s3_client.download_file(
-            self.bucket_name, 
-            key, 
-            local_file_path, 
-            Config = self.transfer_config
-        )
 
     def get_bucket_metadata(self) -> dict:
 
@@ -94,6 +72,28 @@ class HCPHandler:
         out.update(location_response)
 
         return out
+
+    def list_buckets(self) -> list[str]:
+        """List all available buckets at endpoint."""
+        response : dict = self.s3_client.list_buckets()
+        list_of_buckets : list[dict] = response["Buckets"]
+        return [bucket["Name"] for bucket in list_of_buckets]
+    
+    def list_objects(self) -> list[dict]:
+        response_list_objects : dict = self.s3_client.list_objects_v2(
+            Bucket = self.bucket_name
+        )
+        list_of_objects : list[dict] = response_list_objects["Contents"]
+        return list_of_objects
+    
+    def download_object_file(self, key : str, local_file_path : str) -> None:
+        # To-Do: add exception handling
+        self.s3_client.download_file(
+            self.bucket_name, 
+            key, 
+            local_file_path, 
+            Config = self.transfer_config
+        )
 
     def download_all_object_files(self, 
                                   local_folder_path : str, 
