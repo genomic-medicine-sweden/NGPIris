@@ -97,16 +97,21 @@ class HCPHandler:
 
 
 
-    def download_all_object_files(self, local_folder_path : str) -> None:
+    def download_all_object_files(self, 
+                                  local_folder_path : str, 
+                                  keys_exluced : list[str] = []) -> None:
         """Downloads all objects in the mounted bucket to a local folder"""
         list_of_objects : list[dict] = self.list_objects()
+
+        if not os.path.exists(local_folder_path):
+            os.makedirs(local_folder_path)
 
         for object in list_of_objects:
             key : str = object["Key"]
             path : str = local_folder_path + key
 
-            if not os.path.exists(local_folder_path):
-                os.makedirs(local_folder_path)
+            if key in keys_exluced:
+                continue
 
             self.s3_client.download_file(
                 self.bucket_name,
