@@ -7,6 +7,7 @@ import configparser as cfp
 from typing import Any, List
 import os
 import json
+import parse
 
 
 class HCPHandler:
@@ -158,6 +159,24 @@ class HCPHandler:
         if verbose:
             print(json.dumps(response, indent=4))
 
-    def search_objects(self):
-        pass
+    def search_objects_in_bucket(self, search_string : str, case_sensitive = False) -> list[str]:
+        """
+        Simple seach method using substrings in order to find certain objects. 
+        
+        Case insensitive by default.
+        """
+        search_result : list[str] = []
+        p = self.s3_client.get_paginator("list_objects_v2")
+        page_iterator = p.paginate(Bucket = self.bucket_name)
+        for page in page_iterator:
+            for object in page["Contents"]:
+                parse_object = parse.search(
+                    search_string, 
+                    object["Key"], 
+                    case_sensitive = case_sensitive
+                )
+                if type(parse_object) is parse.Result:
+                    search_result.append(object["Key"])
+        return search_result
+
 
