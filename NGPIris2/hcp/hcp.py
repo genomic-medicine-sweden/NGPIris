@@ -60,4 +60,36 @@ class HCPHandler:
         self.bucket_name = bucket_name
         self.bucket_objects = None
 
-    
+    def list_objects(self) -> list[dict]:
+        response_list_objects : dict = self.s3_client.list_objects_v2(
+            Bucket = self.bucket_name
+        )
+        list_of_objects : list[dict] = response_list_objects["Contents"]
+        return list_of_objects
+
+    def download_object_file(self, key : str, local_file_path : str) -> None:
+        # To-Do: add exception handling
+        self.s3_client.download_file(
+            self.bucket_name, 
+            key, 
+            local_file_path, 
+            Config = self.transfer_config
+        )
+
+    def get_bucket_metadata(self) -> dict:
+
+        out : dict = {}
+
+        acl_response : dict = self.s3_client.get_bucket_acl(
+            Bucket = self.bucket_name
+        )
+
+        location_response : dict = self.s3_client.get_bucket_location(
+            Bucket = self.bucket_name
+        )
+
+        out.update(acl_response)
+        out.update(location_response)
+
+        return out
+
