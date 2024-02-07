@@ -120,7 +120,7 @@ class HCPHandler:
                 Config = self.transfer_config
             )
 
-    def upload_object_file(self, local_file_path : str, key : str = ""):
+    def upload_object_file(self, local_file_path : str, key : str = "") -> None:
         if not key:
             file_name = os.path.split(local_file_path)[1]
             key = file_name
@@ -128,9 +128,15 @@ class HCPHandler:
         self.s3_client.upload_file(local_file_path, self.bucket_name, key)
         pass
 
-    def upload_object_folder(self, local_folder_path : str):
+    def upload_object_folder(self, local_folder_path : str) -> None:
+        if not os.path.exists(local_folder_path):
+            # To-Do: Raise exception
+            print("Error: folder does not exist")
 
-        pass
+        filenames = os.listdir(local_folder_path)
+
+        for filename in filenames:
+            self.upload_object_file(local_folder_path + filename)
 
     def delete_objects(self):
         pass
