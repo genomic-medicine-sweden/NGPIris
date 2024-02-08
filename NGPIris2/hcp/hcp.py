@@ -146,7 +146,7 @@ class HCPHandler:
         for filename in filenames:
             self.upload_object_file(local_folder_path + filename)
 
-    def delete_objects(self, keys : list[str], verbose = True):
+    def delete_objects(self, keys : list[str], verbose = True) -> None:
         object_list = []
         for key in keys:
             object_list.append({"Key" : key})
