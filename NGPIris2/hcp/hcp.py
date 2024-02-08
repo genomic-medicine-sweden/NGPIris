@@ -193,7 +193,6 @@ class HCPHandler:
         )
         return response
 
-
     def add_object_acl(self):
         # self.s3_client.put_object_acl()
         pass
@@ -213,6 +212,25 @@ class HCPHandler:
                 }
             ]
         }
+        self.s3_client.put_bucket_acl(
+            Bucket = self.bucket_name,
+            AccessControlPolicy = access_control_policy
+        )
+
+    def add_multiple_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
+        access_control_policy : dict[str, list] = {
+            "Grants" : []
+        }
+        for user_ID, permission in user_ID_permissions.items():
+            grantee = {
+                "Grantee": {
+                    "ID": user_ID,
+                    "Type": "CanonicalUser"
+                },
+                "Permission": permission
+            }
+            access_control_policy["Grants"].append(grantee)
+
         self.s3_client.put_bucket_acl(
             Bucket = self.bucket_name,
             AccessControlPolicy = access_control_policy
