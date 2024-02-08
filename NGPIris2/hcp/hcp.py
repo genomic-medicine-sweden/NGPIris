@@ -39,13 +39,6 @@ class HCPHandler:
             config = s3_config
         )
 
-        self.iam_client = boto3.client(
-            "iam", 
-            aws_access_key_id = self.aws_access_key_id, 
-            aws_secret_access_key = self.aws_secret_access_key,
-            endpoint_url = self.endpoint
-        )
-
         self.transfer_config = TransferConfig(
             multipart_threshold = ini_config.getint("hcp", "size_threshold"),
             max_concurrency = ini_config.getint("hcp", "max_concurrency"),
