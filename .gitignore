@@ -1,11 +1,10 @@
 
 .pytype/pytype_temp
 .vscode/settings.json
-credentials and tokens/*.json
-!credentials and tokens/credentials_template.json
+credentials/*.json
+!credentials/credentials_template.json
 queries/*.json
 !queries/query_template.json
 .DS_Store
 test.py
 *.pyc
-credentials/myCredentials.json
