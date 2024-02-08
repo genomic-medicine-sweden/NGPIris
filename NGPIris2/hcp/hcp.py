@@ -175,6 +175,16 @@ class HCPHandler:
             if type(parse_object) is parse.Result:
                 search_result.append(key)
         return search_result
+    
+    def get_object_acl(self):
+        pass
+
+    def get_bucket_acl(self) -> dict:
+        response : dict = self.s3_client.get_bucket_acl(
+            Bucket = self.bucket_name
+        )
+        return response
+
 
     def add_object_acl(self):
         # self.s3_client.put_object_acl()
