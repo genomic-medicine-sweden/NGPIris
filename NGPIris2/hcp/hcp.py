@@ -177,8 +177,12 @@ class HCPHandler:
                 search_result.append(key)
         return search_result
     
-    def get_object_acl(self):
-        pass
+    def get_object_acl(self, key : str) -> dict:
+        response : dict = self.s3_client.get_object_acl(
+            Bucket = self.bucket_name,
+            Key = key
+        )
+        return response
 
     def get_bucket_acl(self) -> dict:
         response : dict = self.s3_client.get_bucket_acl(
