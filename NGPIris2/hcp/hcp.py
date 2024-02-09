@@ -8,8 +8,7 @@ from typing import Any, List
 import os
 import json
 import parse
-import requests
-
+import NGPIris2.hcp.helpers as h
 
 class HCPHandler:
     def __init__(self, credentials_path : str) -> None:
@@ -190,45 +189,34 @@ class HCPHandler:
         )
         return response
 
-    def add_object_acl(self):
-        # self.s3_client.put_object_acl()
-        pass
-
-    def add_bucket_acl(self, user_ID : str, permission : str ) -> None:
-        if not permission in ["FULL_CONTROL", "WRITE", "WRITE_ACP", "READ", "READ_ACP"]:
-            print("Invalid permission option")
-            exit()
-        access_control_policy : dict = {
-            "Grants" : [
-                {
-                    "Grantee": {
-                        "ID": user_ID,
-                        "Type": "CanonicalUser"
-                    },
-                    "Permission": permission
-                }
-            ]
-        }
-        self.s3_client.put_bucket_acl(
+    def add_single_object_acl(self, key : str, user_ID : str, permission : str) -> None:
+        self.s3_client.put_object_acl(
             Bucket = self.bucket_name,
-            AccessControlPolicy = access_control_policy
+            Key = key,
+            AccessControlPolicy = h.create_access_control_policy({user_ID : permission})
         )
 
-    def add_multiple_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
-        access_control_policy : dict[str, list] = {
-            "Grants" : []
-        }
-        for user_ID, permission in user_ID_permissions.items():
-            grantee = {
-                "Grantee": {
-                    "ID": user_ID,
-                    "Type": "CanonicalUser"
-                },
-                "Permission": permission
-            }
-            access_control_policy["Grants"].append(grantee)
-
+    def add_single_bucket_acl(self, user_ID : str, permission : str) -> None:
         self.s3_client.put_bucket_acl(
             Bucket = self.bucket_name,
-            AccessControlPolicy = access_control_policy
+            AccessControlPolicy = h.create_access_control_policy({user_ID : permission})
+        )
+
+    def add_object_acl(self, key_user_ID_permissions : dict[str, dict[str, str]]) -> None:
+        """
+        In order to add permissions for multiple objects, we make use of a dictionary of a dictionary:
+        :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`
+        So for every obejct (key), we set the permissions for every user ID for that object. 
+        """
+        for key, user_ID_permissions in key_user_ID_permissions.items():
+            self.s3_client.put_object_acl(
+                Bucket = self.bucket_name,
+                Key = key,
+                AccessControlPolicy = h.create_access_control_policy(user_ID_permissions)
+            )
+
+    def add_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
+        self.s3_client.put_bucket_acl(
+            Bucket = self.bucket_name,
+            AccessControlPolicy = h.create_access_control_policy(user_ID_permissions)
         )
