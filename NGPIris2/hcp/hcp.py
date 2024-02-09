@@ -80,7 +80,7 @@ class HCPHandler:
         list_of_buckets : list[dict] = response["Buckets"]
         return [bucket["Name"] for bucket in list_of_buckets]
     
-    def list_objects(self, name_only = False) -> list[dict]:
+    def list_objects(self, name_only = False) -> list:
         response_list_objects : dict = self.s3_client.list_objects_v2(
             Bucket = self.bucket_name
         )
