@@ -37,14 +37,15 @@ class HCIHandler:
     def list_index_names(self) -> list[str]:
         url     : str            = "https://" + self.address + ":" + self.api_port + "/api/search/indexes/"
         headers : dict[str, str] = {
-                "Accept": "application/json",
-                "Authorization": "Bearer " + self.token
+            "Accept": "application/json",
+            "Authorization": "Bearer " + self.token
         }
         
         response : requests.Response = requests.get(
             url,
             headers = headers,
-            verify = False)
+            verify = False
+        )
 
         if response.status_code != 200:
             print(response.text)
@@ -54,7 +55,6 @@ class HCIHandler:
 
     def query(self, query_path : str) -> dict:
         with open(query_path, "r") as inp:
-
             url     : str            = "https://" + self.address + ":" + self.api_port + "/api/search/query/"
             query   : dict[str, str] = json.load(inp)
             headers : dict[str, str] = {
@@ -66,7 +66,8 @@ class HCIHandler:
             url, 
             json.dumps(query), 
             headers=headers, 
-            verify = False)
+            verify = False
+        )
 
         if response.status_code != 200:
             print(response.text)
