@@ -19,9 +19,6 @@ class HCPHandler:
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
 
-        ini_config = cfp.ConfigParser()
-        ini_config.read("config.ini")
-
         s3_config = Config(
             s3 = {
                 "addressing_style": "path",
@@ -38,6 +35,9 @@ class HCPHandler:
             verify = False,
             config = s3_config
         )
+
+        ini_config = cfp.ConfigParser()
+        ini_config.read("config.ini")
 
         self.transfer_config = TransferConfig(
             multipart_threshold = ini_config.getint("hcp", "size_threshold"),
