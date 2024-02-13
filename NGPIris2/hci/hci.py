@@ -93,23 +93,29 @@ class HCIHandler:
         )
 
         if response.status_code != 200:
-            print(response.text)
+            exit(response.text)
             # To-Do: Add exception handling
 
         result_list = list(response.json()["results"])
-        result_df : pd.DataFrame = pd.DataFrame(result_list)
-        meta_df : pd.DataFrame = pd.DataFrame()
+        if result_list:
+            result_df : pd.DataFrame = pd.DataFrame(result_list)
+            meta_df : pd.DataFrame = pd.DataFrame()
 
-        for row in result_df["metadata"]:
-            metadata_dict : dict = dict(row)
-            df = pd.DataFrame(metadata_dict)
-            meta_df = pd.concat([meta_df, df])
+            for row in result_df["metadata"]:
+                metadata_dict : dict = dict(row)
+                df = pd.DataFrame(metadata_dict)
+                meta_df = pd.concat([meta_df, df])
 
-        meta_df = meta_df.reset_index(drop = True)
+            meta_df = meta_df.reset_index(drop = True)
 
-        for col in meta_df.columns:
-            result_df.insert(len(result_df.columns), col, meta_df[col], allow_duplicates = True)
+            for col in meta_df.columns:
+                result_df.insert(len(result_df.columns), col, meta_df[col], allow_duplicates = True)
 
-        result_df = result_df.drop("metadata", axis = 1)
+            result_df = result_df.drop("metadata", axis = 1)
+
+            if "EXCEPTION" in meta_df.columns:
+                exit(''.join(meta_df["EXCEPTION"].to_list()))
+        else:
+            result_df = pd.DataFrame()
 
         return result_df
