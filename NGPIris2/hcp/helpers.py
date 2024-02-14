@@ -1,3 +1,6 @@
+
+import os
+
 def create_access_control_policy(user_ID_permissions : dict[str, str]) -> dict:
     access_control_policy : dict[str, list] = {
         "Grants" : []
@@ -15,3 +18,7 @@ def create_access_control_policy(user_ID_permissions : dict[str, str]) -> dict:
         }
         access_control_policy["Grants"].append(grantee)
     return access_control_policy
+
+def raise_path_error(path : str):
+    if not os.path.exists(path):
+        raise FileNotFoundError("\"" + path + "\"" + " does not exist")
