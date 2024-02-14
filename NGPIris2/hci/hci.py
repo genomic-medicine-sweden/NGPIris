@@ -79,7 +79,7 @@ class HCIHandler:
             result_df = result_df.drop("metadata", axis = 1)
 
             if "EXCEPTION" in meta_df.columns:
-                exit(''.join(meta_df["EXCEPTION"].to_list()))
+                raise RuntimeError(''.join(meta_df["EXCEPTION"].to_list())) from None
         else:
             result_df = pd.DataFrame()
 
