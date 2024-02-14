@@ -134,7 +134,6 @@ class HCPHandler:
             key,
             Config = self.transfer_config
         )
-        pass
 
     def upload_object_folder(self, local_folder_path : str) -> None:
         if not os.path.exists(local_folder_path):
