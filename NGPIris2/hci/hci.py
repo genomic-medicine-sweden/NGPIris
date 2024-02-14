@@ -1,5 +1,7 @@
 
 import NGPIris2.parse_credentials.parse_credentials as pc
+import NGPIris2.hci.helpers as helpers
+
 import requests
 import json
 import pandas as pd
@@ -36,23 +38,18 @@ class HCIHandler:
         self.token = token
 
     def list_index_names(self) -> list[str]:
-        url     : str            = "https://" + self.address + ":" + self.api_port + "/api/search/indexes/"
-        headers : dict[str, str] = {
-            "Accept": "application/json",
-            "Authorization": "Bearer " + self.token
-        }
-        
-        response : requests.Response = requests.get(
-            url,
-            headers = headers,
-            verify = False
-        )
-
-        if response.status_code != 200:
-            print(response.text)
-            # To-Do: Add exception handling
-        
+        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token)
         return [entry["name"]for entry in response.json()]
+    
+    def look_up_index(self, index_name : str) -> dict:
+        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token)
+
+        for entry in response.json():
+            if entry["name"] == index_name:
+                return dict(entry)
+        
+        return {}
+        
 
     def query(self, query_path : str) -> dict:
         with open(query_path, "r") as inp:
