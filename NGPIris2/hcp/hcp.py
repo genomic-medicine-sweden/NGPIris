@@ -10,14 +10,20 @@ import configparser as cfp
 import os
 import json
 import parse
+import urllib3
 
 class HCPHandler:
-    def __init__(self, credentials_path : str) -> None:
+    def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
         credentials_handler = pc.CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
         self.endpoint = self.hcp["endpoint"]
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
+        self.bucket_name = None
+        self.use_ssl = use_ssl
+
+        if not self.use_ssl:
+            urllib3.disable_warnings()
 
         s3_config = Config(
             s3 = {
@@ -32,7 +38,7 @@ class HCPHandler:
             aws_access_key_id = self.aws_access_key_id, 
             aws_secret_access_key = self.aws_secret_access_key,
             endpoint_url = self.endpoint,
-            verify = False,
+            verify = self.use_ssl,
             config = s3_config
         )
 
@@ -56,7 +62,6 @@ class HCPHandler:
             exit()
     
         self.bucket_name = bucket_name
-        self.bucket_objects = None
 
     def get_bucket_metadata(self) -> dict:
 
