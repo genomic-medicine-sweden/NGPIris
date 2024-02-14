@@ -1,14 +1,15 @@
 
 import NGPIris2.parse_credentials.parse_credentials as pc
+import NGPIris2.hcp.helpers as h
+
 import boto3
 from botocore.client import Config
 from boto3.s3.transfer import TransferConfig
 import configparser as cfp
-from typing import Any, List
+
 import os
 import json
 import parse
-import NGPIris2.hcp.helpers as h
 
 class HCPHandler:
     def __init__(self, credentials_path : str) -> None:

@@ -1,10 +1,9 @@
 
 import NGPIris2.parse_credentials.parse_credentials as pc
-import NGPIris2.hci.helpers as helpers
+import NGPIris2.hci.helpers as h
 
 import requests
 import pandas as pd
-
 import urllib3
 
 class HCIHandler:
@@ -44,11 +43,11 @@ class HCIHandler:
         self.token = token
 
     def list_index_names(self) -> list[str]:
-        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
+        response : requests.Response = h.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
         return [entry["name"]for entry in response.json()]
     
     def look_up_index(self, index_name : str) -> dict:
-        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
+        response : requests.Response = h.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
 
         for entry in response.json():
             if entry["name"] == index_name:
@@ -58,10 +57,10 @@ class HCIHandler:
         
 
     def query(self, query_path : str) -> dict:
-        return helpers.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl).json()
+        return h.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl).json()
     
     def SQL_query(self, query_path : str) -> pd.DataFrame:
-        response = helpers.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl, "sql/")
+        response = h.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl, "sql/")
 
         result_list = list(response.json()["results"])
         if result_list:
