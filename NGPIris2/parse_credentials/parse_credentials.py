@@ -17,7 +17,7 @@ def check_empty_field(credentials : Credentials):
     for k1, d in credentials.items():
         for k2, v in d.items():
             if v == "":
-                empty_fields.append("- " + k2 + "\n")
+                empty_fields.append("- " + k1 + " : " + k2 + "\n")
     
     if empty_fields:
         raise RuntimeError("Missing entry for the following fields in the credentials file: \n" + ''.join(empty_fields))
