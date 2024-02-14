@@ -5,13 +5,10 @@ import NGPIris2.hci.helpers as helpers
 import requests
 import pandas as pd
 
-# TO BE REMOVED LATER
 import urllib3
-urllib3.disable_warnings()
-#####################
 
 class HCIHandler:
-    def __init__(self, credentials_path : str) -> None:
+    def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
         credentials_handler = pc.CredentialsHandler(credentials_path)
         self.hci = credentials_handler.hci
         self.username = self.hci["username"]
@@ -20,6 +17,11 @@ class HCIHandler:
         self.auth_port = self.hci["auth_port"]
         self.api_port = self.hci["api_port"]
         self.token = ""
+
+        self.use_ssl = use_ssl
+
+        if not self.use_ssl:
+            urllib3.disable_warnings()
     
     def request_token(self) -> None:
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
@@ -33,7 +35,7 @@ class HCIHandler:
             "realm": "LOCAL"
         }
         try:
-            response : requests.Response = requests.post(url, data = data, verify = False)
+            response : requests.Response = requests.post(url, data = data, verify = self.use_ssl)
         except: 
             error_msg : str = "The token reqeust made at " + url + " failed. Please check your connection and that you have your VPN enabled"
             raise RuntimeError(error_msg) from None
@@ -42,11 +44,11 @@ class HCIHandler:
         self.token = token
 
     def list_index_names(self) -> list[str]:
-        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token)
+        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
         return [entry["name"]for entry in response.json()]
     
     def look_up_index(self, index_name : str) -> dict:
-        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token)
+        response : requests.Response = helpers.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
 
         for entry in response.json():
             if entry["name"] == index_name:
@@ -56,10 +58,10 @@ class HCIHandler:
         
 
     def query(self, query_path : str) -> dict:
-        return helpers.get_query_response(query_path, self.address, self.api_port, self.token).json()
+        return helpers.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl).json()
     
     def SQL_query(self, query_path : str) -> pd.DataFrame:
-        response = helpers.get_query_response(query_path, self.address, self.api_port, self.token, "sql/")
+        response = helpers.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl, "sql/")
 
         result_list = list(response.json()["results"])
         if result_list:

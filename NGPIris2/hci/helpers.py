@@ -6,7 +6,7 @@ def raise_request_error(response : requests.Response, url : str):
     error_msg : str = "The response code from the reqeust made at " + url + " returned status code " + str(response.status_code) + ": " + str(json.loads(response.text)["errorMessage"])
     raise RuntimeError(error_msg) from None
 
-def get_index_response(address : str, api_port : str, token : str) -> requests.Response:
+def get_index_response(address : str, api_port : str, token : str, use_ssl : bool) -> requests.Response:
     url     : str            = "https://" + address + ":" + api_port + "/api/search/indexes/"
     headers : dict[str, str] = {
         "Accept": "application/json",
@@ -16,7 +16,7 @@ def get_index_response(address : str, api_port : str, token : str) -> requests.R
     response : requests.Response = requests.get(
         url,
         headers = headers,
-        verify = False
+        verify = use_ssl
     )
 
     if response.status_code != 200:
@@ -24,7 +24,7 @@ def get_index_response(address : str, api_port : str, token : str) -> requests.R
 
     return response
 
-def get_query_response(query_path, address : str, api_port : str, token : str, path_extension : str = "") -> requests.Response:
+def get_query_response(query_path, address : str, api_port : str, token : str, use_ssl : bool, path_extension : str = "") -> requests.Response:
     with open(query_path, "r") as inp:
         url     : str            = "https://" + address + ":" + api_port + "/api/search/query/" + path_extension
         query   : dict[str, str] = json.load(inp)
@@ -37,7 +37,7 @@ def get_query_response(query_path, address : str, api_port : str, token : str, p
             url, 
             json.dumps(query), 
             headers=headers, 
-            verify = False
+            verify = use_ssl
         )
 
         if response.status_code != 200:
