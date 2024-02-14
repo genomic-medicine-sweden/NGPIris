@@ -3,7 +3,6 @@ import NGPIris2.parse_credentials.parse_credentials as pc
 import NGPIris2.hci.helpers as helpers
 
 import requests
-import json
 import pandas as pd
 
 # TO BE REMOVED LATER
@@ -33,7 +32,12 @@ class HCIHandler:
             "client_id": "hci-client", 
             "realm": "LOCAL"
         }
-        response : requests.Response = requests.post(url, data = data, verify = False)
+        try:
+            response : requests.Response = requests.post(url, data = data, verify = False)
+        except: 
+            error_msg : str = "The token reqeust made at " + url + " failed. Please check your connection and that you have your VPN enabled"
+            raise RuntimeError(error_msg) from None
+
         token : str = response.json()["access_token"]
         self.token = token
 

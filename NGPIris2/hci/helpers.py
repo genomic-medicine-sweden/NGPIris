@@ -2,6 +2,10 @@
 import json
 import requests
 
+def raise_request_error(response : requests.Response, url : str):
+    error_msg : str = "The response code from the reqeust made at " + url + " returned status code " + str(response.status_code) + ": " + str(json.loads(response.text)["errorMessage"])
+    raise RuntimeError(error_msg) from None
+
 def get_index_response(address : str, api_port : str, token : str) -> requests.Response:
     url     : str            = "https://" + address + ":" + api_port + "/api/search/indexes/"
     headers : dict[str, str] = {
@@ -16,8 +20,7 @@ def get_index_response(address : str, api_port : str, token : str) -> requests.R
     )
 
     if response.status_code != 200:
-        print(response.text)
-        # To-Do: Add exception handling
+        raise_request_error(response, url)
 
     return response
 
@@ -38,7 +41,6 @@ def get_query_response(query_path, address : str, api_port : str, token : str, p
         )
 
         if response.status_code != 200:
-            print(response.text)
-            # To-Do: Add exception handling
+            raise_request_error(response, url)
         
         return response
