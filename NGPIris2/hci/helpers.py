@@ -2,7 +2,7 @@
 import json
 import requests
 
-def raise_request_error(response : requests.Response, url : str):
+def raise_request_error(response : requests.Response, url : str) -> None:
     error_msg : str = "The response code from the reqeust made at " + url + " returned status code " + str(response.status_code) + ": " + str(json.loads(response.text)["errorMessage"])
     raise RuntimeError(error_msg) from None
 
