@@ -52,46 +52,10 @@ class HCIHandler:
         
 
     def query(self, query_path : str) -> dict:
-        with open(query_path, "r") as inp:
-            url     : str            = "https://" + self.address + ":" + self.api_port + "/api/search/query/"
-            query   : dict[str, str] = json.load(inp)
-            headers : dict[str, str] = {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + self.token
-            }
-        response : requests.Response = requests.post(
-            url, 
-            json.dumps(query), 
-            headers=headers, 
-            verify = False
-        )
-
-        if response.status_code != 200:
-            print(response.text)
-            # To-Do: Add exception handling
-        
-        return response.json()
+        return helpers.get_query_response(query_path, self.address, self.api_port, self.token).json()
     
     def SQL_query(self, query_path : str) -> pd.DataFrame:
-        with open(query_path, "r") as inp:
-            url     : str            = "https://" + self.address + ":" + self.api_port + "/api/search/query/sql/"
-            query   : dict[str, str] = json.load(inp)
-            headers : dict[str, str] = {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": "Bearer " + self.token
-            }
-        response : requests.Response = requests.post(
-            url, 
-            json.dumps(query), 
-            headers=headers, 
-            verify = False
-        )
-
-        if response.status_code != 200:
-            exit(response.text)
-            # To-Do: Add exception handling
+        response = helpers.get_query_response(query_path, self.address, self.api_port, self.token, "sql/")
 
         result_list = list(response.json()["results"])
         if result_list:
