@@ -53,32 +53,13 @@ class HCPHandler:
     
     def mount_bucket(self, bucket_name : str) -> None:
         # Check if bucket exist
-        # Note: We could add the ExpectedBucketOwner parameter for checking user permissions
         response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
 
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
-            # To-Do: Add exceptions 
-            print("Error: HTTPStatusCode was " + response["ResponseMetadata"]["HTTPStatusCode"])
-            exit()
+            error_msg = "The response code from the reqeust made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
+            raise RuntimeError(error_msg)
     
         self.bucket_name = bucket_name
-
-    def get_bucket_metadata(self) -> dict:
-
-        out : dict = {}
-
-        acl_response : dict = self.s3_client.get_bucket_acl(
-            Bucket = self.bucket_name
-        )
-
-        location_response : dict = self.s3_client.get_bucket_location(
-            Bucket = self.bucket_name
-        )
-
-        out.update(acl_response)
-        out.update(location_response)
-
-        return out
 
     def list_buckets(self) -> list[str]:
         """List all available buckets at endpoint."""
@@ -97,13 +78,17 @@ class HCPHandler:
             return list_of_objects
     
     def download_object_file(self, key : str, local_file_path : str) -> None:
-        # To-Do: add exception handling
-        self.s3_client.download_file(
-            self.bucket_name, 
-            key, 
-            local_file_path, 
-            Config = self.transfer_config
-        )
+        try:
+            self.s3_client.download_file(
+                self.bucket_name, 
+                key, 
+                local_file_path, 
+                Config = self.transfer_config
+            )
+        except Exception as e:
+            print("botocore.exceptions.ClientError: " + str(e))
+            print("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+
 
     def download_all_object_files(self, 
                                   local_folder_path : str, 
@@ -120,13 +105,9 @@ class HCPHandler:
 
             if key in keys_exluced:
                 continue
+            
+            self.download_object_file(key, path)
 
-            self.s3_client.download_file(
-                self.bucket_name,
-                key,
-                path,
-                Config = self.transfer_config
-            )
 
     def upload_object_file(self, local_file_path : str, key : str = "") -> None:
         if not key:
