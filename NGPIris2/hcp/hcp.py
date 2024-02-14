@@ -138,12 +138,21 @@ class HCPHandler:
 
         deletion_dict = {"Objects": object_list}
 
+        list_of_objects_before = self.list_objects(True)
+        print("list before", list_of_objects_before)
+
         response : dict = self.s3_client.delete_objects(
             Bucket = self.bucket_name,
             Delete = deletion_dict
         )
         if verbose:
             print(json.dumps(response, indent=4))
+        diff = set(keys) - set(list_of_objects_before)
+        if diff:
+            does_not_exist = []
+            for key in diff:
+                does_not_exist.append("- " + key + "\n")
+            print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
 
     def search_objects_in_bucket(self, search_string : str, case_sensitive = False) -> list[str]:
         """

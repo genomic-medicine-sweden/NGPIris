@@ -20,7 +20,7 @@ def check_empty_field(credentials : Credentials):
                 empty_fields.append("- " + k1 + " : " + k2 + "\n")
     
     if empty_fields:
-        raise RuntimeError("Missing entry for the following fields in the credentials file: \n" + ''.join(empty_fields))
+        raise RuntimeError("Missing entry for the following fields in the credentials file: \n" + "".join(empty_fields))
 
 def parse_credentials(credentials_path : str) -> Credentials:
     credentials : Credentials = {}
