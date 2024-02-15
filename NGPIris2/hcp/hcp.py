@@ -53,7 +53,12 @@ class HCPHandler:
     
     def mount_bucket(self, bucket_name : str) -> None:
         # Check if bucket exist
-        response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
+        try:
+            response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
+        except Exception as e:
+            print("urllib3.exceptions.NewConnectionError:", e)
+            exit("Please check your connection and that you have your VPN enabled")
+            
 
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             error_msg = "The response code from the reqeust made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
@@ -89,7 +94,6 @@ class HCPHandler:
             print("botocore.exceptions.ClientError: " + str(e))
             print("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
 
-
     def download_all_object_files(self, 
                                   local_folder_path : str, 
                                   keys_exluced : list[str] = []) -> None:
@@ -107,7 +111,6 @@ class HCPHandler:
                 continue
             
             self.download_object_file(key, path)
-
 
     def upload_object_file(self, local_file_path : str, key : str = "") -> None:
         h.raise_path_error(local_file_path)
