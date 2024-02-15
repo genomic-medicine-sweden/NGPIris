@@ -4,6 +4,7 @@ import NGPIris2.hcp.helpers as h
 
 import boto3
 from botocore.client import Config
+from botocore.exceptions import EndpointConnectionError 
 from boto3.s3.transfer import TransferConfig
 import configparser as cfp
 
@@ -55,9 +56,11 @@ class HCPHandler:
         # Check if bucket exist
         try:
             response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
-        except Exception as e:
-            print("urllib3.exceptions.NewConnectionError:", e)
+        except EndpointConnectionError as e:
+            print(e)
             exit("Please check your connection and that you have your VPN enabled")
+        except Exception as e:
+            exit(str(e))
             
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             error_msg = "The response code from the reqeust made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
