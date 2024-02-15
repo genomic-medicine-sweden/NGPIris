@@ -180,10 +180,13 @@ class HCPHandler:
         return search_result
     
     def get_object_acl(self, key : str) -> dict:
-        response : dict = self.s3_client.get_object_acl(
-            Bucket = self.bucket_name,
-            Key = key
-        )
+        try:
+            response : dict = self.s3_client.get_object_acl(
+                Bucket = self.bucket_name,
+                Key = key
+            )
+        except Exception as e:
+            exit(str(e))
         return response
 
     def get_bucket_acl(self) -> dict:
