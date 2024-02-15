@@ -4,7 +4,7 @@ import NGPIris2.hcp.helpers as h
 
 import boto3
 from botocore.client import Config
-from botocore.exceptions import EndpointConnectionError 
+from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 import configparser as cfp
 
@@ -59,6 +59,9 @@ class HCPHandler:
         except EndpointConnectionError as e:
             print(e)
             exit("Please check your connection and that you have your VPN enabled")
+        except ClientError as e:
+            print(e)
+            exit("Bucket \"" + bucket_name + "\" was not found")
         except Exception as e:
             exit(str(e))
             
