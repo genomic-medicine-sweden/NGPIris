@@ -59,7 +59,6 @@ class HCPHandler:
             print("urllib3.exceptions.NewConnectionError:", e)
             exit("Please check your connection and that you have your VPN enabled")
             
-
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             error_msg = "The response code from the reqeust made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
             raise RuntimeError(error_msg)
