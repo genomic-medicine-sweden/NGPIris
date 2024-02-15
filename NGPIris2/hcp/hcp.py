@@ -147,7 +147,7 @@ class HCPHandler:
         )
         if verbose:
             print(json.dumps(response, indent=4))
-        diff = set(keys) - set(list_of_objects_before)
+        diff : set[str] = set(keys) - set(list_of_objects_before)
         if diff:
             does_not_exist = []
             for key in diff:
