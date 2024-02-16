@@ -8,3 +8,5 @@ queries/*.json
 .DS_Store
 test.py
 *.pyc
+NGPIris2.egg-info/*
+dist/*
