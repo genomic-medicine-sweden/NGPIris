@@ -66,7 +66,7 @@ class HCPHandler:
             exit(str(e))
             
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
-            error_msg = "The response code from the reqeust made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
+            error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
             raise RuntimeError(error_msg)
     
         self.bucket_name = bucket_name
@@ -164,7 +164,7 @@ class HCPHandler:
 
     def search_objects_in_bucket(self, search_string : str, case_sensitive = False) -> list[str]:
         """
-        Simple seach method using substrings in order to find certain objects. 
+        Simple search method using substrings in order to find certain objects. 
         
         Case insensitive by default.
         """
@@ -212,7 +212,7 @@ class HCPHandler:
         """
         In order to add permissions for multiple objects, we make use of a dictionary of a dictionary:
         :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`
-        So for every obejct (key), we set the permissions for every user ID for that object. 
+        So for every object (key), we set the permissions for every user ID for that object. 
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
             self.s3_client.put_object_acl(
