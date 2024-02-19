@@ -1,13 +1,16 @@
 
-.pytype/pytype_temp
-.vscode/settings.json
+.pytype*
+.vscode*
+.venv*
+build*/
+dist*/
+
 credentials/*.json
 !credentials/credentials_template.json
 queries/*.json
 !queries/query_template.json
+
 .DS_Store
 test.py
 *.pyc
 *.egg-info
-dist/*
-build/*

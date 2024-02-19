@@ -14,7 +14,7 @@ import parse
 import urllib3
 
 class HCPHandler:
-    def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
+    def __init__(self, credentials_path : str, use_ssl : bool = False, custom_config_path : str = "") -> None:
         credentials_handler = pc.CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
         self.endpoint = self.hcp["endpoint"]
@@ -43,14 +43,21 @@ class HCPHandler:
             config = s3_config
         )
 
-        ini_config = cfp.ConfigParser()
-        ini_config.read("config.ini")
+        if custom_config_path:
+            ini_config = cfp.ConfigParser()
+            ini_config.read(custom_config_path)
 
-        self.transfer_config = TransferConfig(
-            multipart_threshold = ini_config.getint("hcp", "size_threshold"),
-            max_concurrency = ini_config.getint("hcp", "max_concurrency"),
-            multipart_chunksize = ini_config.getint("hcp", "chunk_size")
-        )
+            self.transfer_config = TransferConfig(
+                multipart_threshold = ini_config.getint("hcp", "size_threshold"),
+                max_concurrency = ini_config.getint("hcp", "max_concurrency"),
+                multipart_chunksize = ini_config.getint("hcp", "chunk_size")
+            )
+        else:
+            self.transfer_config = TransferConfig(
+                multipart_threshold = 10000000,
+                max_concurrency = 15,
+                multipart_chunksize = 10000000
+            )
     
     def mount_bucket(self, bucket_name : str) -> None:
         # Check if bucket exist
