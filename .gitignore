@@ -11,6 +11,6 @@ queries/*.json
 !queries/query_template.json
 
 .DS_Store
-test.py
+test*.py
 *.pyc
 *.egg-info
