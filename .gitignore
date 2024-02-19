@@ -3,7 +3,7 @@
 .vscode*
 .venv*
 build*/
-dist*/
+*dist*/
 
 credentials/*.json
 !credentials/credentials_template.json

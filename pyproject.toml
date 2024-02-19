@@ -1,6 +1,6 @@
 [project]
 name = "NGPIris2"
-version = "0.0.2"
+version = "0.1.4"
 dependencies = [
     "requests >= 2.31.0",
     "pandas >= 2.1.4",
@@ -9,8 +9,15 @@ dependencies = [
     "boto3 >= 1.26.76",
     "parse >= 1.19.1"
 ]
+authors = [
+    {name = "Erik Brink", email = "erik.brink@gu.se"}
+]
+
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
 [tool.setuptools.packages.find]
-where = ["NGPIris2"]
+where = ["src"]
+include = ["*"]
+namespaces = false
