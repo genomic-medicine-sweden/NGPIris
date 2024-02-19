@@ -1,0 +1,16 @@
+[project]
+name = "NGPIris2"
+version = "0.0.2"
+dependencies = [
+    "requests >= 2.31.0",
+    "pandas >= 2.1.4",
+    "urllib3 >= 1.26.18",
+    "requests >= 2.31.0",
+    "boto3 >= 1.26.76",
+    "parse >= 1.19.1"
+]
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+where = ["NGPIris2"]

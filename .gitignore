@@ -8,6 +8,6 @@ queries/*.json
 .DS_Store
 test.py
 *.pyc
-*.egg-info/*
+*.egg-info
 dist/*
 build/*
