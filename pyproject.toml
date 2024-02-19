@@ -1,6 +1,6 @@
 [project]
 name = "NGPIris2"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
     "requests >= 2.31.0",
     "pandas >= 2.1.4",
@@ -18,6 +18,4 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["src"]
-include = ["*"]
-namespaces = false
+include = ["NGPIris2", "NGPIris2.cli", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials"]
