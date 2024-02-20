@@ -131,6 +131,15 @@ class HCPHandler:
             return list_of_objects
     
     def download_object_file(self, key : str, local_file_path : str) -> None:
+        """
+        Download one object file from the mounted bucket
+
+        :param key: Name of the object
+        :type key: str
+        :param local_file_path: Path to a file on your local system where the 
+        contents of the object file can be put.
+        :type local_file_path: str
+        """
         try:
             self.s3_client.download_file(
                 self.bucket_name, 
@@ -144,8 +153,16 @@ class HCPHandler:
 
     def download_all_object_files(self, 
                                   local_folder_path : str, 
-                                  keys_exluced : list[str] = []) -> None:
-        """Downloads all objects in the mounted bucket to a local folder"""
+                                  keys_excluded : list[str] = []) -> None:
+        """
+        Downloads all objects in the mounted bucket to a local folder
+
+        :param local_folder_path: Path to the local folder on your system
+        :type local_folder_path: str
+        :param keys_excluded: List of object names to be excluded from the 
+        download, if needed
+        :type keys_excluded: list[str], optional
+        """
         list_of_objects : list[dict] = self.list_objects()
 
         if not os.path.exists(local_folder_path):
@@ -155,12 +172,21 @@ class HCPHandler:
             key : str = object["Key"]
             path : str = local_folder_path + key
 
-            if key in keys_exluced:
+            if key in keys_excluded:
                 continue
             
             self.download_object_file(key, path)
 
     def upload_object_file(self, local_file_path : str, key : str = "") -> None:
+        """
+        Upload one file to the mounted bucket
+
+        :param local_file_path: Path to the file to be uploaded
+        :type local_file_path: str
+        :param key: An optional new name for the file object on the bucket. 
+        Defaults to the same name as the file
+        :type key: str, optional
+        """
         h.raise_path_error(local_file_path)
 
         if not key:
@@ -175,6 +201,12 @@ class HCPHandler:
         )
 
     def upload_object_folder(self, local_folder_path : str) -> None:
+        """
+        Upload the contents of a folder to the mounted bucket
+
+        :param local_folder_path: Path to the folder to be uploaded
+        :type local_folder_path: str
+        """
         h.raise_path_error(local_folder_path)
 
         filenames = os.listdir(local_folder_path)
@@ -183,6 +215,13 @@ class HCPHandler:
             self.upload_object_file(local_folder_path + filename)
 
     def delete_objects(self, keys : list[str], verbose = True) -> None:
+        """Delete a list of objects on the mounted bucket 
+
+        :param keys: List of object names to be deleted
+        :type keys: list[str]
+        :param verbose: Print the result of the deletion. Defaults to True
+        :type verbose: bool, optional
+        """
         object_list = []
         for key in keys:
             object_list.append({"Key" : key})
@@ -210,6 +249,14 @@ class HCPHandler:
         Simple search method using substrings in order to find certain objects. 
         
         Case insensitive by default.
+
+        :param search_string: Substring to be used in the search
+        :type search_string: str
+        :param case_sensitive: Case sensitivity. Defaults to False
+        :type case_sensitive: bool, optional
+        :return: List of object names that match the in some way to the 
+        object names
+        :rtype: list[str]
         """
         search_result : list[str] = []
         for key in self.list_objects(True):
@@ -223,6 +270,14 @@ class HCPHandler:
         return search_result
     
     def get_object_acl(self, key : str) -> dict:
+        """
+        Get the object Access Control List (ACL)
+
+        :param key: The name of the object
+        :type key: str
+        :return: Return the ACL in the shape of a dictionary
+        :rtype: dict
+        """
         try:
             response : dict = self.s3_client.get_object_acl(
                 Bucket = self.bucket_name,
@@ -233,12 +288,33 @@ class HCPHandler:
         return response
 
     def get_bucket_acl(self) -> dict:
+        """
+        Get the bucket Access Control List (ACL)
+
+        :return: Return the ACL in the shape of a dictionary
+        :rtype: dict
+        """
         response : dict = self.s3_client.get_bucket_acl(
             Bucket = self.bucket_name
         )
         return response
 
     def add_single_object_acl(self, key : str, user_ID : str, permission : str) -> None:
+        """
+        Add permissions for a user in the Access Control List (ACL) for one object
+
+        :param key: The name of the object
+        :type key: str
+        :param user_ID: The user name. Can either be the DisplayName or user_ID
+        :type user_ID: str
+        :param permission: What permission to be set. Valid options are:
+        - FULL_CONTROL 
+        - WRITE 
+        - WRITE_ACP 
+        - READ 
+        - READ_ACP\n
+        :type permission: str
+        """
         self.s3_client.put_object_acl(
             Bucket = self.bucket_name,
             Key = key,
@@ -246,6 +322,20 @@ class HCPHandler:
         )
 
     def add_single_bucket_acl(self, user_ID : str, permission : str) -> None:
+        """
+        Add permissions for a user in the Access Control List (ACL) for the 
+        mounted bucket
+
+        :param user_ID: The user name. Can either be the DisplayName or user_ID
+        :type user_ID: str
+        :param permission: What permission to be set. Valid options are:
+        - FULL_CONTROL 
+        - WRITE 
+        - WRITE_ACP 
+        - READ 
+        - READ_ACP\n
+        :type permission: str
+        """
         self.s3_client.put_bucket_acl(
             Bucket = self.bucket_name,
             AccessControlPolicy = h.create_access_control_policy({user_ID : permission})
@@ -253,9 +343,17 @@ class HCPHandler:
 
     def add_object_acl(self, key_user_ID_permissions : dict[str, dict[str, str]]) -> None:
         """
-        In order to add permissions for multiple objects, we make use of a dictionary of a dictionary:
+        Adds permissions to multiple objects, see below.
+
+        In order to add permissions for multiple objects, we make use of a 
+        dictionary of a dictionary:
         :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`
-        So for every object (key), we set the permissions for every user ID for that object. 
+        So for every object (key), we set the permissions for every user ID for 
+        that object. 
+
+        :param key_user_ID_permissions: The dictionary containing object name 
+        and user_id-permission dictionary
+        :type key_user_ID_permissions: dict[str, dict[str, str]]
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
             self.s3_client.put_object_acl(
@@ -265,6 +363,13 @@ class HCPHandler:
             )
 
     def add_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
+        """
+        Add permissions for multiple users for the mounted bucket
+
+        :param user_ID_permissions: The dictionary containing the user name and 
+        the corresponding permission to be set to that user
+        :type user_ID_permissions: dict[str, str]
+        """
         self.s3_client.put_bucket_acl(
             Bucket = self.bucket_name,
             AccessControlPolicy = h.create_access_control_policy(user_ID_permissions)
