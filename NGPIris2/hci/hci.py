@@ -133,7 +133,14 @@ class HCIHandler:
         :return: A DataFrame containing the result of the SQL query
         :rtype: pd.DataFrame
         """
-        response = h.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl, "sql/")
+        response = h.get_query_response(
+            query_path, 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl, 
+            "sql/"
+        )
 
         result_list = list(response.json()["results"])
         if result_list:
