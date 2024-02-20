@@ -88,17 +88,28 @@ class HCIHandler:
         return {}
         
 
-    def query(self, query_path : str) -> dict:
+    def query(self, query_path : str, only_metadata : bool = True) -> pd.DataFrame:
         """
         Make query to an HCI index. Will return a response in the shape of a 
         dictionary.
 
         :param query_path: Path to the query JSON file
         :type query_path: str
-        :return: A dictionary containing the response from the query
-        :rtype: dict
+        #:return: A dictionary containing the response from the query
+        #:rtype: dict
         """
-        return h.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl).json()
+        response_dict = dict(h.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl).json())
+        
+        list_of_data = [] 
+
+        if only_metadata:
+            for result_dict in response_dict["results"]:
+                list_of_data.append(result_dict["metadata"])
+        else:
+            for result_dict in response_dict["results"]:
+                list_of_data.append(result_dict)
+        
+        return pd.DataFrame(list_of_data)
     
     def SQL_query(self, query_path : str) -> pd.DataFrame:
         """
