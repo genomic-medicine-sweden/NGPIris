@@ -91,7 +91,7 @@ class HCIHandler:
     def query(self, query_path : str, only_metadata : bool = True) -> pd.DataFrame:
         """
         Make query to an HCI index. Will return a response in the shape of a 
-        dictionary.
+        DataFrame.
 
         :param query_path: Path to the query JSON file
         :type query_path: str
