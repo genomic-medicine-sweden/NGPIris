@@ -86,7 +86,7 @@ class HCIHandler:
                 return dict(entry)
         
         return {}
-        
+
 
     def query(self, query_path : str, only_metadata : bool = True) -> pd.DataFrame:
         """
@@ -102,7 +102,13 @@ class HCIHandler:
         :rtype: pd.DataFrame
         """
         
-        response_dict = dict(h.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl).json())
+        response_dict = dict(h.get_query_response(
+            query_path, 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl
+        ).json())
         
         list_of_data = [] 
 
