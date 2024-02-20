@@ -84,3 +84,26 @@ def get_query_response(query_path, address : str, api_port : str, token : str, u
             raise_request_error(response, url)
         
         return response
+    
+def process_query_response(response : requests.Response, only_metadata : bool) -> list:
+    """
+    Take query response and turn it into a list of datapoints
+
+    :param response: The response from the query response
+    :type response: requests.Response
+    :param only_metadata: Boolean choice between only returning the metadata
+    :type only_metadata: bool
+    :return: List of datapoints from the response
+    :rtype: list
+    """
+    response_dict = dict(response.json())
+    list_of_data = [] 
+    if only_metadata:
+        for result_dict in response_dict["results"]:
+            list_of_data.append({k : "".join(v) for k, v in result_dict["metadata"].items()})
+    else:
+        for result_dict in response_dict["results"]:
+            list_of_data.append(result_dict)
+    
+    return list_of_data
+    

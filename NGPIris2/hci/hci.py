@@ -102,22 +102,15 @@ class HCIHandler:
         :rtype: pd.DataFrame
         """
         
-        response_dict = dict(h.get_query_response(
+        response = h.get_query_response(
             query_path, 
             self.address, 
             self.api_port, 
             self.token, 
             self.use_ssl
-        ).json())
+        )
         
-        list_of_data = [] 
-
-        if only_metadata:
-            for result_dict in response_dict["results"]:
-                list_of_data.append(result_dict["metadata"])
-        else:
-            for result_dict in response_dict["results"]:
-                list_of_data.append(result_dict)
+        list_of_data = h.process_query_response(response, only_metadata)
         
         return pd.DataFrame(list_of_data)
     
