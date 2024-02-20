@@ -95,9 +95,13 @@ class HCIHandler:
 
         :param query_path: Path to the query JSON file
         :type query_path: str
-        #:return: A dictionary containing the response from the query
-        #:rtype: dict
+        :param only_metadata: Boolean choice between only returning the metadata. 
+        Defaults to True
+        :type only_metadata: bool, optional
+        :return: A DataFrame containing the response from the query
+        :rtype: pd.DataFrame
         """
+        
         response_dict = dict(h.get_query_response(query_path, self.address, self.api_port, self.token, self.use_ssl).json())
         
         list_of_data = [] 
