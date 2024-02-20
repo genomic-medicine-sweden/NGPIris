@@ -7,7 +7,7 @@ import pandas as pd
 import urllib3
 
 class HCIHandler:
-    """Class for handling HCI requests."""
+    """Class for handling HCI requests"""
     def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
         """
         Constructor for the HCIHandler class.

@@ -14,7 +14,18 @@ import parse
 import urllib3
 
 class HCPHandler:
+    """Class for handling HCP requests"""
     def __init__(self, credentials_path : str, use_ssl : bool = False, custom_config_path : str = "") -> None:
+        """
+        Constructor for the HCPHandler class
+
+        :param credentials_path: Path to the JSON credentials file
+        :type credentials_path: str
+        :param use_ssl: Boolean choice between using SSL, defaults to False
+        :type use_ssl: bool, optional
+        :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
+        :type custom_config_path: str, optional
+        """
         credentials_handler = pc.CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
         self.endpoint = self.hcp["endpoint"]
@@ -60,6 +71,17 @@ class HCPHandler:
             )
     
     def mount_bucket(self, bucket_name : str) -> None:
+        """
+        Mount bucket that is to be used. This method needs to executed in order 
+        for most of the other methods to work. It main concerns operations with 
+        download and upload. 
+
+        :param bucket_name: The name of the bucket to be mounted
+        :type bucket_name: str
+        :raises RuntimeError: If there was a problem when mounting the bucket, a 
+        runtime error will be raised 
+        """
+        
         # Check if bucket exist
         try:
             response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
@@ -79,12 +101,26 @@ class HCPHandler:
         self.bucket_name = bucket_name
 
     def list_buckets(self) -> list[str]:
-        """List all available buckets at endpoint."""
+        """
+        List all available buckets at endpoint.
+
+        :return: A list of buckets
+        :rtype: list[str]
+        """
         response : dict = self.s3_client.list_buckets()
         list_of_buckets : list[dict] = response["Buckets"]
         return [bucket["Name"] for bucket in list_of_buckets]
     
     def list_objects(self, name_only = False) -> list:
+        """
+        List all objects in the mounted bucket
+
+        :param name_only: If True, return only a list of the object names. 
+        If False, return the full metadata about each object. Defaults to False.
+        :type name_only: bool, optional
+        :return: A list of of either strings or a list of object metadata (the form of a dictionary)
+        :rtype: list
+        """
         response_list_objects : dict = self.s3_client.list_objects_v2(
             Bucket = self.bucket_name
         )
