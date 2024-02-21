@@ -5,6 +5,7 @@ import NGPIris2.hci.helpers as h
 import requests
 import pandas as pd
 import urllib3
+import json
 
 class HCIHandler:
     def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
@@ -86,8 +87,26 @@ class HCIHandler:
         
         return {}
 
+    def raw_query(self, query_dict : dict[str, str]) -> dict:
+        return dict(h.get_query_response(
+            query_dict, 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl
+        ).json())
+            
+    def raw_query_from_JSON(self, query_path : str) -> dict:
+        with open(query_path, "r") as inp:
+            return dict(h.get_query_response(
+            dict(json.load(inp)), 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl
+        ).json())
 
-    def query(self, query_path : str, only_metadata : bool = True) -> pd.DataFrame:
+    def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> pd.DataFrame:
         """
         Make query to an HCI index. Will return a response in the shape of a 
         DataFrame.
@@ -101,15 +120,7 @@ class HCIHandler:
         :rtype: pd.DataFrame
         """
         
-        response = h.get_query_response(
-            query_path, 
-            self.address, 
-            self.api_port, 
-            self.token, 
-            self.use_ssl
-        )
-        
-        list_of_data = h.process_query_response(response, only_metadata)
+        list_of_data = h.process_raw_query(raw_query, only_metadata)
         
         return pd.DataFrame(list_of_data)
     
@@ -125,35 +136,36 @@ class HCIHandler:
         :return: A DataFrame containing the result of the SQL query
         :rtype: pd.DataFrame
         """
-        response = h.get_query_response(
-            query_path, 
-            self.address, 
-            self.api_port, 
-            self.token, 
-            self.use_ssl, 
-            "sql/"
-        )
+        with open(query_path, "r") as inp:
+            response = h.get_query_response(
+                dict(json.load(inp)), 
+                self.address, 
+                self.api_port, 
+                self.token, 
+                self.use_ssl, 
+                "sql/"
+            )
 
-        result_list = list(response.json()["results"])
-        if result_list:
-            result_df : pd.DataFrame = pd.DataFrame(result_list)
-            meta_df : pd.DataFrame = pd.DataFrame()
+            result_list = list(response.json()["results"])
+            if result_list:
+                result_df : pd.DataFrame = pd.DataFrame(result_list)
+                meta_df : pd.DataFrame = pd.DataFrame()
 
-            for row in result_df["metadata"]:
-                metadata_dict : dict = dict(row)
-                df = pd.DataFrame(metadata_dict)
-                meta_df = pd.concat([meta_df, df])
+                for row in result_df["metadata"]:
+                    metadata_dict : dict = dict(row)
+                    df = pd.DataFrame(metadata_dict)
+                    meta_df = pd.concat([meta_df, df])
 
-            meta_df = meta_df.reset_index(drop = True)
+                meta_df = meta_df.reset_index(drop = True)
 
-            for col in meta_df.columns:
-                result_df.insert(len(result_df.columns), col, meta_df[col], allow_duplicates = True)
+                for col in meta_df.columns:
+                    result_df.insert(len(result_df.columns), col, meta_df[col], allow_duplicates = True)
 
-            result_df = result_df.drop("metadata", axis = 1)
+                result_df = result_df.drop("metadata", axis = 1)
 
-            if "EXCEPTION" in meta_df.columns:
-                raise RuntimeError(''.join(meta_df["EXCEPTION"].to_list())) from None
-        else:
-            result_df = pd.DataFrame()
+                if "EXCEPTION" in meta_df.columns:
+                    raise RuntimeError(''.join(meta_df["EXCEPTION"].to_list())) from None
+            else:
+                result_df = pd.DataFrame()
 
-        return result_df
+            return result_df
