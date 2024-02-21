@@ -1,1 +1,1 @@
-from NGPIris2.utils.utils import (md5_hashing, base64_hashing)
+from NGPIris2.utils.utils import md5_hashing, base64_hashing
