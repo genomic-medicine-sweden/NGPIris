@@ -88,6 +88,14 @@ class HCIHandler:
         return {}
 
     def raw_query(self, query_dict : dict[str, str]) -> dict:
+        """
+        Make query to an HCI index, with a dictionary
+
+        :param query_dict: Dictionary consisting of the query
+        :type query_dict: dict[str, str]
+        :return: Dictionary containing the raw query
+        :rtype: dict
+        """
         return dict(h.get_query_response(
             query_dict, 
             self.address, 
@@ -97,6 +105,14 @@ class HCIHandler:
         ).json())
             
     def raw_query_from_JSON(self, query_path : str) -> dict:
+        """
+        Make query to an HCI index, with prewritten query in a JSON file
+
+        :param query_path: Path to the JSON file
+        :type query_path: str
+        :return: Dictionary containing the raw query
+        :rtype: dict
+        """
         with open(query_path, "r") as inp:
             return dict(h.get_query_response(
             dict(json.load(inp)), 
@@ -108,15 +124,14 @@ class HCIHandler:
 
     def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> pd.DataFrame:
         """
-        Make query to an HCI index. Will return a response in the shape of a 
-        DataFrame.
+        Prettify a query in the shape of a DataFrame.
 
-        :param query_path: Path to the query JSON file
-        :type query_path: str
+        :param query_path: The raw query to be prettified
+        :type query_path: dict
         :param only_metadata: Boolean choice between only returning the metadata. 
         Defaults to True
         :type only_metadata: bool, optional
-        :return: A DataFrame containing the response from the query
+        :return: A DataFrame of the query
         :rtype: pd.DataFrame
         """
         
