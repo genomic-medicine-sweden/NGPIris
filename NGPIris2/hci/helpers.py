@@ -58,6 +58,8 @@ def get_query_response(
     """
     Retrieve the query response given the address, API port and token.
 
+    :param query_dict: The query dictionary
+    :type query_dict: dict[str, str]
     :param address: The address where request is to be made
     :type address: str
     :param api_port: The API port at the given address
@@ -98,7 +100,7 @@ def process_raw_query(raw_query : dict, only_metadata : bool) -> list:
     """
     Take a raw query dictionary and turn it into a list of datapoints
 
-    :param raw_query: _description_
+    :param raw_query: Raw query to be processed
     :type raw_query: dict
     :param only_metadata: Boolean choice between only returning the metadata
     :type only_metadata: bool
