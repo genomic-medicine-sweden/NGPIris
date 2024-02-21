@@ -7,10 +7,9 @@ import pandas as pd
 import urllib3
 
 class HCIHandler:
-    """Class for handling HCI requests"""
     def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
         """
-        Constructor for the HCIHandler class.
+        Class for handling HCI requests.
 
         :param credentials_path: Path to the JSON credentials file
         :type credentials_path: str

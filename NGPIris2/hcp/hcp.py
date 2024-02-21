@@ -14,10 +14,9 @@ import parse
 import urllib3
 
 class HCPHandler:
-    """Class for handling HCP requests"""
     def __init__(self, credentials_path : str, use_ssl : bool = False, custom_config_path : str = "") -> None:
         """
-        Constructor for the HCPHandler class
+        Class for handling HCP requests.
 
         :param credentials_path: Path to the JSON credentials file
         :type credentials_path: str
