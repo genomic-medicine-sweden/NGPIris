@@ -1,10 +1,16 @@
 
 import json
+from typing import TypeAlias
 
-Credentials = dict[str, dict[str, str]]
+Credentials : TypeAlias = dict[str, dict[str, str]]
 class CredentialsHandler:
     def __init__(self, credentials_path : str) -> None:
+        """
+        Class for handling credentials to HCP and HCI
 
+        :param credentials_path: Path to the credentials JSON file
+        :type credentials_path: str
+        """
         self.hcp : dict[str, str] = {}
         self.hci : dict[str, str] = {}
 
@@ -18,6 +24,7 @@ def all_fields_empty(key : str, credentials : Credentials) -> bool:
 def check_empty_field(credentials : Credentials):
     empty_fields_per_entry : dict[str, list[str]] = {}
     for k1, d in credentials.items():
+        # If all fields in *either* hci or hcp is empty then continue
         if all_fields_empty(k1, credentials):
             continue
         empty_fields : list[str] = []
@@ -42,7 +49,5 @@ def parse_credentials(credentials_path : str) -> Credentials:
     credentials : Credentials = {}
     with open(credentials_path, 'r') as inp:
         credentials : Credentials = json.load(inp)
-        
         check_empty_field(credentials)
-
         return credentials
