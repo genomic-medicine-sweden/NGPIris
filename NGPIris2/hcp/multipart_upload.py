@@ -38,7 +38,6 @@ class HCPMultipartUpload:
                         "ETag" : part["ETag"]
                         }
                     )
-                    print(parts)
                     part_number += 1
                     pbar.update(len(part_data))
             self.parts = parts
