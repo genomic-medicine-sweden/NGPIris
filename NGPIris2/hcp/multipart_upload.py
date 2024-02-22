@@ -1,5 +1,5 @@
 
-#from NGPIris2.hcp import HCPHandler
+#from NGPIris2.hcp.hcp import HCPHandler
 import os
 import tqdm
 
@@ -22,10 +22,9 @@ class HCPMultipartUpload:
 
     def multipart_upload(self):
         parts : list[dict] = []
-        uploaded_bytes = 0
         with open(self.local_file_path, "rb") as file:
             part_number = 1
-            with tqdm.tqdm(total = self.total_bytes) as pbar:
+            with tqdm.tqdm(total = self.total_bytes, unit = "B", unit_scale = True, desc = self.local_file_path) as pbar:
                 while (part_data := file.read(self.hcph.transfer_config.multipart_chunksize)):
                     part = self.hcph.s3_client.upload_part(
                         Body = part_data,
@@ -39,16 +38,15 @@ class HCPMultipartUpload:
                         "ETag" : part["ETag"]
                         }
                     )
-                    uploaded_bytes += len(part_data)
+                    print(parts)
                     part_number += 1
-                    pbar.update(uploaded_bytes)
+                    pbar.update(len(part_data))
             self.parts = parts
     
     def complete_multipart_upload(self):
-        result = self.hcph.s3_client.complete_multipart_upload(
+        self.hcph.s3_client.complete_multipart_upload(
             Bucket = self.hcph.bucket_name,
             Key = self.key,
             UploadId = self.upload_id,
             MultipartUpload = {"Parts" : self.parts}
         )
-        return result

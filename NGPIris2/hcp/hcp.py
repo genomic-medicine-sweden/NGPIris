@@ -15,6 +15,9 @@ import parse
 import urllib3
 import tqdm
 
+KB = 1024
+MB = KB * KB
+
 class HCPHandler:
     def __init__(self, credentials_path : str, use_ssl : bool = False, custom_config_path : str = "") -> None:
         """
@@ -67,9 +70,9 @@ class HCPHandler:
             )
         else:
             self.transfer_config = TransferConfig(
-                multipart_threshold = 1024 * 100,
+                multipart_threshold = 100 * MB,
                 max_concurrency = 15,
-                multipart_chunksize = 1024 * 100,
+                multipart_chunksize = 100 * MB,
                 use_threads = True
             )
     
@@ -209,26 +212,25 @@ class HCPHandler:
         file_size : int = os.stat(local_file_path).st_size
 
         # To-Do: Check if file size > 100 MB => multipart upload
-        if file_size > (100 * 1000000):
-            print("File size > 100 MB ")
+        if file_size > (100 * MB):
+            #print("File size > 100 MB ")
             hcpmu = HCPMultipartUpload(self, local_file_path, key)
             hcpmu.multipart_upload()
-            print(hcpmu.complete_multipart_upload())
-
-
-        with tqdm.tqdm(
-            total = file_size, 
-            unit = "B", 
-            unit_scale = True, 
-            desc = local_file_path
-        ) as pbar:
-            self.s3_client.upload_file(
-                Filename = local_file_path, 
-                Bucket = self.bucket_name, 
-                Key = key,
-                #Config = self.transfer_config,
-                Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
-            )
+            hcpmu.complete_multipart_upload()
+        else:
+            with tqdm.tqdm(
+                total = file_size, 
+                unit = "B", 
+                unit_scale = True, 
+                desc = local_file_path
+            ) as pbar:
+                self.s3_client.upload_file(
+                    Filename = local_file_path, 
+                    Bucket = self.bucket_name, 
+                    Key = key,
+                    #Config = self.transfer_config,
+                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                )
 
     def multipart_upload_object_file(self, cal_file_path : str, key : str) -> None:
 
