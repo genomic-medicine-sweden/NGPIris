@@ -12,6 +12,7 @@ import os
 import json
 import parse
 import urllib3
+import tqdm
 
 class HCPHandler:
     def __init__(self, credentials_path : str, use_ssl : bool = False, custom_config_path : str = "") -> None:
@@ -140,15 +141,25 @@ class HCPHandler:
         :type local_file_path: str
         """
         try:
-            self.s3_client.download_file(
-                self.bucket_name, 
-                key, 
-                local_file_path, 
-                Config = self.transfer_config
-            )
-        except Exception as e:
-            print("botocore.exceptions.ClientError: " + str(e))
+            file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
+            with tqdm.tqdm(
+                total = file_size, 
+                unit = "B", 
+                unit_scale = True, 
+                desc = key
+            ) as pbar:
+                self.s3_client.download_file(
+                    Bucket = self.bucket_name, 
+                    Key = key, 
+                    Filename = local_file_path, 
+                    Config = self.transfer_config,
+                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                )
+        except ClientError as e0:
+            print(str(e0))
             print("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+        except Exception as e:
+            print(str(e))
 
     def download_all_object_files(self, 
                                   local_folder_path : str, 
@@ -192,12 +203,21 @@ class HCPHandler:
             file_name = os.path.split(local_file_path)[1]
             key = file_name
 
-        self.s3_client.upload_file(
-            local_file_path, 
-            self.bucket_name, 
-            key,
-            Config = self.transfer_config
-        )
+        file_size : int = os.stat(local_file_path).st_size
+
+        with tqdm.tqdm(
+            total = file_size, 
+            unit = "B", 
+            unit_scale = True, 
+            desc = local_file_path
+        ) as pbar:
+            self.s3_client.upload_file(
+                Filename = local_file_path, 
+                Bucket = self.bucket_name, 
+                Key = key,
+                Config = self.transfer_config,
+                Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+            )
 
     def upload_object_folder(self, local_folder_path : str) -> None:
         """
