@@ -7,7 +7,8 @@ dependencies = [
     "urllib3 == 1.26.18",
     "requests >= 2.31.0",
     "boto3 >= 1.26.76",
-    "parse >= 1.19.1"
+    "parse >= 1.19.1",
+    "tqdm >= 4.66.2"
 ]
 authors = [
     {name = "Erik Brink", email = "erik.brink@gu.se"}
