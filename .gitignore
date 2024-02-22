@@ -4,6 +4,7 @@
 .venv*
 build*/
 *dist*/
+dl/*
 
 credentials/*.json
 !credentials/credentials_template.json
@@ -14,3 +15,4 @@ queries/*.json
 test*.py
 *.pyc
 *.egg-info
+
