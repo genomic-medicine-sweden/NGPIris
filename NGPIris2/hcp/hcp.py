@@ -228,7 +228,6 @@ class HCPHandler:
                     Filename = local_file_path, 
                     Bucket = self.bucket_name, 
                     Key = key,
-                    #Config = self.transfer_config,
                     Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                 )
 
