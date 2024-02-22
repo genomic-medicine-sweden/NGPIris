@@ -211,9 +211,7 @@ class HCPHandler:
 
         file_size : int = os.stat(local_file_path).st_size
 
-        # To-Do: Check if file size > 100 MB => multipart upload
         if file_size > (100 * MB):
-            #print("File size > 100 MB ")
             hcpmu = HCPMultipartUpload(self, local_file_path, key)
             hcpmu.multipart_upload()
             hcpmu.complete_multipart_upload()
@@ -230,10 +228,6 @@ class HCPHandler:
                     Key = key,
                     Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                 )
-
-    def multipart_upload_object_file(self, cal_file_path : str, key : str) -> None:
-
-        pass
 
     def upload_object_folder(self, local_folder_path : str) -> None:
         """
