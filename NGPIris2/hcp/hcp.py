@@ -1,6 +1,7 @@
 
 import NGPIris2.parse_credentials.parse_credentials as pc
 import NGPIris2.hcp.helpers as h
+from NGPIris2.hcp.multipart_upload import HCPMultipartUpload
 
 import boto3
 from botocore.client import Config
@@ -61,13 +62,15 @@ class HCPHandler:
             self.transfer_config = TransferConfig(
                 multipart_threshold = ini_config.getint("hcp", "size_threshold"),
                 max_concurrency = ini_config.getint("hcp", "max_concurrency"),
-                multipart_chunksize = ini_config.getint("hcp", "chunk_size")
+                multipart_chunksize = ini_config.getint("hcp", "chunk_size"),
+                use_threads = ini_config.getboolean("hcp", "use_threads")
             )
         else:
             self.transfer_config = TransferConfig(
-                multipart_threshold = 10000000,
+                multipart_threshold = 1024 * 100,
                 max_concurrency = 15,
-                multipart_chunksize = 10000000
+                multipart_chunksize = 1024 * 100,
+                use_threads = True
             )
     
     def mount_bucket(self, bucket_name : str) -> None:
@@ -205,6 +208,14 @@ class HCPHandler:
 
         file_size : int = os.stat(local_file_path).st_size
 
+        # To-Do: Check if file size > 100 MB => multipart upload
+        if file_size > (100 * 1000000):
+            print("File size > 100 MB ")
+            hcpmu = HCPMultipartUpload(self, local_file_path, key)
+            hcpmu.multipart_upload()
+            print(hcpmu.complete_multipart_upload())
+
+
         with tqdm.tqdm(
             total = file_size, 
             unit = "B", 
@@ -215,9 +226,13 @@ class HCPHandler:
                 Filename = local_file_path, 
                 Bucket = self.bucket_name, 
                 Key = key,
-                Config = self.transfer_config,
+                #Config = self.transfer_config,
                 Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
             )
+
+    def multipart_upload_object_file(self, cal_file_path : str, key : str) -> None:
+
+        pass
 
     def upload_object_folder(self, local_folder_path : str) -> None:
         """
