@@ -8,8 +8,10 @@ def raise_request_error(response : requests.Response, url : str) -> None:
 
     :param response: The response containing the error to be raised
     :type response: requests.Response
+
     :param url: The URL where the request was made
     :type url: str
+
     :raises RuntimeError: Will raise a runtime error for a request
     """
     error_msg : str = "The response code from the request made at " + url + " returned status code " + str(response.status_code) + ": " + str(json.loads(response.text)["errorMessage"])
@@ -21,12 +23,16 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
 
     :param address: The address where request is to be made
     :type address: str
+
     :param api_port: The API port at the given address
     :type api_port: str
+
     :param token: The HCI token 
     :type token: str
+
     :param use_ssl: Boolean choice of using SSL
     :type use_ssl: bool
+
     :return: A response containing information about the index
     :rtype: requests.Response
     """
@@ -60,17 +66,23 @@ def get_query_response(
 
     :param query_dict: The query dictionary
     :type query_dict: dict[str, str]
+
     :param address: The address where request is to be made
     :type address: str
+
     :param api_port: The API port at the given address
     :type api_port: str
+
     :param token: The HCI token 
     :type token: str
+
     :param use_ssl: Boolean choice of using SSL
     :type use_ssl: bool
+
     :param path_extension: possibly extend the request URL. Used for example 
     when making SQL requests. Defaults to ""
     :type path_extension: str, optional
+
     :return: A response containing information about the query
     :rtype: requests.Response
     """
@@ -102,8 +114,10 @@ def process_raw_query(raw_query : dict, only_metadata : bool) -> list:
 
     :param raw_query: Raw query to be processed
     :type raw_query: dict
+
     :param only_metadata: Boolean choice between only returning the metadata
     :type only_metadata: bool
+    
     :return: List of datapoints from the response
     :rtype: list
     """ 

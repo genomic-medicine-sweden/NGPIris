@@ -14,6 +14,7 @@ class HCIHandler:
 
         :param credentials_path: Path to the JSON credentials file
         :type credentials_path: str
+
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
         """
@@ -76,6 +77,7 @@ class HCIHandler:
 
         :param index_name: The index name
         :type index_name: str
+
         :return: A dictionary containing information about an index
         :rtype: dict
         """
@@ -93,6 +95,7 @@ class HCIHandler:
 
         :param query_dict: Dictionary consisting of the query
         :type query_dict: dict[str, str]
+
         :return: Dictionary containing the raw query
         :rtype: dict
         """
@@ -110,6 +113,7 @@ class HCIHandler:
 
         :param query_path: Path to the JSON file
         :type query_path: str
+
         :return: Dictionary containing the raw query
         :rtype: dict
         """
@@ -128,9 +132,11 @@ class HCIHandler:
 
         :param query_path: The raw query to be prettified
         :type query_path: dict
+
         :param only_metadata: Boolean choice between only returning the metadata. 
         Defaults to True
         :type only_metadata: bool, optional
+
         :return: A DataFrame of the query
         :rtype: pd.DataFrame
         """
@@ -146,8 +152,10 @@ class HCIHandler:
 
         :param query_path: Path to the query JSON file
         :type query_path: str
+
         :raises RuntimeError: Will raise a runtime error if an error was found 
         with the SQL query
+        
         :return: A DataFrame containing the result of the SQL query
         :rtype: pd.DataFrame
         """

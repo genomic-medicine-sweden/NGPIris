@@ -24,8 +24,10 @@ class HCPHandler:
 
         :param credentials_path: Path to the JSON credentials file
         :type credentials_path: str
+        
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
+        
         :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
         :type custom_config_path: str, optional
         """
@@ -83,6 +85,7 @@ class HCPHandler:
 
         :param bucket_name: The name of the bucket to be mounted
         :type bucket_name: str
+
         :raises RuntimeError: If there was a problem when mounting the bucket, a 
         runtime error will be raised 
         """
@@ -123,6 +126,7 @@ class HCPHandler:
         :param name_only: If True, return only a list of the object names. 
         If False, return the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
+
         :return: A list of of either strings or a list of object metadata (the form of a dictionary)
         :rtype: list
         """
@@ -141,6 +145,7 @@ class HCPHandler:
 
         :param key: Name of the object
         :type key: str
+
         :param local_file_path: Path to a file on your local system where the 
         contents of the object file can be put.
         :type local_file_path: str
@@ -174,6 +179,7 @@ class HCPHandler:
 
         :param local_folder_path: Path to the local folder on your system
         :type local_folder_path: str
+
         :param keys_excluded: List of object names to be excluded from the 
         download, if needed
         :type keys_excluded: list[str], optional
@@ -198,6 +204,7 @@ class HCPHandler:
 
         :param local_file_path: Path to the file to be uploaded
         :type local_file_path: str
+
         :param key: An optional new name for the file object on the bucket. 
         Defaults to the same name as the file
         :type key: str, optional
@@ -242,6 +249,7 @@ class HCPHandler:
 
         :param keys: List of object names to be deleted
         :type keys: list[str]
+
         :param verbose: Print the result of the deletion. Defaults to True
         :type verbose: bool, optional
         """
@@ -275,8 +283,10 @@ class HCPHandler:
 
         :param search_string: Substring to be used in the search
         :type search_string: str
+
         :param case_sensitive: Case sensitivity. Defaults to False
         :type case_sensitive: bool, optional
+
         :return: List of object names that match the in some way to the 
         object names
         :rtype: list[str]
@@ -298,6 +308,7 @@ class HCPHandler:
 
         :param key: The name of the object
         :type key: str
+
         :return: Return the ACL in the shape of a dictionary
         :rtype: dict
         """
@@ -328,8 +339,10 @@ class HCPHandler:
 
         :param key: The name of the object
         :type key: str
+
         :param user_ID: The user name. Can either be the DisplayName or user_ID
         :type user_ID: str
+
         :param permission: What permission to be set. Valid options are:
         - FULL_CONTROL 
         - WRITE 
@@ -351,6 +364,7 @@ class HCPHandler:
 
         :param user_ID: The user name. Can either be the DisplayName or user_ID
         :type user_ID: str
+        
         :param permission: What permission to be set. Valid options are:
         - FULL_CONTROL 
         - WRITE 
