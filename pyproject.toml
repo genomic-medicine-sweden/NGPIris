@@ -19,4 +19,4 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["NGPIris2", "NGPIris2.cli", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials"]
+include = ["NGPIris2", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials", "NGPIris2.utils"]
