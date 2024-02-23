@@ -62,9 +62,9 @@ class HCPHandler:
             ini_config.read(custom_config_path)
 
             self.transfer_config = TransferConfig(
-                multipart_threshold = ini_config.getint("hcp", "size_threshold"),
+                multipart_threshold = ini_config.getint("hcp", "multipart_threshold"),
                 max_concurrency = ini_config.getint("hcp", "max_concurrency"),
-                multipart_chunksize = ini_config.getint("hcp", "chunk_size"),
+                multipart_chunksize = ini_config.getint("hcp", "multipart_chunksize"),
                 use_threads = ini_config.getboolean("hcp", "use_threads")
             )
         else:
