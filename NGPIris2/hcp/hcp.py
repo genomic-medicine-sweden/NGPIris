@@ -1,7 +1,6 @@
 
 import NGPIris2.parse_credentials.parse_credentials as pc
 import NGPIris2.hcp.helpers as h
-from NGPIris2.hcp.multipart_upload import HCPMultipartUpload
 
 import boto3
 from botocore.client import Config
@@ -70,9 +69,9 @@ class HCPHandler:
             )
         else:
             self.transfer_config = TransferConfig(
-                multipart_threshold = 100 * MB,
-                max_concurrency = 15,
-                multipart_chunksize = 100 * MB,
+                multipart_threshold = 10 * MB,
+                max_concurrency = 30,
+                multipart_chunksize = 10 * MB,
                 use_threads = True
             )
     
@@ -210,24 +209,19 @@ class HCPHandler:
             key = file_name
 
         file_size : int = os.stat(local_file_path).st_size
-
-        if file_size > (100 * MB):
-            hcpmu = HCPMultipartUpload(self, local_file_path, key)
-            hcpmu.multipart_upload()
-            hcpmu.complete_multipart_upload()
-        else:
-            with tqdm.tqdm(
-                total = file_size, 
-                unit = "B", 
-                unit_scale = True, 
-                desc = local_file_path
-            ) as pbar:
-                self.s3_client.upload_file(
-                    Filename = local_file_path, 
-                    Bucket = self.bucket_name, 
-                    Key = key,
-                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
-                )
+        with tqdm.tqdm(
+            total = file_size, 
+            unit = "B", 
+            unit_scale = True, 
+            desc = local_file_path
+        ) as pbar:
+            self.s3_client.upload_file(
+                Filename = local_file_path, 
+                Bucket = self.bucket_name, 
+                Key = key,
+                Config = self.transfer_config,
+                Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+            )
 
     def upload_object_folder(self, local_folder_path : str) -> None:
         """
