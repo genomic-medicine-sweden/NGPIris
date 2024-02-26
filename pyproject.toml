@@ -20,3 +20,16 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["NGPIris2", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials", "NGPIris2.utils"]
+
+[[tool.pydoc-markdown.loaders]]
+type = "python"
+search_path = [ "./NGPIris2" ]
+
+[tool.pydoc-markdown.renderer]
+type = "markdown"
+render_toc = true
+
+[[tool.pydoc-markdown.renderer.pages]]
+title = "NGP Iris 2 documentation"
+name = "index"
+contents = [ "*" ]

@@ -3,8 +3,6 @@ Rework of the original [NGP Iris](https://github.com/genomic-medicine-sweden/NGP
 
 **Do note that we might change the name, but right now NGP Iris 2 is the WIP name.**
 
----
-
 ## Getting started
 
 ### Prerequisites 
@@ -40,7 +38,68 @@ In order to use NGP Iris 2, a JSON file containing your credentials for the NGPr
 ```
 This will prompt NGP Iris 2 to complain about incomplete credentials. Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
----
+## Basic usage
+NGP Iris 2 is to be used as a Python package. The main use consists of accessing an HCP or HCI via the AWS S3 service. This section contains examples of how NGP Iris 2 might be used to do so.
 
-## Usage
-To be added.
+### Connect to HCP
+In order to connect to the HCP, we first need to create an `HCPHandler` object and mount it to some bucket:
+```Python
+import NGPIris2.hcp as hcp
+
+hcph = hcp.HCPHandler("myCredentials.json")
+
+hcph.mount_bucket("myBucket")
+```
+If you are unsure which buckets you are allowed to see, you can use `hcph.list_buckets()` in order to list all available buckets to you.
+
+When you have successfully mounted a bucket, you can then do different operations onto the bucket. Object names on the bucket can be listed by typing `print(hcph.list_objects(True))`. 
+
+#### Upload files
+```Python
+# Upload a single file to HCP
+hcph.upload_object_file("myFile")
+
+# Upload folder contents to HCP
+hcph.upload_object_folder("./myFiles/")
+```
+
+#### Download files
+```Python
+# Download a single object from HCP
+hcph.download_object_file("myObject")
+
+# Download all objects from HCP to a local folder
+hcph.download_all_object_files("./myDownloadedFiles/")
+```
+
+### Connect to HCI
+In order to connect to the HCI, we first need to create an `HCIHandler` object and request an authorization token:
+```Python
+import NGPIris2.hci as hci
+
+hcih = hci.HCIHandler("./credentials/myCredentials.json")
+
+hcih.request_token()
+```
+Note that the token is stored inside of the `HCIHandler` object called `hcih`. We can now request a list of indexes that are available by typing `print(hcih.list_index_names())`. We can also look up information about a certain index with `print(hcih.look_up_index("myIndex"))`. It is recommended to combine the use of the pretty print module `pprint` and the `json` module for this output, as it is mostly unreadable otherwise:
+```Python
+import NGPIris2.hci as hci
+from pprint import pprint
+import json
+
+hcih = hci.HCIHandler("./credentials/myCredentials.json")
+
+hcih.request_token()
+
+pprint(
+    json.dumps(
+        hcih.look_up_index("myIndex"), 
+        indent = 4
+    )
+)
+```
+
+### Miscellaneous utilities (`utils.py`)
+
+## Technical package documentation
+A thorough package documentation can be found in [docs.md](docs.md).
