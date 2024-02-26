@@ -100,6 +100,7 @@ pprint(
 ```
 
 ### Miscellaneous utilities (`utils.py`)
+The `utils` module can be contains two functions: one for converting a string to `base64` encoding and one for `MD5` encoding.
 
 ## Technical package documentation
 A thorough package documentation can be found in [docs.md](docs.md).
