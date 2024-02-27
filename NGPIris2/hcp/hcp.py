@@ -72,8 +72,8 @@ class HCPHandler:
         else:
             self.transfer_config = TransferConfig(
                 multipart_threshold = 10 * MB,
-                max_concurrency = 30,
-                multipart_chunksize = 10 * MB,
+                max_concurrency = 60,
+                multipart_chunksize = 40 * MB,
                 use_threads = True
             )
     
