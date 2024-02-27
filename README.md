@@ -38,6 +38,9 @@ In order to use NGP Iris 2, a JSON file containing your credentials for the NGPr
 ```
 This will prompt NGP Iris 2 to complain about incomplete credentials. Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
+## Technical package documentation
+A thorough package documentation can be found in [docs.md](docs.md).
+
 ## Basic usage
 NGP Iris 2 is to be used as a Python package. The main use consists of accessing an HCP or HCI via the AWS S3 service. This section contains examples of how NGP Iris 2 might be used to do so.
 
@@ -101,6 +104,3 @@ pprint(
 
 ### Miscellaneous utilities (`utils.py`)
 The `utils` module can be contains two functions: one for converting a string to `base64` encoding and one for `MD5` encoding.
-
-## Technical package documentation
-A thorough package documentation can be found in [docs.md](docs.md).
