@@ -143,7 +143,7 @@ class HCPHandler:
     
     def object_look_up(self, key : str) -> dict:
         """
-        Retrive object metadata
+        Retrieve object metadata
 
         :param key: The object name
         :type key: str
@@ -163,7 +163,7 @@ class HCPHandler:
 
         :param key: The object name
         :type key: str
-        
+
         :return: True if the object exist, otherwise False
         :rtype: bool
         """
