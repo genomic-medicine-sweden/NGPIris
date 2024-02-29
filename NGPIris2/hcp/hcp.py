@@ -141,6 +141,41 @@ class HCPHandler:
         else:
             return list_of_objects
     
+    def object_look_up(self, key : str) -> dict:
+        """
+        Retrive object metadata
+
+        :param key: The object name
+        :type key: str
+
+        :return: A dictionary containing the object metadata
+        :rtype: dict
+        """
+        response = dict(self.s3_client.get_object(
+            Bucket = self.bucket_name,
+            Key = key
+        ))
+        return response
+
+    def is_object_in_bucket(self, key : str) -> bool:
+        """
+        Check if a given object is in the mounted bucket
+
+        :param key: The object name
+        :type key: str
+        
+        :return: True if the object exist, otherwise False
+        :rtype: bool
+        """
+        try:
+            response = self.object_look_up(key)
+            if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+                return True
+            else: 
+                return False
+        except:
+            return False
+
     def download_object_file(self, key : str, local_file_path : str) -> None:
         """
         Download one object file from the mounted bucket
