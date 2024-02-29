@@ -525,6 +525,24 @@ Case insensitive by default.
 `list[str]`: List of object names that match the in some way to the 
 object names
 
+<a id="hcp.hcp.HCPHandler.get_bucket_statistics"></a>
+
+##### get\_bucket\_statistics
+
+```python
+def get_bucket_statistics() -> dict
+```
+
+Retrieve a dictionary containing information about the mounted bucket
+
+**Raises**:
+
+- `RuntimeError`: Raises an error if there was a problem with parsing the endpoint URL
+
+**Returns**:
+
+`dict`: A dictionary containing the information about the mounted bucket
+
 <a id="hcp.hcp.HCPHandler.get_object_acl"></a>
 
 ##### get\_object\_acl
