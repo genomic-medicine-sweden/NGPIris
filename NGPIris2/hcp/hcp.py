@@ -12,6 +12,7 @@ import os
 import json
 import parse
 import urllib3
+import requests
 import tqdm
 
 KB = 1024
@@ -36,6 +37,7 @@ class HCPHandler:
         self.endpoint = self.hcp["endpoint"]
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
+        self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
         self.bucket_name = None
         self.use_ssl = use_ssl
 
@@ -339,6 +341,34 @@ class HCPHandler:
                 search_result.append(key)
         return search_result
     
+    def get_bucket_statistics(self) -> dict:
+        url_parse = parse.parse("https://{}", self.endpoint)
+        if type(url_parse) is parse.Result and self.bucket_name:
+            url = "https://" + self.bucket_name + "." + url_parse[0]
+            print(url)
+            response = requests.get(
+                url + "/proc/statistics",
+                verify = self.use_ssl,
+                headers = {
+                    "Authorization" : "HCP " + self.token,
+                    "Cookie" : "hcp-ns-auth=" + self.token
+                }
+            )
+            dict_of_statistics = {}
+            statistics_parse = parse.parse("{}<statistics{}/>", response.text)
+            if type(statistics_parse) is parse.Result:
+                list_of_statistics : list[str] = statistics_parse[1].replace('"', "").split()
+                for statistic in list_of_statistics:
+                    p = parse.parse("{}={}", statistic)
+                    if type(p) is parse.Result: 
+                        if p[1].isdigit():
+                            dict_of_statistics[p[0]] = int(p[1])
+                        else:
+                            dict_of_statistics[p[0]] = p[1]
+            return dict_of_statistics
+        else:
+            raise RuntimeError()
+
     def get_object_acl(self, key : str) -> dict:
         """
         Get the object Access Control List (ACL)
