@@ -35,6 +35,8 @@
         * [add\_single\_bucket\_acl](#add_single_bucket_acl)
         * [add\_object\_acl](#add_object_acl)
         * [add\_bucket\_acl](#add_bucket_acl)
+      * [list\_buckets](#list_buckets)
+      * [list\_objects](#list_objects)
 * [parse\_credentials](#parse_credentials)
   * [parse\_credentials.parse\_credentials](#parse_credentialsparse_credentials)
     * [CredentialsHandler Objects](#credentialshandler-objects)
@@ -387,6 +389,41 @@ If False, return the full metadata about each object. Defaults to False.
 
 `list`: A list of of either strings or a list of object metadata (the form of a dictionary)
 
+<a id="hcp.hcp.HCPHandler.object_look_up"></a>
+
+##### object\_look\_up
+
+```python
+def object_look_up(key: str) -> dict
+```
+
+Retrieve object metadata
+
+**Arguments**:
+
+- `key` (`str`): The object name
+
+**Returns**:
+
+`dict`: A dictionary containing the object metadata
+
+<a id="hcp.hcp.HCPHandler.is_object_in_bucket"></a>
+
+##### is\_object\_in\_bucket
+
+```python
+def is_object_in_bucket(key: str) -> bool
+```
+
+Check if a given object is in the mounted bucket
+
+**Arguments**:
+
+- `key` (`str`): The object name
+
+**Returns**:
+
+`bool`: True if the object exist, otherwise False
 <a id="hcp.hcp.HCPHandler.download_object_file"></a>
 
 ##### download\_object\_file
