@@ -342,6 +342,13 @@ class HCPHandler:
         return search_result
     
     def get_bucket_statistics(self) -> dict:
+        """
+        Retrieve a dictionary containing information about the mounted bucket
+
+        :raises RuntimeError: Raises an error if there was a problem with parsing the endpoint URL
+        :return: A dictionary containing the information about the mounted bucket
+        :rtype: dict
+        """
         url_parse = parse.parse("https://{}", self.endpoint)
         if type(url_parse) is parse.Result and self.bucket_name:
             url = "https://" + self.bucket_name + "." + url_parse[0]
@@ -367,7 +374,7 @@ class HCPHandler:
                             dict_of_statistics[p[0]] = p[1]
             return dict_of_statistics
         else:
-            raise RuntimeError()
+            raise RuntimeError("Could not parse the endpoint URL")
 
     def get_object_acl(self, key : str) -> dict:
         """
