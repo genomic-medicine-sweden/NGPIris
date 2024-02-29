@@ -14,5 +14,6 @@ queries/*.json
 .DS_Store
 test*.py
 *.pyc
+__pycache__
 *.egg-info
 
