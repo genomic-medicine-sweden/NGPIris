@@ -31,6 +31,7 @@
         * [upload\_object\_folder](#upload_object_folder)
         * [delete\_objects](#delete_objects)
         * [search\_objects\_in\_bucket](#search_objects_in_bucket)
+        * [get\_bucket\_statistics](#get_bucket_statistics)
         * [get\_object\_acl](#get_object_acl)
         * [get\_bucket\_acl](#get_bucket_acl)
         * [add\_single\_object\_acl](#add_single_object_acl)
