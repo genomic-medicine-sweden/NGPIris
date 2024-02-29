@@ -299,7 +299,6 @@ class HCPHandler:
         deletion_dict = {"Objects": object_list}
 
         list_of_objects_before = self.list_objects(True)
-        print("list before", list_of_objects_before)
 
         response : dict = self.s3_client.delete_objects(
             Bucket = self.bucket_name,
@@ -352,7 +351,6 @@ class HCPHandler:
         url_parse = parse.parse("https://{}", self.endpoint)
         if type(url_parse) is parse.Result and self.bucket_name:
             url = "https://" + self.bucket_name + "." + url_parse[0]
-            print(url)
             response = requests.get(
                 url + "/proc/statistics",
                 verify = self.use_ssl,
