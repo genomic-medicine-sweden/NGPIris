@@ -99,7 +99,7 @@ def get_query_response(
     response : requests.Response = requests.post(
         url, 
         json.dumps(query), 
-        headers=headers, 
+        headers = headers, 
         verify = use_ssl
     )
 
