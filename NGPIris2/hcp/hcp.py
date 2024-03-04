@@ -223,7 +223,7 @@ class HCPHandler:
         h.raise_path_error(local_file_path)
 
         if not key:
-            file_name = os.path.split(local_file_path)[1]
+            file_name = os.path.basename(local_file_path)
             key = file_name
 
         file_size : int = os.stat(local_file_path).st_size
@@ -320,7 +320,7 @@ class HCPHandler:
         :return: A dictionary containing the information about the mounted bucket
         :rtype: dict
         """
-        response = h.get_response(self.endpoint, self.bucket_name, self.token, self.use_ssl, "/proc/statistics")
+        response = h.get_bucket_response(self.endpoint, self.bucket_name, self.token, self.use_ssl, "/proc/statistics")
         dict_of_statistics = {}
         statistics_parse = parse.parse("{}<statistics{}/>", response.text)
         if type(statistics_parse) is parse.Result:
