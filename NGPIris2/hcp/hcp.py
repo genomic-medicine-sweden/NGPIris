@@ -134,7 +134,7 @@ class HCPHandler:
         response_list_objects : dict = self.s3_client.list_objects_v2(
             Bucket = self.bucket_name
         )
-        if not "Contents" in response_list_objects.keys():
+        if "Contents" not in response_list_objects.keys():
             return []
         list_of_objects : list[dict] = response_list_objects["Contents"]
         if name_only:
