@@ -116,7 +116,9 @@ class HCPHandler:
         :return: A list of buckets
         :rtype: list[str]
         """
-        response : dict = self.s3_client.list_buckets()
+        response = dict(self.s3_client.list_buckets())
+        if "Buckets" not in response.keys():
+            raise RuntimeError("No key \"Buckets\" found in response.keys() when attempting to list available buckets")
         list_of_buckets : list[dict] = response["Buckets"]
         return [bucket["Name"] for bucket in list_of_buckets]
     
