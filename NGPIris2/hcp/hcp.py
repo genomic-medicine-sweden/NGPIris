@@ -158,7 +158,7 @@ class HCPHandler:
         ))
         return response
 
-    def is_object_in_bucket(self, key : str) -> bool:
+    def object_exists(self, key : str) -> bool:
         """
         Check if a given object is in the mounted bucket
 
