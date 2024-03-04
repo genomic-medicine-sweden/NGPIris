@@ -177,7 +177,7 @@ class HCPHandler:
         except:
             return False
 
-    def download_object_file(self, key : str, local_file_path : str) -> None:
+    def download_file(self, key : str, local_file_path : str) -> None:
         """
         Download one object file from the mounted bucket
 
@@ -209,7 +209,7 @@ class HCPHandler:
         except Exception as e:
             print(str(e))
 
-    def download_all_object_files(self, 
+    def download_all_files(self, 
                                   local_folder_path : str, 
                                   keys_excluded : list[str] = []) -> None:
         """
@@ -234,9 +234,9 @@ class HCPHandler:
             if key in keys_excluded:
                 continue
             
-            self.download_object_file(key, path)
+            self.download_file(key, path)
 
-    def upload_object_file(self, local_file_path : str, key : str = "") -> None:
+    def upload_file(self, local_file_path : str, key : str = "") -> None:
         """
         Upload one file to the mounted bucket
 
@@ -268,7 +268,7 @@ class HCPHandler:
                 Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
             )
 
-    def upload_object_folder(self, local_folder_path : str) -> None:
+    def upload_folder(self, local_folder_path : str) -> None:
         """
         Upload the contents of a folder to the mounted bucket
 
@@ -280,7 +280,7 @@ class HCPHandler:
         filenames = os.listdir(local_folder_path)
 
         for filename in filenames:
-            self.upload_object_file(local_folder_path + filename)
+            self.upload_file(local_folder_path + filename)
 
     def delete_objects(self, keys : list[str], verbose = True) -> None:
         """Delete a list of objects on the mounted bucket 
