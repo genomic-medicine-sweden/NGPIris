@@ -144,7 +144,7 @@ class HCPHandler:
         else:
             return list_of_objects
     
-    def object_look_up(self, key : str) -> dict:
+    def get_object(self, key : str) -> dict:
         """
         Retrieve object metadata
 
@@ -171,7 +171,7 @@ class HCPHandler:
         :rtype: bool
         """
         try:
-            response = self.object_look_up(key)
+            response = self.get_object(key)
             if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                 return True
             else: 
