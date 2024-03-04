@@ -133,9 +133,9 @@ class HCPHandler:
         :return: A list of of either strings or a list of object metadata (the form of a dictionary)
         :rtype: list
         """
-        response_list_objects : dict = self.s3_client.list_objects_v2(
+        response_list_objects = dict(self.s3_client.list_objects_v2(
             Bucket = self.bucket_name
-        )
+        ))
         if "Contents" not in response_list_objects.keys():
             return []
         list_of_objects : list[dict] = response_list_objects["Contents"]
