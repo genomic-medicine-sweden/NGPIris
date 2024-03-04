@@ -209,33 +209,6 @@ class HCPHandler:
         except Exception as e:
             print(str(e))
 
-    def download_all_files(self, 
-                                  local_folder_path : str, 
-                                  keys_excluded : list[str] = []) -> None:
-        """
-        Downloads all objects in the mounted bucket to a local folder
-
-        :param local_folder_path: Path to the local folder on your system
-        :type local_folder_path: str
-
-        :param keys_excluded: List of object names to be excluded from the 
-        download, if needed
-        :type keys_excluded: list[str], optional
-        """
-        list_of_objects : list[dict] = self.list_objects()
-
-        if not os.path.exists(local_folder_path):
-            os.makedirs(local_folder_path)
-
-        for object in list_of_objects:
-            key : str = object["Key"]
-            path : str = local_folder_path + key
-
-            if key in keys_excluded:
-                continue
-            
-            self.download_file(key, path)
-
     def upload_file(self, local_file_path : str, key : str = "") -> None:
         """
         Upload one file to the mounted bucket
