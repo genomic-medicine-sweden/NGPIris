@@ -41,7 +41,8 @@ def get_response(endpoint : str,
             verify = use_ssl,
             headers = {
                 "Authorization" : "HCP " + token,
-                "Cookie" : "hcp-ns-auth=" + token
+                "Cookie" : "hcp-ns-auth=" + token,
+                "Accept" : "application/json"
             }
         )
     else:

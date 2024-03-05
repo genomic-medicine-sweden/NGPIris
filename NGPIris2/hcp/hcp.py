@@ -116,11 +116,14 @@ class HCPHandler:
         :return: A list of buckets
         :rtype: list[str]
         """
-        response = dict(self.s3_client.list_buckets())
-        if "Buckets" not in response.keys():
-            raise RuntimeError("No key \"Buckets\" found in response.keys() when attempting to list available buckets")
-        list_of_buckets : list[dict] = response["Buckets"]
-        return [bucket["Name"] for bucket in list_of_buckets]
+        tenant_parse = parse.parse("https://{}.hcp1.vgregion.se", self.endpoint)
+        if type(tenant_parse) is parse.Result:
+            url = ":9090/mapi/tenants/" + str(tenant_parse[0]) + "/namespaces"
+            response = h.get_tenant_response(self.endpoint, self.token, self.use_ssl, url)
+            list_of_buckets : list[str] = dict(response.json())["name"]
+            return list_of_buckets
+        else:
+            raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file")
     
     def list_objects(self, name_only = False) -> list:
         """
