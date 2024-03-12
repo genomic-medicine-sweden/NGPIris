@@ -6,6 +6,7 @@ from NGPIris2.hcp.helpers import (
     raise_path_error,
     create_access_control_policy
 )
+from NGPIris2.hcp.exceptions import *
 
 from boto3 import client
 from botocore.client import Config
@@ -100,25 +101,26 @@ class HCPHandler:
         :param bucket_name: The name of the bucket to be mounted
         :type bucket_name: str
 
-        :raises RuntimeError: If there was a problem when mounting the bucket, a 
-        runtime error will be raised 
+        :raises VPNConnectionError: If there is no VPN connection
+        :raises BucketNotFound: If no bucket of that name was found
+        :raises Exception: Other exceptions
         """
-        
+
         # Check if bucket exist
         try:
             response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
         except EndpointConnectionError as e:
             print(e)
-            exit("Please check your connection and that you have your VPN enabled")
+            raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
         except ClientError as e:
             print(e)
-            exit("Bucket \"" + bucket_name + "\" was not found")
+            raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
         except Exception as e:
-            exit(str(e))
+            raise Exception(e)
             
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
-            raise RuntimeError(error_msg)
+            raise Exception(error_msg)
     
         self.bucket_name = bucket_name
 
