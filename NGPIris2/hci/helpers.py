@@ -1,8 +1,15 @@
 
-import json
-import requests
+from json import (
+    loads, 
+    dumps
+)
+from requests import (
+    Response,
+    get,
+    post    
+)
 
-def raise_request_error(response : requests.Response, url : str) -> None:
+def raise_request_error(response : Response, url : str) -> None:
     """
     Raise a request error.
 
@@ -14,10 +21,10 @@ def raise_request_error(response : requests.Response, url : str) -> None:
 
     :raises RuntimeError: Will raise a runtime error for a request
     """
-    error_msg : str = "The response code from the request made at " + url + " returned status code " + str(response.status_code) + ": " + str(json.loads(response.text)["errorMessage"])
+    error_msg : str = "The response code from the request made at " + url + " returned status code " + str(response.status_code) + ": " + str(loads(response.text)["errorMessage"])
     raise RuntimeError(error_msg) from None
 
-def get_index_response(address : str, api_port : str, token : str, use_ssl : bool) -> requests.Response:
+def get_index_response(address : str, api_port : str, token : str, use_ssl : bool) -> Response:
     """
     Retrieve the index response given the address, API port and token.
 
@@ -42,7 +49,7 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
         "Authorization": "Bearer " + token
     }
 
-    response : requests.Response = requests.get(
+    response : Response = get(
         url,
         headers = headers,
         verify = use_ssl
@@ -60,7 +67,7 @@ def get_query_response(
         token : str, 
         use_ssl : bool, 
         path_extension : str = ""
-    ) -> requests.Response:
+    ) -> Response:
     """
     Retrieve the query response given the address, API port and token.
 
@@ -96,9 +103,9 @@ def get_query_response(
         "Accept": "application/json",
         "Authorization": "Bearer " + token
     }
-    response : requests.Response = requests.post(
+    response : Response = post(
         url, 
-        json.dumps(query), 
+        dumps(query), 
         headers = headers, 
         verify = use_ssl
     )

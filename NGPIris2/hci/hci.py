@@ -1,11 +1,21 @@
 
-import NGPIris2.parse_credentials.parse_credentials as pc
-import NGPIris2.hci.helpers as h
+from NGPIris2.parse_credentials import CredentialsHandler
+from NGPIris2.hci.helpers import (
+    get_index_response,
+    get_query_response,
+    process_raw_query
+)
 
-import requests
-import pandas as pd
-import urllib3
-import json
+from requests import (
+    Response,
+    post
+)
+from pandas import (
+    DataFrame,
+    concat
+)
+from urllib3 import disable_warnings
+from json import load
 
 class HCIHandler:
     def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
@@ -18,7 +28,7 @@ class HCIHandler:
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
         """
-        credentials_handler = pc.CredentialsHandler(credentials_path)
+        credentials_handler = CredentialsHandler(credentials_path)
         self.hci = credentials_handler.hci
         self.username = self.hci["username"]
         self.password = self.hci["password"]
@@ -30,7 +40,7 @@ class HCIHandler:
         self.use_ssl = use_ssl
 
         if not self.use_ssl:
-            urllib3.disable_warnings()
+            disable_warnings()
     
     def request_token(self) -> None:
         """
@@ -52,7 +62,7 @@ class HCIHandler:
             "realm": "LOCAL"
         }
         try:
-            response : requests.Response = requests.post(url, data = data, verify = self.use_ssl)
+            response : Response = post(url, data = data, verify = self.use_ssl)
         except: 
             error_msg : str = "The token request made at " + url + " failed. Please check your connection and that you have your VPN enabled"
             raise RuntimeError(error_msg) from None
@@ -67,7 +77,7 @@ class HCIHandler:
         :return: A list of index names
         :rtype: list[str]
         """
-        response : requests.Response = h.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
+        response : Response = get_index_response(self.address, self.api_port, self.token, self.use_ssl)
         return [entry["name"]for entry in response.json()]
     
     def look_up_index(self, index_name : str) -> dict:
@@ -81,7 +91,7 @@ class HCIHandler:
         :return: A dictionary containing information about an index
         :rtype: dict
         """
-        response : requests.Response = h.get_index_response(self.address, self.api_port, self.token, self.use_ssl)
+        response : Response = get_index_response(self.address, self.api_port, self.token, self.use_ssl)
 
         for entry in response.json():
             if entry["name"] == index_name:
@@ -99,7 +109,7 @@ class HCIHandler:
         :return: Dictionary containing the raw query
         :rtype: dict
         """
-        return dict(h.get_query_response(
+        return dict(get_query_response(
             query_dict, 
             self.address, 
             self.api_port, 
@@ -118,15 +128,15 @@ class HCIHandler:
         :rtype: dict
         """
         with open(query_path, "r") as inp:
-            return dict(h.get_query_response(
-            dict(json.load(inp)), 
+            return dict(get_query_response(
+            dict(load(inp)), 
             self.address, 
             self.api_port, 
             self.token, 
             self.use_ssl
         ).json())
 
-    def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> pd.DataFrame:
+    def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> DataFrame:
         """
         Prettify a query in the shape of a DataFrame.
 
@@ -138,14 +148,14 @@ class HCIHandler:
         :type only_metadata: bool, optional
 
         :return: A DataFrame of the query
-        :rtype: pd.DataFrame
+        :rtype: DataFrame
         """
         
-        list_of_data = h.process_raw_query(raw_query, only_metadata)
+        list_of_data = process_raw_query(raw_query, only_metadata)
         
-        return pd.DataFrame(list_of_data)
+        return DataFrame(list_of_data)
     
-    def SQL_query(self, query_path : str) -> pd.DataFrame:
+    def SQL_query(self, query_path : str) -> DataFrame:
         """
         Perform an SQL query given a path to a JSON file containing the 
         query. Returns a DataFrame containing the result of the query. 
@@ -157,11 +167,11 @@ class HCIHandler:
         with the SQL query
         
         :return: A DataFrame containing the result of the SQL query
-        :rtype: pd.DataFrame
+        :rtype: DataFrame
         """
         with open(query_path, "r") as inp:
-            response = h.get_query_response(
-                dict(json.load(inp)), 
+            response = get_query_response(
+                dict(load(inp)), 
                 self.address, 
                 self.api_port, 
                 self.token, 
@@ -171,13 +181,13 @@ class HCIHandler:
 
             result_list = list(response.json()["results"])
             if result_list:
-                result_df : pd.DataFrame = pd.DataFrame(result_list)
-                meta_df : pd.DataFrame = pd.DataFrame()
+                result_df : DataFrame = DataFrame(result_list)
+                meta_df : DataFrame = DataFrame()
 
                 for row in result_df["metadata"]:
                     metadata_dict : dict = dict(row)
-                    df = pd.DataFrame(metadata_dict)
-                    meta_df = pd.concat([meta_df, df])
+                    df = DataFrame(metadata_dict)
+                    meta_df = concat([meta_df, df])
 
                 meta_df = meta_df.reset_index(drop = True)
 
@@ -189,6 +199,6 @@ class HCIHandler:
                 if "EXCEPTION" in meta_df.columns:
                     raise RuntimeError(''.join(meta_df["EXCEPTION"].to_list())) from None
             else:
-                result_df = pd.DataFrame()
+                result_df = DataFrame()
 
             return result_df
