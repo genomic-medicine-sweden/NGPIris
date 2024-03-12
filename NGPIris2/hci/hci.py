@@ -5,6 +5,7 @@ from NGPIris2.hci.helpers import (
     get_query_response,
     process_raw_query
 )
+from NGPIris2.hci.exceptions import *
 
 from requests import (
     Response,
@@ -48,7 +49,7 @@ class HCIHandler:
         The token is used for every operation that needs to send a request to 
         HCI.
 
-        :raises RuntimeError: If there was a problem when requesting a token, a 
+        :raises VPNConnectionError: If there was a problem when requesting a token, a 
         runtime error will be raised 
         """
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
@@ -65,7 +66,7 @@ class HCIHandler:
             response : Response = post(url, data = data, verify = self.use_ssl)
         except: 
             error_msg : str = "The token request made at " + url + " failed. Please check your connection and that you have your VPN enabled"
-            raise RuntimeError(error_msg) from None
+            raise VPNConnectionError(error_msg) from None
 
         token : str = response.json()["access_token"]
         self.token = token
