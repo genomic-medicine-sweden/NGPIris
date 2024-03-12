@@ -14,8 +14,8 @@ import parse
 import urllib3
 import tqdm
 
-KB = 1024
-MB = KB * KB
+_KB = 1024
+_MB = _KB * _KB
 
 class HCPHandler:
     def __init__(self, credentials_path : str, use_ssl : bool = False, custom_config_path : str = "") -> None:
