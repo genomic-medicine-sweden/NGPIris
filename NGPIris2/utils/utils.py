@@ -1,9 +1,9 @@
 
-import base64
-import hashlib
+from base64 import b64encode
+from hashlib import md5
 
 def base64_hashing(string : str) -> str:
-    return (base64.b64encode(string.encode('ascii'))).decode('UTF-8')
+    return (b64encode(string.encode('ascii'))).decode('UTF-8')
 
 def md5_hashing(string : str) -> str:
-    return hashlib.md5(string.encode('ascii')).hexdigest()
+    return md5(string.encode('ascii')).hexdigest()
