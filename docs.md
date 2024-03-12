@@ -1,47 +1,54 @@
-## Table of Contents
+# Table of Contents
 
+* [\_\_init\_\_](#__init__)
 * [hci](#hci)
-  * [hci.hci](#hcihci)
-    * [HCIHandler Objects](#hcihandler-objects)
-        * [\_\_init\_\_](#__init__)
-        * [request\_token](#request_token)
-        * [list\_index\_names](#list_index_names)
-        * [look\_up\_index](#look_up_index)
-        * [raw\_query](#raw_query)
-        * [raw\_query\_from\_JSON](#raw_query_from_json)
-        * [prettify\_raw\_query](#prettify_raw_query)
-        * [SQL\_query](#sql_query)
-  * [hci.helpers](#hcihelpers)
-    * [raise\_request\_error](#raise_request_error)
-    * [get\_index\_response](#get_index_response)
-    * [get\_query\_response](#get_query_response)
-    * [process\_raw\_query](#process_raw_query)
+* [hci.hci](#hci.hci)
+  * [HCIHandler](#hci.hci.HCIHandler)
+    * [\_\_init\_\_](#hci.hci.HCIHandler.__init__)
+    * [request\_token](#hci.hci.HCIHandler.request_token)
+    * [list\_index\_names](#hci.hci.HCIHandler.list_index_names)
+    * [look\_up\_index](#hci.hci.HCIHandler.look_up_index)
+    * [raw\_query](#hci.hci.HCIHandler.raw_query)
+    * [raw\_query\_from\_JSON](#hci.hci.HCIHandler.raw_query_from_JSON)
+    * [prettify\_raw\_query](#hci.hci.HCIHandler.prettify_raw_query)
+    * [SQL\_query](#hci.hci.HCIHandler.SQL_query)
+* [hci.helpers](#hci.helpers)
+  * [raise\_request\_error](#hci.helpers.raise_request_error)
+  * [get\_index\_response](#hci.helpers.get_index_response)
+  * [get\_query\_response](#hci.helpers.get_query_response)
+  * [process\_raw\_query](#hci.helpers.process_raw_query)
+* [utils](#utils)
+* [utils.utils](#utils.utils)
 * [hcp](#hcp)
-  * [hcp.hcp](#hcphcp)
-    * [HCPHandler Objects](#hcphandler-objects)
-        * [\_\_init\_\_](#__init__-1)
-        * [mount\_bucket](#mount_bucket)
-        * [list\_buckets](#list_buckets)
-        * [list\_objects](#list_objects)
-        * [object\_look\_up](#object_look_up)
-        * [is\_object\_in\_bucket](#is_object_in_bucket)
-        * [download\_object\_file](#download_object_file)
-        * [download\_all\_object\_files](#download_all_object_files)
-        * [upload\_object\_file](#upload_object_file)
-        * [upload\_object\_folder](#upload_object_folder)
-        * [delete\_objects](#delete_objects)
-        * [search\_objects\_in\_bucket](#search_objects_in_bucket)
-        * [get\_bucket\_statistics](#get_bucket_statistics)
-        * [get\_object\_acl](#get_object_acl)
-        * [get\_bucket\_acl](#get_bucket_acl)
-        * [add\_single\_object\_acl](#add_single_object_acl)
-        * [add\_single\_bucket\_acl](#add_single_bucket_acl)
-        * [add\_object\_acl](#add_object_acl)
-        * [add\_bucket\_acl](#add_bucket_acl)
+* [hcp.hcp](#hcp.hcp)
+  * [HCPHandler](#hcp.hcp.HCPHandler)
+    * [\_\_init\_\_](#hcp.hcp.HCPHandler.__init__)
+    * [mount\_bucket](#hcp.hcp.HCPHandler.mount_bucket)
+    * [list\_buckets](#hcp.hcp.HCPHandler.list_buckets)
+    * [list\_objects](#hcp.hcp.HCPHandler.list_objects)
+    * [get\_object](#hcp.hcp.HCPHandler.get_object)
+    * [object\_exists](#hcp.hcp.HCPHandler.object_exists)
+    * [download\_file](#hcp.hcp.HCPHandler.download_file)
+    * [upload\_file](#hcp.hcp.HCPHandler.upload_file)
+    * [upload\_folder](#hcp.hcp.HCPHandler.upload_folder)
+    * [delete\_objects](#hcp.hcp.HCPHandler.delete_objects)
+    * [search\_objects\_in\_bucket](#hcp.hcp.HCPHandler.search_objects_in_bucket)
+    * [get\_bucket\_statistics](#hcp.hcp.HCPHandler.get_bucket_statistics)
+    * [get\_object\_acl](#hcp.hcp.HCPHandler.get_object_acl)
+    * [get\_bucket\_acl](#hcp.hcp.HCPHandler.get_bucket_acl)
+    * [add\_single\_object\_acl](#hcp.hcp.HCPHandler.add_single_object_acl)
+    * [add\_single\_bucket\_acl](#hcp.hcp.HCPHandler.add_single_bucket_acl)
+    * [add\_object\_acl](#hcp.hcp.HCPHandler.add_object_acl)
+    * [add\_bucket\_acl](#hcp.hcp.HCPHandler.add_bucket_acl)
+* [hcp.helpers](#hcp.helpers)
 * [parse\_credentials](#parse_credentials)
-  * [parse\_credentials.parse\_credentials](#parse_credentialsparse_credentials)
-    * [CredentialsHandler Objects](#credentialshandler-objects)
-        * [\_\_init\_\_](#__init__-2)
+* [parse\_credentials.parse\_credentials](#parse_credentials.parse_credentials)
+  * [CredentialsHandler](#parse_credentials.parse_credentials.CredentialsHandler)
+    * [\_\_init\_\_](#parse_credentials.parse_credentials.CredentialsHandler.__init__)
+
+<a id="__init__"></a>
+
+# \_\_init\_\_
 
 <a id="hci"></a>
 
@@ -49,11 +56,11 @@
 
 <a id="hci.hci"></a>
 
-## hci.hci
+# hci.hci
 
 <a id="hci.hci.HCIHandler"></a>
 
-### HCIHandler Objects
+## HCIHandler Objects
 
 ```python
 class HCIHandler()
@@ -61,7 +68,7 @@ class HCIHandler()
 
 <a id="hci.hci.HCIHandler.__init__"></a>
 
-##### \_\_init\_\_
+#### \_\_init\_\_
 
 ```python
 def __init__(credentials_path: str, use_ssl: bool = False) -> None
@@ -76,7 +83,7 @@ Class for handling HCI requests.
 
 <a id="hci.hci.HCIHandler.request_token"></a>
 
-##### request\_token
+#### request\_token
 
 ```python
 def request_token() -> None
@@ -94,7 +101,7 @@ runtime error will be raised
 
 <a id="hci.hci.HCIHandler.list_index_names"></a>
 
-##### list\_index\_names
+#### list\_index\_names
 
 ```python
 def list_index_names() -> list[str]
@@ -108,7 +115,7 @@ Retrieve a list of all index names.
 
 <a id="hci.hci.HCIHandler.look_up_index"></a>
 
-##### look\_up\_index
+#### look\_up\_index
 
 ```python
 def look_up_index(index_name: str) -> dict
@@ -128,7 +135,7 @@ the index name. Will return an empty dictionary if no index was found.
 
 <a id="hci.hci.HCIHandler.raw_query"></a>
 
-##### raw\_query
+#### raw\_query
 
 ```python
 def raw_query(query_dict: dict[str, str]) -> dict
@@ -146,7 +153,7 @@ Make query to an HCI index, with a dictionary
 
 <a id="hci.hci.HCIHandler.raw_query_from_JSON"></a>
 
-##### raw\_query\_from\_JSON
+#### raw\_query\_from\_JSON
 
 ```python
 def raw_query_from_JSON(query_path: str) -> dict
@@ -164,11 +171,11 @@ Make query to an HCI index, with prewritten query in a JSON file
 
 <a id="hci.hci.HCIHandler.prettify_raw_query"></a>
 
-##### prettify\_raw\_query
+#### prettify\_raw\_query
 
 ```python
 def prettify_raw_query(raw_query: dict,
-                       only_metadata: bool = True) -> pd.DataFrame
+                       only_metadata: bool = True) -> DataFrame
 ```
 
 Prettify a query in the shape of a DataFrame.
@@ -181,14 +188,14 @@ Defaults to True
 
 **Returns**:
 
-`pd.DataFrame`: A DataFrame of the query
+`DataFrame`: A DataFrame of the query
 
 <a id="hci.hci.HCIHandler.SQL_query"></a>
 
-##### SQL\_query
+#### SQL\_query
 
 ```python
-def SQL_query(query_path: str) -> pd.DataFrame
+def SQL_query(query_path: str) -> DataFrame
 ```
 
 Perform an SQL query given a path to a JSON file containing the 
@@ -206,18 +213,18 @@ with the SQL query
 
 **Returns**:
 
-`pd.DataFrame`: A DataFrame containing the result of the SQL query
+`DataFrame`: A DataFrame containing the result of the SQL query
 
 <a id="hci.helpers"></a>
 
-## hci.helpers
+# hci.helpers
 
 <a id="hci.helpers.raise_request_error"></a>
 
-### raise\_request\_error
+#### raise\_request\_error
 
 ```python
-def raise_request_error(response: requests.Response, url: str) -> None
+def raise_request_error(response: Response, url: str) -> None
 ```
 
 Raise a request error.
@@ -233,11 +240,11 @@ Raise a request error.
 
 <a id="hci.helpers.get_index_response"></a>
 
-### get\_index\_response
+#### get\_index\_response
 
 ```python
 def get_index_response(address: str, api_port: str, token: str,
-                       use_ssl: bool) -> requests.Response
+                       use_ssl: bool) -> Response
 ```
 
 Retrieve the index response given the address, API port and token.
@@ -255,7 +262,7 @@ Retrieve the index response given the address, API port and token.
 
 <a id="hci.helpers.get_query_response"></a>
 
-### get\_query\_response
+#### get\_query\_response
 
 ```python
 def get_query_response(query_dict: dict[str, str],
@@ -263,7 +270,7 @@ def get_query_response(query_dict: dict[str, str],
                        api_port: str,
                        token: str,
                        use_ssl: bool,
-                       path_extension: str = "") -> requests.Response
+                       path_extension: str = "") -> Response
 ```
 
 Retrieve the query response given the address, API port and token.
@@ -284,7 +291,7 @@ when making SQL requests. Defaults to ""
 
 <a id="hci.helpers.process_raw_query"></a>
 
-### process\_raw\_query
+#### process\_raw\_query
 
 ```python
 def process_raw_query(raw_query: dict, only_metadata: bool) -> list
@@ -301,17 +308,25 @@ Take a raw query dictionary and turn it into a list of datapoints
 
 `list`: List of datapoints from the response
 
+<a id="utils"></a>
+
+# utils
+
+<a id="utils.utils"></a>
+
+# utils.utils
+
 <a id="hcp"></a>
 
 # hcp
 
 <a id="hcp.hcp"></a>
 
-## hcp.hcp
+# hcp.hcp
 
 <a id="hcp.hcp.HCPHandler"></a>
 
-### HCPHandler Objects
+## HCPHandler Objects
 
 ```python
 class HCPHandler()
@@ -319,7 +334,7 @@ class HCPHandler()
 
 <a id="hcp.hcp.HCPHandler.__init__"></a>
 
-##### \_\_init\_\_
+#### \_\_init\_\_
 
 ```python
 def __init__(credentials_path: str,
@@ -337,7 +352,7 @@ Class for handling HCP requests.
 
 <a id="hcp.hcp.HCPHandler.mount_bucket"></a>
 
-##### mount\_bucket
+#### mount\_bucket
 
 ```python
 def mount_bucket(bucket_name: str) -> None
@@ -359,7 +374,7 @@ runtime error will be raised
 
 <a id="hcp.hcp.HCPHandler.list_buckets"></a>
 
-##### list\_buckets
+#### list\_buckets
 
 ```python
 def list_buckets() -> list[str]
@@ -373,7 +388,7 @@ List all available buckets at endpoint.
 
 <a id="hcp.hcp.HCPHandler.list_objects"></a>
 
-##### list\_objects
+#### list\_objects
 
 ```python
 def list_objects(name_only=False) -> list
@@ -390,12 +405,12 @@ If False, return the full metadata about each object. Defaults to False.
 
 `list`: A list of of either strings or a list of object metadata (the form of a dictionary)
 
-<a id="hcp.hcp.HCPHandler.object_look_up"></a>
+<a id="hcp.hcp.HCPHandler.get_object"></a>
 
-##### object\_look\_up
+#### get\_object
 
 ```python
-def object_look_up(key: str) -> dict
+def get_object(key: str) -> dict
 ```
 
 Retrieve object metadata
@@ -408,12 +423,12 @@ Retrieve object metadata
 
 `dict`: A dictionary containing the object metadata
 
-<a id="hcp.hcp.HCPHandler.is_object_in_bucket"></a>
+<a id="hcp.hcp.HCPHandler.object_exists"></a>
 
-##### is\_object\_in\_bucket
+#### object\_exists
 
 ```python
-def is_object_in_bucket(key: str) -> bool
+def object_exists(key: str) -> bool
 ```
 
 Check if a given object is in the mounted bucket
@@ -425,12 +440,13 @@ Check if a given object is in the mounted bucket
 **Returns**:
 
 `bool`: True if the object exist, otherwise False
-<a id="hcp.hcp.HCPHandler.download_object_file"></a>
 
-##### download\_object\_file
+<a id="hcp.hcp.HCPHandler.download_file"></a>
+
+#### download\_file
 
 ```python
-def download_object_file(key: str, local_file_path: str) -> None
+def download_file(key: str, local_file_path: str) -> None
 ```
 
 Download one object file from the mounted bucket
@@ -441,29 +457,12 @@ Download one object file from the mounted bucket
 - `local_file_path` (`str`): Path to a file on your local system where the 
 contents of the object file can be put.
 
-<a id="hcp.hcp.HCPHandler.download_all_object_files"></a>
+<a id="hcp.hcp.HCPHandler.upload_file"></a>
 
-##### download\_all\_object\_files
-
-```python
-def download_all_object_files(local_folder_path: str,
-                              keys_excluded: list[str] = []) -> None
-```
-
-Downloads all objects in the mounted bucket to a local folder
-
-**Arguments**:
-
-- `local_folder_path` (`str`): Path to the local folder on your system
-- `keys_excluded` (`list[str], optional`): List of object names to be excluded from the 
-download, if needed
-
-<a id="hcp.hcp.HCPHandler.upload_object_file"></a>
-
-##### upload\_object\_file
+#### upload\_file
 
 ```python
-def upload_object_file(local_file_path: str, key: str = "") -> None
+def upload_file(local_file_path: str, key: str = "") -> None
 ```
 
 Upload one file to the mounted bucket
@@ -474,12 +473,12 @@ Upload one file to the mounted bucket
 - `key` (`str, optional`): An optional new name for the file object on the bucket. 
 Defaults to the same name as the file
 
-<a id="hcp.hcp.HCPHandler.upload_object_folder"></a>
+<a id="hcp.hcp.HCPHandler.upload_folder"></a>
 
-##### upload\_object\_folder
+#### upload\_folder
 
 ```python
-def upload_object_folder(local_folder_path: str) -> None
+def upload_folder(local_folder_path: str) -> None
 ```
 
 Upload the contents of a folder to the mounted bucket
@@ -490,7 +489,7 @@ Upload the contents of a folder to the mounted bucket
 
 <a id="hcp.hcp.HCPHandler.delete_objects"></a>
 
-##### delete\_objects
+#### delete\_objects
 
 ```python
 def delete_objects(keys: list[str], verbose=True) -> None
@@ -505,7 +504,7 @@ Delete a list of objects on the mounted bucket
 
 <a id="hcp.hcp.HCPHandler.search_objects_in_bucket"></a>
 
-##### search\_objects\_in\_bucket
+#### search\_objects\_in\_bucket
 
 ```python
 def search_objects_in_bucket(search_string: str,
@@ -528,7 +527,7 @@ object names
 
 <a id="hcp.hcp.HCPHandler.get_bucket_statistics"></a>
 
-##### get\_bucket\_statistics
+#### get\_bucket\_statistics
 
 ```python
 def get_bucket_statistics() -> dict
@@ -546,7 +545,7 @@ Retrieve a dictionary containing information about the mounted bucket
 
 <a id="hcp.hcp.HCPHandler.get_object_acl"></a>
 
-##### get\_object\_acl
+#### get\_object\_acl
 
 ```python
 def get_object_acl(key: str) -> dict
@@ -564,7 +563,7 @@ Get the object Access Control List (ACL)
 
 <a id="hcp.hcp.HCPHandler.get_bucket_acl"></a>
 
-##### get\_bucket\_acl
+#### get\_bucket\_acl
 
 ```python
 def get_bucket_acl() -> dict
@@ -578,7 +577,7 @@ Get the bucket Access Control List (ACL)
 
 <a id="hcp.hcp.HCPHandler.add_single_object_acl"></a>
 
-##### add\_single\_object\_acl
+#### add\_single\_object\_acl
 
 ```python
 def add_single_object_acl(key: str, user_ID: str, permission: str) -> None
@@ -591,15 +590,15 @@ Add permissions for a user in the Access Control List (ACL) for one object
 - `key` (`str`): The name of the object
 - `user_ID` (`str`): The user name. Can either be the DisplayName or user_ID
 - `permission` (`str`): What permission to be set. Valid options are:
-  - FULL_CONTROL 
-  - WRITE 
-  - WRITE_ACP 
-  - READ 
-  - READ_ACP
+- FULL_CONTROL 
+- WRITE 
+- WRITE_ACP 
+- READ 
+- READ_ACP
 
 <a id="hcp.hcp.HCPHandler.add_single_bucket_acl"></a>
 
-##### add\_single\_bucket\_acl
+#### add\_single\_bucket\_acl
 
 ```python
 def add_single_bucket_acl(user_ID: str, permission: str) -> None
@@ -613,15 +612,15 @@ mounted bucket
 
 - `user_ID` (`str`): The user name. Can either be the DisplayName or user_ID
 - `permission` (`str`): What permission to be set. Valid options are:
-  - FULL_CONTROL 
-  - WRITE 
-  - WRITE_ACP 
-  - READ 
-  - READ_ACP
+- FULL_CONTROL 
+- WRITE 
+- WRITE_ACP 
+- READ 
+- READ_ACP
 
 <a id="hcp.hcp.HCPHandler.add_object_acl"></a>
 
-##### add\_object\_acl
+#### add\_object\_acl
 
 ```python
 def add_object_acl(key_user_ID_permissions: dict[str, dict[str, str]]) -> None
@@ -639,7 +638,7 @@ and user_id-permission dictionary
 
 <a id="hcp.hcp.HCPHandler.add_bucket_acl"></a>
 
-##### add\_bucket\_acl
+#### add\_bucket\_acl
 
 ```python
 def add_bucket_acl(user_ID_permissions: dict[str, str]) -> None
@@ -652,17 +651,21 @@ Add permissions for multiple users for the mounted bucket
 - `user_ID_permissions` (`dict[str, str]`): The dictionary containing the user name and 
 the corresponding permission to be set to that user
 
+<a id="hcp.helpers"></a>
+
+# hcp.helpers
+
 <a id="parse_credentials"></a>
 
 # parse\_credentials
 
 <a id="parse_credentials.parse_credentials"></a>
 
-## parse\_credentials.parse\_credentials
+# parse\_credentials.parse\_credentials
 
 <a id="parse_credentials.parse_credentials.CredentialsHandler"></a>
 
-### CredentialsHandler Objects
+## CredentialsHandler Objects
 
 ```python
 class CredentialsHandler()
@@ -670,7 +673,7 @@ class CredentialsHandler()
 
 <a id="parse_credentials.parse_credentials.CredentialsHandler.__init__"></a>
 
-##### \_\_init\_\_
+#### \_\_init\_\_
 
 ```python
 def __init__(credentials_path: str) -> None
