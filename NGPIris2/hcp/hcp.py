@@ -94,7 +94,7 @@ class HCPHandler:
     def mount_bucket(self, bucket_name : str) -> None:
         """
         Mount bucket that is to be used. This method needs to executed in order 
-        for most of the other methods to work. It main concerns operations with 
+        for most of the other methods to work. It mainly concerns operations with 
         download and upload. 
 
         :param bucket_name: The name of the bucket to be mounted
