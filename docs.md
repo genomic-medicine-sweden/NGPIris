@@ -1,50 +1,52 @@
 # Table of Contents
 
+* [Table of Contents](#table-of-contents)
 * [\_\_init\_\_](#__init__)
 * [hci](#hci)
-* [hci.hci](#hci.hci)
-  * [HCIHandler](#hci.hci.HCIHandler)
-    * [\_\_init\_\_](#hci.hci.HCIHandler.__init__)
-    * [request\_token](#hci.hci.HCIHandler.request_token)
-    * [list\_index\_names](#hci.hci.HCIHandler.list_index_names)
-    * [look\_up\_index](#hci.hci.HCIHandler.look_up_index)
-    * [raw\_query](#hci.hci.HCIHandler.raw_query)
-    * [raw\_query\_from\_JSON](#hci.hci.HCIHandler.raw_query_from_JSON)
-    * [prettify\_raw\_query](#hci.hci.HCIHandler.prettify_raw_query)
-    * [SQL\_query](#hci.hci.HCIHandler.SQL_query)
-* [hci.helpers](#hci.helpers)
-  * [raise\_request\_error](#hci.helpers.raise_request_error)
-  * [get\_index\_response](#hci.helpers.get_index_response)
-  * [get\_query\_response](#hci.helpers.get_query_response)
-  * [process\_raw\_query](#hci.helpers.process_raw_query)
+* [hci.hci](#hcihci)
+  * [HCIHandler Objects](#hcihandler-objects)
+    * [\_\_init\_\_](#__init__-1)
+    * [request\_token](#request_token)
+    * [list\_index\_names](#list_index_names)
+    * [look\_up\_index](#look_up_index)
+    * [raw\_query](#raw_query)
+    * [raw\_query\_from\_JSON](#raw_query_from_json)
+    * [prettify\_raw\_query](#prettify_raw_query)
+    * [SQL\_query](#sql_query)
+* [hci.helpers](#hcihelpers)
+    * [raise\_request\_error](#raise_request_error)
+    * [get\_index\_response](#get_index_response)
+    * [get\_query\_response](#get_query_response)
+    * [process\_raw\_query](#process_raw_query)
 * [utils](#utils)
-* [utils.utils](#utils.utils)
+* [utils.utils](#utilsutils)
 * [hcp](#hcp)
-* [hcp.hcp](#hcp.hcp)
-  * [HCPHandler](#hcp.hcp.HCPHandler)
-    * [\_\_init\_\_](#hcp.hcp.HCPHandler.__init__)
-    * [mount\_bucket](#hcp.hcp.HCPHandler.mount_bucket)
-    * [list\_buckets](#hcp.hcp.HCPHandler.list_buckets)
-    * [list\_objects](#hcp.hcp.HCPHandler.list_objects)
-    * [get\_object](#hcp.hcp.HCPHandler.get_object)
-    * [object\_exists](#hcp.hcp.HCPHandler.object_exists)
-    * [download\_file](#hcp.hcp.HCPHandler.download_file)
-    * [upload\_file](#hcp.hcp.HCPHandler.upload_file)
-    * [upload\_folder](#hcp.hcp.HCPHandler.upload_folder)
-    * [delete\_objects](#hcp.hcp.HCPHandler.delete_objects)
-    * [search\_objects\_in\_bucket](#hcp.hcp.HCPHandler.search_objects_in_bucket)
-    * [get\_bucket\_statistics](#hcp.hcp.HCPHandler.get_bucket_statistics)
-    * [get\_object\_acl](#hcp.hcp.HCPHandler.get_object_acl)
-    * [get\_bucket\_acl](#hcp.hcp.HCPHandler.get_bucket_acl)
-    * [add\_single\_object\_acl](#hcp.hcp.HCPHandler.add_single_object_acl)
-    * [add\_single\_bucket\_acl](#hcp.hcp.HCPHandler.add_single_bucket_acl)
-    * [add\_object\_acl](#hcp.hcp.HCPHandler.add_object_acl)
-    * [add\_bucket\_acl](#hcp.hcp.HCPHandler.add_bucket_acl)
-* [hcp.helpers](#hcp.helpers)
+* [hcp.hcp](#hcphcp)
+  * [HCPHandler Objects](#hcphandler-objects)
+      * [\_\_init\_\_](#__init__-2)
+      * [mount\_bucket](#mount_bucket)
+      * [list\_buckets](#list_buckets)
+      * [list\_objects](#list_objects)
+      * [get\_object](#get_object)
+      * [object\_exists](#object_exists)
+      * [download\_file](#download_file)
+      * [upload\_file](#upload_file)
+      * [upload\_folder](#upload_folder)
+      * [delete\_objects](#delete_objects)
+      * [delete\_object](#delete_object)
+      * [search\_objects\_in\_bucket](#search_objects_in_bucket)
+      * [get\_bucket\_statistics](#get_bucket_statistics)
+      * [get\_object\_acl](#get_object_acl)
+      * [get\_bucket\_acl](#get_bucket_acl)
+      * [add\_single\_object\_acl](#add_single_object_acl)
+      * [add\_single\_bucket\_acl](#add_single_bucket_acl)
+      * [add\_object\_acl](#add_object_acl)
+      * [add\_bucket\_acl](#add_bucket_acl)
+* [hcp.helpers](#hcphelpers)
 * [parse\_credentials](#parse_credentials)
-* [parse\_credentials.parse\_credentials](#parse_credentials.parse_credentials)
-  * [CredentialsHandler](#parse_credentials.parse_credentials.CredentialsHandler)
-    * [\_\_init\_\_](#parse_credentials.parse_credentials.CredentialsHandler.__init__)
+* [parse\_credentials.parse\_credentials](#parse_credentialsparse_credentials)
+  * [CredentialsHandler Objects](#credentialshandler-objects)
+      * [\_\_init\_\_](#__init__-3)
 
 <a id="__init__"></a>
 
@@ -68,7 +70,7 @@ class HCIHandler()
 
 <a id="hci.hci.HCIHandler.__init__"></a>
 
-#### \_\_init\_\_
+### \_\_init\_\_
 
 ```python
 def __init__(credentials_path: str, use_ssl: bool = False) -> None
@@ -83,7 +85,7 @@ Class for handling HCI requests.
 
 <a id="hci.hci.HCIHandler.request_token"></a>
 
-#### request\_token
+### request\_token
 
 ```python
 def request_token() -> None
@@ -101,7 +103,7 @@ runtime error will be raised
 
 <a id="hci.hci.HCIHandler.list_index_names"></a>
 
-#### list\_index\_names
+### list\_index\_names
 
 ```python
 def list_index_names() -> list[str]
@@ -115,7 +117,7 @@ Retrieve a list of all index names.
 
 <a id="hci.hci.HCIHandler.look_up_index"></a>
 
-#### look\_up\_index
+### look\_up\_index
 
 ```python
 def look_up_index(index_name: str) -> dict
@@ -135,7 +137,7 @@ the index name. Will return an empty dictionary if no index was found.
 
 <a id="hci.hci.HCIHandler.raw_query"></a>
 
-#### raw\_query
+### raw\_query
 
 ```python
 def raw_query(query_dict: dict[str, str]) -> dict
@@ -153,7 +155,7 @@ Make query to an HCI index, with a dictionary
 
 <a id="hci.hci.HCIHandler.raw_query_from_JSON"></a>
 
-#### raw\_query\_from\_JSON
+### raw\_query\_from\_JSON
 
 ```python
 def raw_query_from_JSON(query_path: str) -> dict
@@ -171,7 +173,7 @@ Make query to an HCI index, with prewritten query in a JSON file
 
 <a id="hci.hci.HCIHandler.prettify_raw_query"></a>
 
-#### prettify\_raw\_query
+### prettify\_raw\_query
 
 ```python
 def prettify_raw_query(raw_query: dict,
@@ -192,7 +194,7 @@ Defaults to True
 
 <a id="hci.hci.HCIHandler.SQL_query"></a>
 
-#### SQL\_query
+### SQL\_query
 
 ```python
 def SQL_query(query_path: str) -> DataFrame
@@ -221,7 +223,7 @@ with the SQL query
 
 <a id="hci.helpers.raise_request_error"></a>
 
-#### raise\_request\_error
+### raise\_request\_error
 
 ```python
 def raise_request_error(response: Response, url: str) -> None
@@ -240,7 +242,7 @@ Raise a request error.
 
 <a id="hci.helpers.get_index_response"></a>
 
-#### get\_index\_response
+### get\_index\_response
 
 ```python
 def get_index_response(address: str, api_port: str, token: str,
@@ -262,7 +264,7 @@ Retrieve the index response given the address, API port and token.
 
 <a id="hci.helpers.get_query_response"></a>
 
-#### get\_query\_response
+### get\_query\_response
 
 ```python
 def get_query_response(query_dict: dict[str, str],
@@ -291,7 +293,7 @@ when making SQL requests. Defaults to ""
 
 <a id="hci.helpers.process_raw_query"></a>
 
-#### process\_raw\_query
+### process\_raw\_query
 
 ```python
 def process_raw_query(raw_query: dict, only_metadata: bool) -> list
@@ -500,6 +502,21 @@ Delete a list of objects on the mounted bucket
 **Arguments**:
 
 - `keys` (`list[str]`): List of object names to be deleted
+- `verbose` (`bool, optional`): Print the result of the deletion. Defaults to True
+
+<a id="hcp.hcp.HCPHandler.delete_object"></a>
+
+#### delete\_object
+
+```python
+def delete_object(key: str, verbose=True) -> None
+```
+
+Delete a single object in the mounted bucket
+
+**Arguments**:
+
+- `key` (`str`): The object to be deleted
 - `verbose` (`bool, optional`): Print the result of the deletion. Defaults to True
 
 <a id="hcp.hcp.HCPHandler.search_objects_in_bucket"></a>
