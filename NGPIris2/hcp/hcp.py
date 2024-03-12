@@ -1,18 +1,31 @@
 
-import NGPIris2.parse_credentials.parse_credentials as pc
-import NGPIris2.hcp.helpers as h
+from NGPIris2.parse_credentials import CredentialsHandler
+from NGPIris2.hcp.helpers import (
+    get_tenant_response,
+    get_bucket_response,
+    raise_path_error,
+    create_access_control_policy
+)
 
-import boto3
+from boto3 import client
 from botocore.client import Config
 from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
-import configparser as cfp
+from configparser import ConfigParser
 
-import os
-import json
-import parse
-import urllib3
-import tqdm
+from os import (
+    path,
+    stat,
+    listdir
+)
+from json import dumps
+from parse import (
+    parse,
+    search,
+    Result
+)
+from urllib3 import disable_warnings
+from tqdm import tqdm
 
 _KB = 1024
 _MB = _KB * _KB
@@ -31,7 +44,7 @@ class HCPHandler:
         :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
         :type custom_config_path: str, optional
         """
-        credentials_handler = pc.CredentialsHandler(credentials_path)
+        credentials_handler = CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
         self.endpoint = "https://" + self.hcp["endpoint"]
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
@@ -41,7 +54,7 @@ class HCPHandler:
         self.use_ssl = use_ssl
 
         if not self.use_ssl:
-            urllib3.disable_warnings()
+            disable_warnings()
 
         s3_config = Config(
             s3 = {
@@ -51,7 +64,7 @@ class HCPHandler:
             signature_version = "s3v4"
         )
 
-        self.s3_client = boto3.client(
+        self.s3_client = client(
             "s3", 
             aws_access_key_id = self.aws_access_key_id, 
             aws_secret_access_key = self.aws_secret_access_key,
@@ -61,7 +74,7 @@ class HCPHandler:
         )
 
         if custom_config_path:
-            ini_config = cfp.ConfigParser()
+            ini_config = ConfigParser()
             ini_config.read(custom_config_path)
 
             self.transfer_config = TransferConfig(
@@ -116,10 +129,10 @@ class HCPHandler:
         :return: A list of buckets
         :rtype: list[str]
         """
-        tenant_parse = parse.parse("https://{}.hcp1.vgregion.se", self.endpoint)
-        if type(tenant_parse) is parse.Result:
+        tenant_parse = parse("https://{}.hcp1.vgregion.se", self.endpoint)
+        if type(tenant_parse) is Result:
             url = ":9090/mapi/tenants/" + str(tenant_parse[0]) + "/namespaces"
-            response = h.get_tenant_response(self.endpoint, self.token, self.use_ssl, url)
+            response = get_tenant_response(self.endpoint, self.token, self.use_ssl, url)
             list_of_buckets : list[str] = dict(response.json())["name"]
             return list_of_buckets
         else:
@@ -195,7 +208,7 @@ class HCPHandler:
         """
         try:
             file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
-            with tqdm.tqdm(
+            with tqdm(
                 total = file_size, 
                 unit = "B", 
                 unit_scale = True, 
@@ -225,14 +238,14 @@ class HCPHandler:
         Defaults to the same name as the file
         :type key: str, optional
         """
-        h.raise_path_error(local_file_path)
+        raise_path_error(local_file_path)
 
         if not key:
-            file_name = os.path.basename(local_file_path)
+            file_name = path.basename(local_file_path)
             key = file_name
 
-        file_size : int = os.stat(local_file_path).st_size
-        with tqdm.tqdm(
+        file_size : int = stat(local_file_path).st_size
+        with tqdm(
             total = file_size, 
             unit = "B", 
             unit_scale = True, 
@@ -253,9 +266,9 @@ class HCPHandler:
         :param local_folder_path: Path to the folder to be uploaded
         :type local_folder_path: str
         """
-        h.raise_path_error(local_folder_path)
+        raise_path_error(local_folder_path)
 
-        filenames = os.listdir(local_folder_path)
+        filenames = listdir(local_folder_path)
 
         for filename in filenames:
             self.upload_file(local_folder_path + filename)
@@ -282,7 +295,7 @@ class HCPHandler:
             Delete = deletion_dict
         )
         if verbose:
-            print(json.dumps(response, indent=4))
+            print(dumps(response, indent=4))
         diff : set[str] = set(keys) - set(list_of_objects_before)
         if diff:
             does_not_exist = []
@@ -308,12 +321,12 @@ class HCPHandler:
         """
         search_result : list[str] = []
         for key in self.list_objects(True):
-            parse_object = parse.search(
+            parse_object = search(
                 search_string, 
                 key, 
                 case_sensitive = case_sensitive
             )
-            if type(parse_object) is parse.Result:
+            if type(parse_object) is Result:
                 search_result.append(key)
         return search_result
     
@@ -325,14 +338,14 @@ class HCPHandler:
         :return: A dictionary containing the information about the mounted bucket
         :rtype: dict
         """
-        response = h.get_bucket_response(self.endpoint, self.bucket_name, self.token, self.use_ssl, "/proc/statistics")
+        response = get_bucket_response(self.endpoint, self.bucket_name, self.token, self.use_ssl, "/proc/statistics")
         dict_of_statistics = {}
-        statistics_parse = parse.parse("{}<statistics{}/>", response.text)
-        if type(statistics_parse) is parse.Result:
+        statistics_parse = parse("{}<statistics{}/>", response.text)
+        if type(statistics_parse) is Result:
             list_of_statistics : list[str] = statistics_parse[1].replace('"', "").split()
             for statistic in list_of_statistics:
-                p = parse.parse("{}={}", statistic)
-                if type(p) is parse.Result: 
+                p = parse("{}={}", statistic)
+                if type(p) is Result: 
                     if p[1].isdigit():
                         dict_of_statistics[p[0]] = int(p[1])
                     else:
@@ -391,7 +404,7 @@ class HCPHandler:
         self.s3_client.put_object_acl(
             Bucket = self.bucket_name,
             Key = key,
-            AccessControlPolicy = h.create_access_control_policy({user_ID : permission})
+            AccessControlPolicy = create_access_control_policy({user_ID : permission})
         )
 
     def add_single_bucket_acl(self, user_ID : str, permission : str) -> None:
@@ -412,7 +425,7 @@ class HCPHandler:
         """
         self.s3_client.put_bucket_acl(
             Bucket = self.bucket_name,
-            AccessControlPolicy = h.create_access_control_policy({user_ID : permission})
+            AccessControlPolicy = create_access_control_policy({user_ID : permission})
         )
 
     def add_object_acl(self, key_user_ID_permissions : dict[str, dict[str, str]]) -> None:
@@ -433,7 +446,7 @@ class HCPHandler:
             self.s3_client.put_object_acl(
                 Bucket = self.bucket_name,
                 Key = key,
-                AccessControlPolicy = h.create_access_control_policy(user_ID_permissions)
+                AccessControlPolicy = create_access_control_policy(user_ID_permissions)
             )
 
     def add_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
@@ -446,5 +459,5 @@ class HCPHandler:
         """
         self.s3_client.put_bucket_acl(
             Bucket = self.bucket_name,
-            AccessControlPolicy = h.create_access_control_policy(user_ID_permissions)
+            AccessControlPolicy = create_access_control_policy(user_ID_permissions)
         )
