@@ -302,6 +302,17 @@ class HCPHandler:
             for key in diff:
                 does_not_exist.append("- " + key + "\n")
             print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
+    
+    def delete_object(self, key : str, verbose = True) -> None:
+        """
+        Delete a single object in the mounted bucket
+
+        :param key: The object to be deleted
+        :type key: str
+        :param verbose: Print the result of the deletion. Defaults to True
+        :type verbose: bool, optional
+        """
+        self.delete_objects([key], verbose = verbose)
 
     def search_objects_in_bucket(self, search_string : str, case_sensitive = False) -> list[str]:
         """
