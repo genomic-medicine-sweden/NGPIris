@@ -1,5 +1,5 @@
 
-import json
+from json import load
 from typing import TypeAlias
 
 Credentials : TypeAlias = dict[str, dict[str, str]]
@@ -48,6 +48,6 @@ def check_empty_field(credentials : Credentials):
 def parse_credentials(credentials_path : str) -> Credentials:
     credentials : Credentials = {}
     with open(credentials_path, 'r') as inp:
-        credentials : Credentials = json.load(inp)
+        credentials : Credentials = load(inp)
         check_empty_field(credentials)
         return credentials
