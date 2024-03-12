@@ -5,19 +5,19 @@
 * [hci](#hci)
 * [hci.hci](#hcihci)
   * [HCIHandler Objects](#hcihandler-objects)
-    * [\_\_init\_\_](#__init__-1)
-    * [request\_token](#request_token)
-    * [list\_index\_names](#list_index_names)
-    * [look\_up\_index](#look_up_index)
-    * [raw\_query](#raw_query)
-    * [raw\_query\_from\_JSON](#raw_query_from_json)
-    * [prettify\_raw\_query](#prettify_raw_query)
-    * [SQL\_query](#sql_query)
+      * [\_\_init\_\_](#__init__-1)
+      * [request\_token](#request_token)
+      * [list\_index\_names](#list_index_names)
+      * [look\_up\_index](#look_up_index)
+      * [raw\_query](#raw_query)
+      * [raw\_query\_from\_JSON](#raw_query_from_json)
+      * [prettify\_raw\_query](#prettify_raw_query)
+      * [SQL\_query](#sql_query)
 * [hci.helpers](#hcihelpers)
-    * [raise\_request\_error](#raise_request_error)
-    * [get\_index\_response](#get_index_response)
-    * [get\_query\_response](#get_query_response)
-    * [process\_raw\_query](#process_raw_query)
+      * [raise\_request\_error](#raise_request_error)
+      * [get\_index\_response](#get_index_response)
+      * [get\_query\_response](#get_query_response)
+      * [process\_raw\_query](#process_raw_query)
 * [utils](#utils)
 * [utils.utils](#utilsutils)
 * [hcp](#hcp)
@@ -38,10 +38,10 @@
       * [get\_bucket\_statistics](#get_bucket_statistics)
       * [get\_object\_acl](#get_object_acl)
       * [get\_bucket\_acl](#get_bucket_acl)
-      * [add\_single\_object\_acl](#add_single_object_acl)
-      * [add\_single\_bucket\_acl](#add_single_bucket_acl)
-      * [add\_object\_acl](#add_object_acl)
-      * [add\_bucket\_acl](#add_bucket_acl)
+      * [modify\_single\_object\_acl](#modify_single_object_acl)
+      * [modify\_single\_bucket\_acl](#modify_single_bucket_acl)
+      * [modify\_object\_acl](#modify_object_acl)
+      * [modify\_bucket\_acl](#modify_bucket_acl)
 * [hcp.helpers](#hcphelpers)
 * [parse\_credentials](#parse_credentials)
 * [parse\_credentials.parse\_credentials](#parse_credentialsparse_credentials)
@@ -592,15 +592,15 @@ Get the bucket Access Control List (ACL)
 
 `dict`: Return the ACL in the shape of a dictionary
 
-<a id="hcp.hcp.HCPHandler.add_single_object_acl"></a>
+<a id="hcp.hcp.HCPHandler.modify_single_object_acl"></a>
 
-#### add\_single\_object\_acl
+#### modify\_single\_object\_acl
 
 ```python
-def add_single_object_acl(key: str, user_ID: str, permission: str) -> None
+def modify_single_object_acl(key: str, user_ID: str, permission: str) -> None
 ```
 
-Add permissions for a user in the Access Control List (ACL) for one object
+Modify permissions for a user in the Access Control List (ACL) for one object
 
 **Arguments**:
 
@@ -613,15 +613,15 @@ Add permissions for a user in the Access Control List (ACL) for one object
 - READ 
 - READ_ACP
 
-<a id="hcp.hcp.HCPHandler.add_single_bucket_acl"></a>
+<a id="hcp.hcp.HCPHandler.modify_single_bucket_acl"></a>
 
-#### add\_single\_bucket\_acl
+#### modify\_single\_bucket\_acl
 
 ```python
-def add_single_bucket_acl(user_ID: str, permission: str) -> None
+def modify_single_bucket_acl(user_ID: str, permission: str) -> None
 ```
 
-Add permissions for a user in the Access Control List (ACL) for the 
+Modify permissions for a user in the Access Control List (ACL) for the 
 
 mounted bucket
 
@@ -635,15 +635,16 @@ mounted bucket
 - READ 
 - READ_ACP
 
-<a id="hcp.hcp.HCPHandler.add_object_acl"></a>
+<a id="hcp.hcp.HCPHandler.modify_object_acl"></a>
 
-#### add\_object\_acl
+#### modify\_object\_acl
 
 ```python
-def add_object_acl(key_user_ID_permissions: dict[str, dict[str, str]]) -> None
+def modify_object_acl(
+        key_user_ID_permissions: dict[str, dict[str, str]]) -> None
 ```
 
-Adds permissions to multiple objects, see below.
+Modifies  permissions to multiple objects, see below.
 
 In order to add permissions for multiple objects, we make use of a 
 dictionary of a dictionary:
@@ -653,15 +654,15 @@ dictionary of a dictionary:
 - `key_user_ID_permissions` (`dict[str, dict[str, str]]`): The dictionary containing object name 
 and user_id-permission dictionary
 
-<a id="hcp.hcp.HCPHandler.add_bucket_acl"></a>
+<a id="hcp.hcp.HCPHandler.modify_bucket_acl"></a>
 
-#### add\_bucket\_acl
+#### modify\_bucket\_acl
 
 ```python
-def add_bucket_acl(user_ID_permissions: dict[str, str]) -> None
+def modify_bucket_acl(user_ID_permissions: dict[str, str]) -> None
 ```
 
-Add permissions for multiple users for the mounted bucket
+Modify permissions for multiple users for the mounted bucket
 
 **Arguments**:
 

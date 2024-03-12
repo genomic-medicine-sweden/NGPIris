@@ -394,9 +394,9 @@ class HCPHandler:
         )
         return response
 
-    def add_single_object_acl(self, key : str, user_ID : str, permission : str) -> None:
+    def modify_single_object_acl(self, key : str, user_ID : str, permission : str) -> None:
         """
-        Add permissions for a user in the Access Control List (ACL) for one object
+        Modify permissions for a user in the Access Control List (ACL) for one object
 
         :param key: The name of the object
         :type key: str
@@ -418,9 +418,9 @@ class HCPHandler:
             AccessControlPolicy = create_access_control_policy({user_ID : permission})
         )
 
-    def add_single_bucket_acl(self, user_ID : str, permission : str) -> None:
+    def modify_single_bucket_acl(self, user_ID : str, permission : str) -> None:
         """
-        Add permissions for a user in the Access Control List (ACL) for the 
+        Modify permissions for a user in the Access Control List (ACL) for the 
         mounted bucket
 
         :param user_ID: The user name. Can either be the DisplayName or user_ID
@@ -439,9 +439,9 @@ class HCPHandler:
             AccessControlPolicy = create_access_control_policy({user_ID : permission})
         )
 
-    def add_object_acl(self, key_user_ID_permissions : dict[str, dict[str, str]]) -> None:
+    def modify_object_acl(self, key_user_ID_permissions : dict[str, dict[str, str]]) -> None:
         """
-        Adds permissions to multiple objects, see below.
+        Modifies  permissions to multiple objects, see below.
 
         In order to add permissions for multiple objects, we make use of a 
         dictionary of a dictionary:
@@ -460,9 +460,9 @@ class HCPHandler:
                 AccessControlPolicy = create_access_control_policy(user_ID_permissions)
             )
 
-    def add_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
+    def modify_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
         """
-        Add permissions for multiple users for the mounted bucket
+        Modify permissions for multiple users for the mounted bucket
 
         :param user_ID_permissions: The dictionary containing the user name and 
         the corresponding permission to be set to that user
