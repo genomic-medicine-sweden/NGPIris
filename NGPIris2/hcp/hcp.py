@@ -32,7 +32,7 @@ _KB = 1024
 _MB = _KB * _KB
 
 class HCPHandler:
-    def __init__(self, credentials_path : str, use_ssl : bool = False, custom_config_path : str = "") -> None:
+    def __init__(self, credentials_path : str, use_ssl : bool = False, proxy_path : str = "", custom_config_path : str = "") -> None:
         """
         Class for handling HCP requests.
 
@@ -57,13 +57,23 @@ class HCPHandler:
         if not self.use_ssl:
             disable_warnings()
 
-        s3_config = Config(
-            s3 = {
-                "addressing_style": "path",
-                "payload_signing_enabled": True
-            },
-            signature_version = "s3v4"
-        )
+        if proxy_path:
+            s3_config = Config(
+                s3 = {
+                    "addressing_style": "path",
+                    "payload_signing_enabled": True
+                },
+                signature_version = "s3v4",
+                proxies = CredentialsHandler(proxy_path).hcp
+            )
+        else:
+            s3_config = Config(
+                s3 = {
+                    "addressing_style": "path",
+                    "payload_signing_enabled": True
+                },
+                signature_version = "s3v4"
+            )
 
         self.s3_client = client(
             "s3", 

@@ -10,6 +10,8 @@ credentials/*.json
 !credentials/credentials_template.json
 queries/*.json
 !queries/query_template.json
+proxies/*.json
+!proxies/proxy_template.json
 
 .DS_Store
 test*.py
