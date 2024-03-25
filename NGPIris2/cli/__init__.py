@@ -33,7 +33,24 @@ def upload(context : Context, file_or_folder : str, bucket : str):
         hcph.upload_file(file_or_folder)
 
 @cli.command()
-def download():
+@click.argument("object")
+@click.argument("bucket")
+@click.argument("local_path")
+@click.pass_context
+def download(context : Context, object : str, bucket : str, local_path : str):
+    hcph : HCPHandler = get_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    hcph.download_file(object, local_path)
+
+@cli.command()
+@click.argument("object")
+@click.argument("bucket")
+@click.pass_context
+def delete(context : Context, object : str, bucket : str):
+    hcph : HCPHandler = get_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    hcph.delete_object(object)
+
 @cli.command()
 @click.pass_context
 def list_buckets(context : Context):
