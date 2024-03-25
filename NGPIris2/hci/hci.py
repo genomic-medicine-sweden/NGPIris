@@ -55,7 +55,7 @@ class HCIHandler:
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
         data = {
             "grant_type": "password", 
-            "username": "admin", 
+            "username": self.username, 
             "password": self.password,
             "scope": "*",  
             "client_secret": "hci-client", 
