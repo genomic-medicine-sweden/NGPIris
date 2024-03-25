@@ -2,6 +2,7 @@
 import click
 from click.core import Context, Argument, Option
 from json import dumps
+from os import path
 
 from NGPIris2.hcp import HCPHandler
 
@@ -20,13 +21,16 @@ def cli(context : Context, credentials : str):
     context.obj["hcph"] = HCPHandler(credentials)
 
 @cli.command()
-@click.argument("file")
+@click.argument("file-or-folder")
 @click.argument("bucket")
 @click.pass_context
-def upload(context : Context, file : str, bucket : str):
+def upload(context : Context, file_or_folder : str, bucket : str):
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    hcph.upload_file(file)
+    if path.isdir(file_or_folder):
+        hcph.upload_folder(file_or_folder)
+    else:
+        hcph.upload_file(file_or_folder)
 
 @cli.command()
 def download():
