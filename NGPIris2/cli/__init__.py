@@ -20,8 +20,13 @@ def cli(context : Context, credentials : str):
     context.obj["hcph"] = HCPHandler(credentials)
 
 @cli.command()
-def upload():
-    click.echo("Test")
+@click.argument("file")
+@click.argument("bucket")
+@click.pass_context
+def upload(context : Context, file : str, bucket : str):
+    hcph : HCPHandler = get_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    hcph.upload_file(file)
 
 @cli.command()
 def download():
