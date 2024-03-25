@@ -8,7 +8,8 @@ dependencies = [
     "requests >= 2.31.0",
     "boto3 >= 1.26.76",
     "parse >= 1.19.1",
-    "tqdm >= 4.66.2"
+    "tqdm >= 4.66.2",
+    "click >= 8.1.7"
 ]
 authors = [
     {name = "Erik Brink", email = "erik.brink@gu.se"}
@@ -19,7 +20,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["NGPIris2", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials", "NGPIris2.utils"]
+include = ["NGPIris2", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials", "NGPIris2.utils", "NGPIris2.cli"]
 
 [[tool.pydoc-markdown.loaders]]
 type = "python"
@@ -33,3 +34,6 @@ render_toc = true
 title = "NGP Iris 2 documentation"
 name = "index"
 contents = [ "*" ]
+
+[project.scripts]
+iris2 = "NGPIris2.cli:cli"
