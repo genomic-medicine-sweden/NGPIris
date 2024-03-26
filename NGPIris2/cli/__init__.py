@@ -17,6 +17,11 @@ def format_list(list_of_things : list) -> str:
 @click.argument("credentials")
 @click.pass_context
 def cli(context : Context, credentials : str):
+    """
+    NGP Intelligence and Repository Interface Software, IRIS. 
+    
+    CREDENTIALS refers to the path to the JSON credentials file.
+    """
     context.ensure_object(dict)
     context.obj["hcph"] = HCPHandler(credentials)
 
@@ -25,6 +30,13 @@ def cli(context : Context, credentials : str):
 @click.argument("bucket")
 @click.pass_context
 def upload(context : Context, file_or_folder : str, bucket : str):
+    """
+    Upload files to an HCP bucket/namespace. 
+    
+    FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
+
+    BUCKET is the name of the upload destination bucket.
+    """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if path.isdir(file_or_folder):
@@ -38,6 +50,15 @@ def upload(context : Context, file_or_folder : str, bucket : str):
 @click.argument("local_path")
 @click.pass_context
 def download(context : Context, object : str, bucket : str, local_path : str):
+    """
+    Download files from an HCP bucket/namespace.
+
+    OBJECT is the name of the object to be downloaded.
+
+    BUCKET is the name of the upload destination bucket.
+
+    LOCAL_PATH is the path to where the downloaded objects are to be stored locally.
+    """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     hcph.download_file(object, local_path)
@@ -47,6 +68,13 @@ def download(context : Context, object : str, bucket : str, local_path : str):
 @click.argument("bucket")
 @click.pass_context
 def delete(context : Context, object : str, bucket : str):
+    """
+    Delete an object from an HCP bucket/namespace. 
+
+    OBJECT is the name of the object to be deleted.
+
+    BUCKET is the name of the bucket where the object to be deleted exist.
+    """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     hcph.delete_object(object)
@@ -54,6 +82,9 @@ def delete(context : Context, object : str, bucket : str):
 @cli.command()
 @click.pass_context
 def list_buckets(context : Context):
+    """
+    List the available buckets/namespaces on the HCP.
+    """
     hcph : HCPHandler = get_HCPHandler(context)
     click.echo(format_list(hcph.list_buckets()))
 
@@ -67,6 +98,11 @@ def list_buckets(context : Context):
 )
 @click.pass_context
 def list_objects(context : Context, bucket : str, name_only : bool):
+    """
+    List the objects in a certain bucket/namespace on the HCP.
+
+    BUCKET is the name of the bucket in which to list its objects.
+    """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     objects_list = hcph.list_objects(name_only)
