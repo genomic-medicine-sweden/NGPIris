@@ -7,6 +7,8 @@ NGP Iris is designed with two use cases in mind:
 ## Getting started
 
 ### Easy installation
+:warning: **Currently unable to deploy fixes to pypi!**
+`git clone` and `pip install .` locally to get latest version.
 ```
 pip install NGPIris
 ```
