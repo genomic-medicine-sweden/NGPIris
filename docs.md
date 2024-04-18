@@ -217,6 +217,10 @@ with the SQL query
 
 `DataFrame`: A DataFrame containing the result of the SQL query
 
+<a id="hci.exceptions"></a>
+
+# hci.exceptions
+
 <a id="hci.helpers"></a>
 
 # hci.helpers
@@ -318,6 +322,135 @@ Take a raw query dictionary and turn it into a list of datapoints
 
 # utils.utils
 
+<a id="cli"></a>
+
+# cli
+
+<a id="cli.cli"></a>
+
+#### cli
+
+```python
+@click.group()
+@click.argument("credentials")
+@click.version_option(package_name="NGPIris2")
+@click.pass_context
+def cli(context: Context, credentials: str)
+```
+
+NGP Intelligence and Repository Interface Software, IRIS. 
+
+CREDENTIALS refers to the path to the JSON credentials file.
+
+<a id="cli.upload"></a>
+
+#### upload
+
+```python
+@cli.command()
+@click.argument("file-or-folder")
+@click.argument("bucket")
+@click.pass_context
+def upload(context: Context, file_or_folder: str, bucket: str)
+```
+
+Upload files to an HCP bucket/namespace. 
+
+FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
+
+BUCKET is the name of the upload destination bucket.
+
+<a id="cli.download"></a>
+
+#### download
+
+```python
+@cli.command()
+@click.argument("object")
+@click.argument("bucket")
+@click.argument("local_path")
+@click.pass_context
+def download(context: Context, object: str, bucket: str, local_path: str)
+```
+
+Download files from an HCP bucket/namespace.
+
+OBJECT is the name of the object to be downloaded.
+
+BUCKET is the name of the upload destination bucket.
+
+LOCAL_PATH is the path to where the downloaded objects are to be stored locally.
+
+<a id="cli.delete"></a>
+
+#### delete
+
+```python
+@cli.command()
+@click.argument("object")
+@click.argument("bucket")
+@click.pass_context
+def delete(context: Context, object: str, bucket: str)
+```
+
+Delete an object from an HCP bucket/namespace. 
+
+OBJECT is the name of the object to be deleted.
+
+BUCKET is the name of the bucket where the object to be deleted exist.
+
+<a id="cli.list_buckets"></a>
+
+#### list\_buckets
+
+```python
+@cli.command()
+@click.pass_context
+def list_buckets(context: Context)
+```
+
+List the available buckets/namespaces on the HCP.
+
+<a id="cli.list_objects"></a>
+
+#### list\_objects
+
+```python
+@cli.command()
+@click.argument("bucket")
+@click.option(
+    "-no",
+    "--name-only",
+    help=
+    "Output only the name of the objects instead of all the associated metadata",
+    default=False)
+@click.pass_context
+def list_objects(context: Context, bucket: str, name_only: bool)
+```
+
+List the objects in a certain bucket/namespace on the HCP.
+
+BUCKET is the name of the bucket in which to list its objects.
+
+<a id="cli.iris2_generate_credentials_file"></a>
+
+#### iris2\_generate\_credentials\_file
+
+```python
+@click.command()
+@click.option("--path",
+              help="Path for where to put the new credentials file",
+              default="")
+@click.option("--name",
+              help="Custom name for the credentials file",
+              default="credentials")
+def iris2_generate_credentials_file(path: str, name: str)
+```
+
+Generate blank credentials file for the HCI and HCP. 
+
+WARNING: This file will store sensisitve information (such as passwords) in plaintext.
+
 <a id="hcp"></a>
 
 # hcp
@@ -341,6 +474,7 @@ class HCPHandler()
 ```python
 def __init__(credentials_path: str,
              use_ssl: bool = False,
+             proxy_path: str = "",
              custom_config_path: str = "") -> None
 ```
 
@@ -371,8 +505,9 @@ download and upload.
 
 **Raises**:
 
-- `RuntimeError`: If there was a problem when mounting the bucket, a 
-runtime error will be raised
+- `VPNConnectionError`: If there is no VPN connection
+- `BucketNotFound`: If no bucket of that name was found
+- `Exception`: Other exceptions
 
 <a id="hcp.hcp.HCPHandler.list_buckets"></a>
 
@@ -668,6 +803,24 @@ Modify permissions for multiple users for the mounted bucket
 
 - `user_ID_permissions` (`dict[str, str]`): The dictionary containing the user name and 
 the corresponding permission to be set to that user
+
+<a id="hcp.exceptions"></a>
+
+# hcp.exceptions
+
+<a id="hcp.exceptions.VPNConnectionError"></a>
+
+## VPNConnectionError Objects
+
+```python
+class VPNConnectionError(Exception)
+```
+
+_summary_
+
+**Arguments**:
+
+- `Exception` (`_type_`): _description_
 
 <a id="hcp.helpers"></a>
 
