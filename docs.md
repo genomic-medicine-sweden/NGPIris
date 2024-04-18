@@ -98,7 +98,7 @@ HCI.
 
 **Raises**:
 
-- `RuntimeError`: If there was a problem when requesting a token, a 
+- `VPNConnectionError`: If there was a problem when requesting a token, a 
 runtime error will be raised
 
 <a id="hci.hci.HCIHandler.list_index_names"></a>
