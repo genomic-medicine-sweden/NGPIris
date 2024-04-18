@@ -42,10 +42,11 @@ This will prompt NGP Iris 2 to complain about incomplete credentials. Of course,
 A thorough package documentation can be found in [docs.md](docs.md).
 
 ## Basic usage
-NGP Iris 2 is to be used as a Python package. The main use consists of accessing an HCP or HCI via the AWS S3 service. This section contains examples of how NGP Iris 2 might be used to do so.
+NGP Iris 2 can be used as a Python package or by using the command line. The following sections cover examples of how NGP Iris 2 might be used as a package and how to use its various commands.
 
-### Connect to HCP
-In order to connect to the HCP, we first need to create an `HCPHandler` object and mount it to some bucket:
+### As a Python package
+#### Connect to HCP
+I3n order to connect to the HCP, we first need to create an `HCPHandler` object and mount it to some bucket:
 ```Python
 import NGPIris2.hcp as hcp
 
@@ -57,7 +58,7 @@ If you are unsure which buckets you are allowed to see, you can use `hcph.list_b
 
 When you have successfully mounted a bucket, you can then do different operations onto the bucket. Object names on the bucket can be listed by typing `print(hcph.list_objects(True))`. 
 
-#### Upload files
+##### Upload files
 ```Python
 # Upload a single file to HCP
 hcph.upload_object_file("myFile")
@@ -66,7 +67,7 @@ hcph.upload_object_file("myFile")
 hcph.upload_object_folder("./myFiles/")
 ```
 
-#### Download files
+##### Download files
 ```Python
 # Download a single object from HCP
 hcph.download_object_file("myObject")
@@ -75,7 +76,7 @@ hcph.download_object_file("myObject")
 hcph.download_all_object_files("./myDownloadedFiles/")
 ```
 
-### Connect to HCI
+#### Connect to HCI
 In order to connect to the HCI, we first need to create an `HCIHandler` object and request an authorization token:
 ```Python
 import NGPIris2.hci as hci
@@ -104,3 +105,108 @@ pprint(
 
 ### Miscellaneous utilities (`utils.py`)
 The `utils` module can be contains two functions: one for converting a string to `base64` encoding and one for `MD5` encoding.
+
+### As a command line tool
+NGP Iris 2 comes with two commands: `iris2` and `iris2_generate_credentials_file`. The latter command is used solely to generate the `.json` credentials file. Running `iris2_generate_credentials_file --help` we get the following:
+```
+Usage: iris2_generate_credentials_file [OPTIONS]
+
+  Generate blank credentials file for the HCI and HCP.
+
+  WARNING: This file will store sensisitve information (such as passwords) in
+  plaintext.
+
+Options:
+  --path TEXT  Path for where to put the new credentials file
+  --name TEXT  Custom name for the credentials file
+  --help       Show this message and exit.
+```
+
+The `iris2` command is used for communicating with the HCP and HCI. This includes upload and download to and from the HCP/HCI. Running `iris2 --help` yields the following:
+```
+Usage: iris2 [OPTIONS] CREDENTIALS COMMAND [ARGS]...
+
+  NGP Intelligence and Repository Interface Software, IRIS.
+
+  CREDENTIALS refers to the path to the JSON credentials file.
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  delete        Delete an object from an HCP bucket/namespace.
+  download      Download files from an HCP bucket/namespace.
+  list-buckets  List the available buckets/namespaces on the HCP.
+  list-objects  List the objects in a certain bucket/namespace on the HCP.
+  upload        Upload files to an HCP bucket/namespace.
+```
+
+#### The `delete` command
+```
+Usage: iris2 CREDENTIALS delete [OPTIONS] OBJECT BUCKET
+
+  Delete an object from an HCP bucket/namespace.
+
+  OBJECT is the name of the object to be deleted.
+
+  BUCKET is the name of the bucket where the object to be deleted exist.
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### The `download` command
+```
+Usage: iris2 CREDENTIALS download [OPTIONS] OBJECT BUCKET LOCAL_PATH
+
+  Download files from an HCP bucket/namespace.
+
+  OBJECT is the name of the object to be downloaded.
+
+  BUCKET is the name of the upload destination bucket.
+
+  LOCAL_PATH is the path to where the downloaded objects are to be stored
+  locally.
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### The `list-buckets` command
+```
+Usage: iris2 CREDENTIALS list-buckets [OPTIONS]
+
+  List the available buckets/namespaces on the HCP.
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### The `list-objects` command
+```
+Usage: iris2 CREDENTIALS list-objects [OPTIONS] BUCKET
+
+  List the objects in a certain bucket/namespace on the HCP.
+
+  BUCKET is the name of the bucket in which to list its objects.
+
+Options:
+  -no, --name-only BOOLEAN  Output only the name of the objects instead of all
+                            the associated metadata
+  --help                    Show this message and exit.
+```
+
+#### The `upload` command
+```
+Usage: iris2 CREDENTIALS upload [OPTIONS] FILE_OR_FOLDER BUCKET
+
+  Upload files to an HCP bucket/namespace.
+
+  FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
+
+  BUCKET is the name of the upload destination bucket.
+
+Options:
+  --help  Show this message and exit.
+```
