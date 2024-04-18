@@ -15,6 +15,7 @@ def format_list(list_of_things : list) -> str:
 
 @click.group()
 @click.argument("credentials")
+@click.version_option(package_name = "NGPIris2")
 @click.pass_context
 def cli(context : Context, credentials : str):
     """
