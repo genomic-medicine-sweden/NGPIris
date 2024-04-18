@@ -1,7 +1,7 @@
 
 import click
 from click.core import Context, Argument, Option
-from json import dumps
+from json import dumps, dump
 from os import path
 
 from NGPIris2.hcp import HCPHandler
@@ -114,3 +114,40 @@ def list_objects(context : Context, bucket : str, name_only : bool):
         for d in objects_list:
             out.append(dumps(d, indent = 4, default = str) + "\n")
         click.echo("".join(out))
+
+@click.command()
+@click.option(
+    "--path",
+    help = "Path for where to put the new credentials file",
+    default = ""
+)
+@click.option(
+    "--name",
+    help = "Custom name for the credentials file",
+    default = "credentials"
+)
+def iris2_generate_credentials_file(path : str, name : str):
+    """
+    Generate blank credentials file for the HCI and HCP. 
+
+    WARNING: This file will store sensisitve information (such as passwords) in plaintext.
+    """
+    credentials_dict = {
+        "hcp" : {
+            "endpoint" : "",
+            "aws_access_key_id" : "",
+            "aws_secret_access_key" : ""
+        },
+        "hci" : {
+            "username" : "",
+            "password" : "",
+            "address" : "",
+            "auth_port" : "",
+            "api_port" : ""
+        }
+    }
+    file_path = path + name + ".json"
+    with open(file_path, "w") as f:
+        dump(credentials_dict, f, indent = 4)
+
+    
