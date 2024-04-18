@@ -808,20 +808,6 @@ the corresponding permission to be set to that user
 
 # hcp.exceptions
 
-<a id="hcp.exceptions.VPNConnectionError"></a>
-
-## VPNConnectionError Objects
-
-```python
-class VPNConnectionError(Exception)
-```
-
-_summary_
-
-**Arguments**:
-
-- `Exception` (`_type_`): _description_
-
 <a id="hcp.helpers"></a>
 
 # hcp.helpers
