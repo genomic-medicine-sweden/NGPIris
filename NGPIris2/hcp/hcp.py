@@ -48,6 +48,11 @@ class HCPHandler:
         credentials_handler = CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
         self.endpoint = "https://" + self.hcp["endpoint"]
+        tenant_parse = parse("https://{}.hcp1.vgregion.se", self.endpoint)
+        if type(tenant_parse) is Result:
+            self.tenant = str(tenant_parse[0])
+        else:
+            raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file")
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
         self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
@@ -141,14 +146,11 @@ class HCPHandler:
         :return: A list of buckets
         :rtype: list[str]
         """
-        tenant_parse = parse("https://{}.hcp1.vgregion.se", self.endpoint)
-        if type(tenant_parse) is Result:
-            url = ":9090/mapi/tenants/" + str(tenant_parse[0]) + "/namespaces"
-            response = get_tenant_response(self.endpoint, self.token, self.use_ssl, url)
-            list_of_buckets : list[str] = dict(response.json())["name"]
-            return list_of_buckets
-        else:
-            raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file")
+        
+        url = ":9090/mapi/tenants/" + self.tenant + "/namespaces"
+        response = get_tenant_response(self.endpoint, self.token, self.use_ssl, url)
+        list_of_buckets : list[str] = dict(response.json())["name"]
+        return list_of_buckets
     
     def list_objects(self, name_only = False) -> list:
         """
