@@ -14,7 +14,7 @@ proxies/*.json
 !proxies/proxy_template.json
 
 .DS_Store
-test*.py
+*test*.py
 *.pyc
 __pycache__
 *.egg-info
