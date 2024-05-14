@@ -1,8 +1,6 @@
 
 from NGPIris2.parse_credentials import CredentialsHandler
 from NGPIris2.hcp.helpers import (
-    get_tenant_response,
-    get_bucket_response,
     raise_path_error,
     create_access_control_policy
 )
@@ -25,6 +23,7 @@ from parse import (
     search,
     Result
 )
+from requests import get
 from urllib3 import disable_warnings
 from tqdm import tqdm
 
@@ -53,6 +52,7 @@ class HCPHandler:
             self.tenant = str(tenant_parse[0])
         else:
             raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file")
+        self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
         self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
@@ -107,6 +107,23 @@ class HCPHandler:
                 use_threads = True
             )
     
+    def get_response(self, path_extension : str = "") -> dict:
+        url = self.base_request_url + path_extension
+        headers = {
+            "Authorization": "HCP " + self.token,
+            "Cookie": "hcp-ns-auth=" + self.token,
+            "Accept": "application/json"
+        }
+        response = get(
+            url, 
+            headers=headers,
+            verify=self.use_ssl
+        )
+
+        response.raise_for_status()
+
+        return dict(response.json())
+
     def mount_bucket(self, bucket_name : str) -> None:
         """
         Mount bucket that is to be used. This method needs to executed in order 
@@ -147,9 +164,8 @@ class HCPHandler:
         :rtype: list[str]
         """
         
-        url = ":9090/mapi/tenants/" + self.tenant + "/namespaces"
-        response = get_tenant_response(self.endpoint, self.token, self.use_ssl, url)
-        list_of_buckets : list[str] = dict(response.json())["name"]
+        response = self.get_response("/namespaces")
+        list_of_buckets : list[str] = response["name"]
         return list_of_buckets
     
     def list_objects(self, name_only = False) -> list:
@@ -354,28 +370,6 @@ class HCPHandler:
             if type(parse_object) is Result:
                 search_result.append(key)
         return search_result
-    
-    def get_bucket_statistics(self) -> dict:
-        """
-        Retrieve a dictionary containing information about the mounted bucket
-
-        :raises RuntimeError: Raises an error if there was a problem with parsing the endpoint URL
-        :return: A dictionary containing the information about the mounted bucket
-        :rtype: dict
-        """
-        response = get_bucket_response(self.endpoint, self.bucket_name, self.token, self.use_ssl, "/proc/statistics")
-        dict_of_statistics = {}
-        statistics_parse = parse("{}<statistics{}/>", response.text)
-        if type(statistics_parse) is Result:
-            list_of_statistics : list[str] = statistics_parse[1].replace('"', "").split()
-            for statistic in list_of_statistics:
-                p = parse("{}={}", statistic)
-                if type(p) is Result: 
-                    if p[1].isdigit():
-                        dict_of_statistics[p[0]] = int(p[1])
-                    else:
-                        dict_of_statistics[p[0]] = p[1]
-        return dict_of_statistics
 
     def get_object_acl(self, key : str) -> dict:
         """

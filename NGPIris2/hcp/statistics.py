@@ -1,31 +1,25 @@
 
-from NGPIris2.parse_credentials import CredentialsHandler
 from NGPIris2.hcp import HCPHandler
 
-from requests import (
-    Response,
-    get,
-    post    
-)
 
 class HCPStatistics(HCPHandler):
     def __init__(self, credentials_path: str, use_ssl: bool = False, proxy_path: str = "", custom_config_path: str = "") -> None:
         super().__init__(credentials_path, use_ssl, proxy_path, custom_config_path)
-        self.request_base_url = "https://" + self.endpoint + ":9090/mapi/tenants/" + self.tenant
 
-    def get_statistics_response(self, path_extension : str = "") -> Response:
-        url = self.request_base_url + path_extension
-        headers = {
-            "Authorization": "HCP " + self.token,
-            "Cookie": "hcp-ns-auth=" + self.token,
-            "Accept": "application/json"
-        }
-        response = get(
-            url, 
-            headers=headers,
-            verify=self.use_ssl
-        )
+    def get_namespace_settings(self) -> dict:
+        if self.bucket_name:
+            return self.get_response("/namespaces/" + self.bucket_name)
+        else:
+            raise RuntimeError("No bucket has been mounted")
 
-        return response
-    
-    
+    def get_namespace_statistics(self) -> dict:
+        if self.bucket_name:
+            return self.get_response("/namespaces/" + self.bucket_name + "/statistics")
+        else:
+            raise RuntimeError("No bucket has been mounted")
+
+    def get_namespace_permissions(self) -> dict:
+            if self.bucket_name:
+                return self.get_response("/namespaces/" + self.bucket_name + "/permissions")
+            else:
+                raise RuntimeError("No bucket has been mounted")
