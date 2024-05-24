@@ -2,7 +2,7 @@
 from NGPIris2.hci import HCIHandler
 from random import randint
 
-hci_h = HCIHandler("credentials/myTestCredentials.json")
+hci_h = HCIHandler("credentials/testCredentials.json")
 hci_h.request_token()
 
 def test_list_index_names_type():
