@@ -38,6 +38,11 @@ contents = [ "*" ]
 [tool.pytype]
 inputs = ["NGPIris2"]
 
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+
 [project.scripts]
 iris2 = "NGPIris2.cli:cli"
 iris2_generate_credentials_file = "NGPIris2.cli:iris2_generate_credentials_file"
