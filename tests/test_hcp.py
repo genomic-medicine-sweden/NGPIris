@@ -22,24 +22,24 @@ def test_list_buckets() -> None:
 def test_mount_bucket() -> None:
     hcp_h.mount_bucket(test_bucket)
 
-def test_upload_file():
+def test_upload_file() -> None:
     test_mount_bucket()
     hcp_h.upload_file(test_file_path)
 
-def test_get_file():
+def test_get_file() -> None:
     test_mount_bucket()
     assert hcp_h.get_object(test_file)
 
-def test_download_file():
+def test_download_file() -> None:
     test_mount_bucket()
     mkdir(result_path)
     hcp_h.download_file(test_file, result_path + test_file)
     assert cmp(result_path + test_file, test_file_path)
 
-def test_delete_file():
+def test_delete_file() -> None:
     test_mount_bucket()
     hcp_h.delete_object(test_file)
 
-def test_clean_up():
+def test_clean_up() -> None:
     remove(result_path + test_file)
     rmdir(result_path)
