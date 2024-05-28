@@ -1,6 +1,6 @@
 [project]
 name = "NGPIris"
-version = "0.3.0"
+version = "5.0.0"
 dependencies = [
     "requests >= 2.31.0",
     "pandas >= 2.1.4",
