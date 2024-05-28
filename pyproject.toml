@@ -42,6 +42,7 @@ inputs = ["NGPIris2"]
 pythonpath = [
   "."
 ]
+filterwarnings = "ignore::urllib3.connectionpool.InsecureRequestWarning"
 
 [project.scripts]
 iris2 = "NGPIris2.cli:cli"
