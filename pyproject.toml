@@ -1,0 +1,49 @@
+[project]
+name = "NGPIris2"
+version = "0.3.0"
+dependencies = [
+    "requests >= 2.31.0",
+    "pandas >= 2.1.4",
+    "urllib3 == 1.26.18",
+    "requests >= 2.31.0",
+    "boto3 >= 1.26.76",
+    "parse >= 1.19.1",
+    "tqdm >= 4.66.2",
+    "click >= 8.1.7"
+]
+authors = [
+    {name = "Erik Brink", email = "erik.brink@gu.se"}
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["NGPIris2", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials", "NGPIris2.utils", "NGPIris2.cli"]
+
+[[tool.pydoc-markdown.loaders]]
+type = "python"
+search_path = [ "./NGPIris2" ]
+
+[tool.pydoc-markdown.renderer]
+type = "markdown"
+render_toc = true
+
+[[tool.pydoc-markdown.renderer.pages]]
+title = "NGP Iris 2 documentation"
+name = "index"
+contents = [ "*" ]
+
+[tool.pytype]
+inputs = ["NGPIris2"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+filterwarnings = "ignore::urllib3.connectionpool.InsecureRequestWarning"
+
+[project.scripts]
+iris2 = "NGPIris2.cli:cli"
+iris2_generate_credentials_file = "NGPIris2.cli:iris2_generate_credentials_file"
