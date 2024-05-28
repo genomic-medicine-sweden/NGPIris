@@ -1,7 +1,7 @@
-# NGP Iris 2 👀
+# NGP Iris 👀
 Rework of the original [NGP Iris](https://github.com/genomic-medicine-sweden/NGPIris). The major difference is that the previous version was based on `boto3` sessions instead of clients. By using clients we are able to do some more "low-level" operations like setting Access Control Lists (ACLs).
 
-**Do note that we might change the name, but right now NGP Iris 2 is the WIP name.**
+**Do note that we might change the name, but right now NGP Iris is the WIP name.**
 
 ## Getting started
 
@@ -12,14 +12,14 @@ Rework of the original [NGP Iris](https://github.com/genomic-medicine-sweden/NGP
 [^1]: Most versions of Python 3 should work
 
 ### Installation
-The current way to install NGP Iris 2 is by the following steps:
+The current way to install NGP Iris is by the following steps:
 
 1. Clone this repository
 2. Open a terminal in your local copy of the repository
-3. Run `pip install .`. This will install NGP Iris 2 along with the required Python packages in your Python environment
+3. Run `pip install .`. This will install NGP Iris along with the required Python packages in your Python environment
 
 ### NGPr credentials
-In order to use NGP Iris 2, a JSON file containing your credentials for the NGPr. The template of the JSON file can be found in [credentials/credentials_template.json](credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI ***or*** both. Do note that you can't leave some parts of either the HCP or HCI credentials empty:
+In order to use NGP Iris, a JSON file containing your credentials for the NGPr. The template of the JSON file can be found in [credentials/credentials_template.json](credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI ***or*** both. Do note that you can't leave some parts of either the HCP or HCI credentials empty:
 ```JSON
 {
     "hcp" : {
@@ -36,13 +36,13 @@ In order to use NGP Iris 2, a JSON file containing your credentials for the NGPr
     }
 }
 ```
-This will prompt NGP Iris 2 to complain about incomplete credentials. Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
+This will prompt NGP Iris to complain about incomplete credentials. Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
 ## Technical package documentation
 A thorough package documentation can be found in [docs.md](docs.md).
 
 ## Basic usage
-NGP Iris 2 can be used as a Python package or by using the command line. The following sections cover examples of how NGP Iris 2 might be used as a package and how to use its various commands.
+NGP Iris can be used as a Python package or by using the command line. The following sections cover examples of how NGP Iris might be used as a package and how to use its various commands.
 
 ### As a Python package
 #### Connect to HCP
@@ -107,9 +107,9 @@ pprint(
 The `utils` module can be contains two functions: one for converting a string to `base64` encoding and one for `MD5` encoding.
 
 ### As a command line tool
-NGP Iris 2 comes with two commands: `iris2` and `iris2_generate_credentials_file`. The latter command is used solely to generate the `.json` credentials file. Running `iris2_generate_credentials_file --help` we get the following:
+NGP Iris comes with two commands: `iris` and `iris_generate_credentials_file`. The latter command is used solely to generate the `.json` credentials file. Running `iris_generate_credentials_file --help` we get the following:
 ```
-Usage: iris2_generate_credentials_file [OPTIONS]
+Usage: iris_generate_credentials_file [OPTIONS]
 
   Generate blank credentials file for the HCI and HCP.
 
@@ -122,9 +122,9 @@ Options:
   --help       Show this message and exit.
 ```
 
-The `iris2` command is used for communicating with the HCP and HCI. This includes upload and download to and from the HCP/HCI. Running `iris2 --help` yields the following:
+The `iris` command is used for communicating with the HCP and HCI. This includes upload and download to and from the HCP/HCI. Running `iris --help` yields the following:
 ```
-Usage: iris2 [OPTIONS] CREDENTIALS COMMAND [ARGS]...
+Usage: iris [OPTIONS] CREDENTIALS COMMAND [ARGS]...
 
   NGP Intelligence and Repository Interface Software, IRIS.
 
@@ -144,7 +144,7 @@ Commands:
 
 #### The `delete` command
 ```
-Usage: iris2 CREDENTIALS delete [OPTIONS] OBJECT BUCKET
+Usage: iris CREDENTIALS delete [OPTIONS] OBJECT BUCKET
 
   Delete an object from an HCP bucket/namespace.
 
@@ -158,7 +158,7 @@ Options:
 
 #### The `download` command
 ```
-Usage: iris2 CREDENTIALS download [OPTIONS] OBJECT BUCKET LOCAL_PATH
+Usage: iris CREDENTIALS download [OPTIONS] OBJECT BUCKET LOCAL_PATH
 
   Download files from an HCP bucket/namespace.
 
@@ -175,7 +175,7 @@ Options:
 
 #### The `list-buckets` command
 ```
-Usage: iris2 CREDENTIALS list-buckets [OPTIONS]
+Usage: iris CREDENTIALS list-buckets [OPTIONS]
 
   List the available buckets/namespaces on the HCP.
 
@@ -185,7 +185,7 @@ Options:
 
 #### The `list-objects` command
 ```
-Usage: iris2 CREDENTIALS list-objects [OPTIONS] BUCKET
+Usage: iris CREDENTIALS list-objects [OPTIONS] BUCKET
 
   List the objects in a certain bucket/namespace on the HCP.
 
@@ -199,7 +199,7 @@ Options:
 
 #### The `upload` command
 ```
-Usage: iris2 CREDENTIALS upload [OPTIONS] FILE_OR_FOLDER BUCKET
+Usage: iris CREDENTIALS upload [OPTIONS] FILE_OR_FOLDER BUCKET
 
   Upload files to an HCP bucket/namespace.
 
