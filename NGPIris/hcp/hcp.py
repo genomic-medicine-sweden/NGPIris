@@ -1,10 +1,10 @@
 
-from NGPIris2.parse_credentials import CredentialsHandler
-from NGPIris2.hcp.helpers import (
+from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.hcp.helpers import (
     raise_path_error,
     create_access_control_policy
 )
-from NGPIris2.hcp.exceptions import *
+from NGPIris.hcp.exceptions import *
 
 from boto3 import client
 from botocore.client import Config

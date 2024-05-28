@@ -48,7 +48,7 @@ NGP Iris 2 can be used as a Python package or by using the command line. The fol
 #### Connect to HCP
 I3n order to connect to the HCP, we first need to create an `HCPHandler` object and mount it to some bucket:
 ```Python
-import NGPIris2.hcp as hcp
+import NGPIris.hcp as hcp
 
 hcph = hcp.HCPHandler("myCredentials.json")
 
@@ -79,7 +79,7 @@ hcph.download_all_object_files("./myDownloadedFiles/")
 #### Connect to HCI
 In order to connect to the HCI, we first need to create an `HCIHandler` object and request an authorization token:
 ```Python
-import NGPIris2.hci as hci
+import NGPIris.hci as hci
 
 hcih = hci.HCIHandler("./credentials/myCredentials.json")
 
@@ -87,7 +87,7 @@ hcih.request_token()
 ```
 Note that the token is stored inside of the `HCIHandler` object called `hcih`. We can now request a list of indexes that are available by typing `print(hcih.list_index_names())`. We can also look up information about a certain index with `print(hcih.look_up_index("myIndex"))`. It is recommended to combine the use of the pretty print module `pprint` and the `json` module for this output, as it is mostly unreadable otherwise:
 ```Python
-import NGPIris2.hci as hci
+import NGPIris.hci as hci
 from pprint import pprint
 import json
 

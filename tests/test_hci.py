@@ -1,5 +1,5 @@
 
-from NGPIris2.hci import HCIHandler
+from NGPIris.hci import HCIHandler
 from random import randint
 from json import load, dump
 

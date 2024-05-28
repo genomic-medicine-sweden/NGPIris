@@ -4,7 +4,7 @@ from click.core import Context, Argument, Option
 from json import dumps, dump
 from os import path
 
-from NGPIris2.hcp import HCPHandler
+from NGPIris.hcp import HCPHandler
 
 def get_HCPHandler(context : Context)-> HCPHandler:
     return context.obj["hcph"]
@@ -15,7 +15,7 @@ def format_list(list_of_things : list) -> str:
 
 @click.group()
 @click.argument("credentials")
-@click.version_option(package_name = "NGPIris2")
+@click.version_option(package_name = "NGPIris")
 @click.pass_context
 def cli(context : Context, credentials : str):
     """
@@ -126,7 +126,7 @@ def list_objects(context : Context, bucket : str, name_only : bool):
     help = "Custom name for the credentials file",
     default = "credentials"
 )
-def iris2_generate_credentials_file(path : str, name : str):
+def iris_generate_credentials_file(path : str, name : str):
     """
     Generate blank credentials file for the HCI and HCP. 
 

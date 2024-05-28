@@ -1,5 +1,5 @@
 [project]
-name = "NGPIris2"
+name = "NGPIris"
 version = "0.3.0"
 dependencies = [
     "requests >= 2.31.0",
@@ -20,11 +20,11 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["NGPIris2", "NGPIris2.hci", "NGPIris2.hcp", "NGPIris2.parse_credentials", "NGPIris2.utils", "NGPIris2.cli"]
+include = ["NGPIris", "NGPIris.hci", "NGPIris.hcp", "NGPIris.parse_credentials", "NGPIris.utils", "NGPIris.cli"]
 
 [[tool.pydoc-markdown.loaders]]
 type = "python"
-search_path = [ "./NGPIris2" ]
+search_path = [ "./NGPIris" ]
 
 [tool.pydoc-markdown.renderer]
 type = "markdown"
@@ -36,7 +36,7 @@ name = "index"
 contents = [ "*" ]
 
 [tool.pytype]
-inputs = ["NGPIris2"]
+inputs = ["NGPIris"]
 
 [tool.pytest.ini_options]
 pythonpath = [
@@ -45,5 +45,5 @@ pythonpath = [
 filterwarnings = "ignore::urllib3.connectionpool.InsecureRequestWarning"
 
 [project.scripts]
-iris2 = "NGPIris2.cli:cli"
-iris2_generate_credentials_file = "NGPIris2.cli:iris2_generate_credentials_file"
+iris = "NGPIris.cli:cli"
+iris_generate_credentials_file = "NGPIris.cli:iris_generate_credentials_file"

@@ -1,5 +1,5 @@
 
-from NGPIris2.hcp import HCPHandler
+from NGPIris.hcp import HCPHandler
 
 
 class HCPStatistics(HCPHandler):

@@ -1,1 +1,0 @@
-from NGPIris2.hcp.hcp import HCPHandler

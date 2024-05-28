@@ -1,11 +1,11 @@
 
-from NGPIris2.parse_credentials import CredentialsHandler
-from NGPIris2.hci.helpers import (
+from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.hci.helpers import (
     get_index_response,
     get_query_response,
     process_raw_query
 )
-from NGPIris2.hci.exceptions import *
+from NGPIris.hci.exceptions import *
 
 from requests import (
     Response,

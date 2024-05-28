@@ -1,5 +1,5 @@
 
-from NGPIris2.hcp import HCPHandler
+from NGPIris.hcp import HCPHandler
 from configparser import ConfigParser
 from os import mkdir, rmdir, remove
 from filecmp import cmp
