@@ -36,3 +36,13 @@ def test_make_simple_raw_query_from_JSON() -> None:
     result = hci_h.raw_query_from_JSON(path)
     assert result["indexName"] == arbitrary_index
 
+def test_prettify_raw_query() -> None:
+    list_of_indexes = hci_h.list_index_names()
+    arbitrary_index = list_of_indexes[randint(0, len(list_of_indexes) - 1)]
+    query = {
+        "indexName" : arbitrary_index
+    }
+    result = hci_h.raw_query(query)
+    df = hci_h.prettify_raw_query(result)
+    assert type(df.to_dict("list")) == dict
+
