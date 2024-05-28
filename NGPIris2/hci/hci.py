@@ -137,25 +137,6 @@ class HCIHandler:
             self.use_ssl
         ).json())
 
-    def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> DataFrame:
-        """
-        Prettify a query in the shape of a DataFrame.
-
-        :param query_path: The raw query to be prettified
-        :type query_path: dict
-
-        :param only_metadata: Boolean choice between only returning the metadata. 
-        Defaults to True
-        :type only_metadata: bool, optional
-
-        :return: A DataFrame of the query
-        :rtype: DataFrame
-        """
-        
-        list_of_data = process_raw_query(raw_query, only_metadata)
-        
-        return DataFrame(list_of_data)
-    
     def SQL_query(self, query_path : str) -> DataFrame:
         """
         Perform an SQL query given a path to a JSON file containing the 
@@ -203,3 +184,22 @@ class HCIHandler:
                 result_df = DataFrame()
 
             return result_df
+
+    def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> DataFrame:
+        """
+        Prettify a query in the shape of a DataFrame.
+
+        :param query_path: The raw query to be prettified
+        :type query_path: dict
+
+        :param only_metadata: Boolean choice between only returning the metadata. 
+        Defaults to True
+        :type only_metadata: bool, optional
+
+        :return: A DataFrame of the query
+        :rtype: DataFrame
+        """
+        
+        list_of_data = process_raw_query(raw_query, only_metadata)
+        
+        return DataFrame(list_of_data)
