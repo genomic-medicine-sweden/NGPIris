@@ -1,7 +1,9 @@
 # NGP Iris 👀
-Rework of the original [NGP Iris](https://github.com/genomic-medicine-sweden/NGPIris). The major difference is that the previous version was based on `boto3` sessions instead of clients. By using clients we are able to do some more "low-level" operations like setting Access Control Lists (ACLs).
+NGP Iris is a light-weight tool for interacting with a Hitachi Content Platform (HCP) using S3 in the `boto3` package. NGP Iris is designed with two use cases in mind:
+* A simple, clear, real-time interaction with NGPr file management
+* Improving process flow for performing off-site data analysis by using automated transfer scripts
 
-**Do note that we might change the name, but right now NGP Iris is the WIP name.**
+Both of these cases can be achieved as either a [Python package](#as-a-python-package) or as a [Command Line Interface (CLI)](#as-a-command-line-tool).
 
 ## Getting started
 
@@ -46,7 +48,7 @@ NGP Iris can be used as a Python package or by using the command line. The follo
 
 ### As a Python package
 #### Connect to HCP
-I3n order to connect to the HCP, we first need to create an `HCPHandler` object and mount it to some bucket:
+In order to connect to the HCP, we first need to create an `HCPHandler` object and mount it to some bucket:
 ```Python
 import NGPIris.hcp as hcp
 
