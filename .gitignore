@@ -21,3 +21,4 @@ tests/*.ini
 __pycache__
 *.egg-info
 
+.coverage
