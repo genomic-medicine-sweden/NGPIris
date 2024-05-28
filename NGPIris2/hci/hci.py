@@ -137,54 +137,6 @@ class HCIHandler:
             self.use_ssl
         ).json())
 
-    def SQL_query(self, query_path : str) -> DataFrame:
-        """
-        Perform an SQL query given a path to a JSON file containing the 
-        query. Returns a DataFrame containing the result of the query. 
-
-        :param query_path: Path to the query JSON file
-        :type query_path: str
-
-        :raises RuntimeError: Will raise a runtime error if an error was found 
-        with the SQL query
-        
-        :return: A DataFrame containing the result of the SQL query
-        :rtype: DataFrame
-        """
-        with open(query_path, "r") as inp:
-            response = get_query_response(
-                dict(load(inp)), 
-                self.address, 
-                self.api_port, 
-                self.token, 
-                self.use_ssl, 
-                "sql/"
-            )
-
-            result_list = list(response.json()["results"])
-            if result_list:
-                result_df : DataFrame = DataFrame(result_list)
-                meta_df : DataFrame = DataFrame()
-
-                for row in result_df["metadata"]:
-                    metadata_dict : dict = dict(row)
-                    df = DataFrame(metadata_dict)
-                    meta_df = concat([meta_df, df])
-
-                meta_df = meta_df.reset_index(drop = True)
-
-                for col in meta_df.columns:
-                    result_df.insert(len(result_df.columns), col, meta_df[col], allow_duplicates = True)
-
-                result_df = result_df.drop("metadata", axis = 1)
-
-                if "EXCEPTION" in meta_df.columns:
-                    raise RuntimeError(''.join(meta_df["EXCEPTION"].to_list())) from None
-            else:
-                result_df = DataFrame()
-
-            return result_df
-
     def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> DataFrame:
         """
         Prettify a query in the shape of a DataFrame.
