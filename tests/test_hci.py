@@ -15,6 +15,9 @@ def test_look_up_all_indexes() -> None:
     for index in list_of_indexes:
         assert hci_h.look_up_index(index)
 
+def test_fail_index_look_up() -> None:
+    assert not hci_h.look_up_index("anIndexThatDoesNotExist")
+    
 def test_make_simple_raw_query() -> None:
     list_of_indexes = hci_h.list_index_names()
     arbitrary_index = list_of_indexes[randint(0, len(list_of_indexes) - 1)]
@@ -45,4 +48,3 @@ def test_prettify_raw_query() -> None:
     result = hci_h.raw_query(query)
     df = hci_h.prettify_raw_query(result)
     assert type(df.to_dict("list")) == dict
-
