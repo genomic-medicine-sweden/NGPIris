@@ -406,12 +406,13 @@ class HCPHandler:
         :param user_ID: The user name. Can either be the DisplayName or user_ID
         :type user_ID: str
 
-        :param permission: What permission to be set. Valid options are:
-            * FULL_CONTROL 
-            * WRITE 
-            * WRITE_ACP 
-            * READ 
-            * READ_ACP\n
+        :param permission: 
+            What permission to be set. Valid options are:
+                * FULL_CONTROL 
+                * WRITE 
+                * WRITE_ACP 
+                * READ 
+                * READ_ACP\n
         :type permission: str
         """
         self.s3_client.put_object_acl(
@@ -427,12 +428,13 @@ class HCPHandler:
         :param user_ID: The user name. Can either be the DisplayName or user_ID
         :type user_ID: str
         
-        :param permission: What permission to be set. Valid options are: 
-            * FULL_CONTROL 
-            * WRITE 
-            * WRITE_ACP 
-            * READ 
-            * READ_ACP\n
+        :param permission: 
+            What permission to be set. Valid options are: 
+                * FULL_CONTROL 
+                * WRITE 
+                * WRITE_ACP 
+                * READ 
+                * READ_ACP\n
         :type permission: str
         """
         self.s3_client.put_bucket_acl(
