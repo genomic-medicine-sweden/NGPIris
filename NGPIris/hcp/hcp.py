@@ -172,8 +172,7 @@ class HCPHandler:
         """
         List all objects in the mounted bucket
 
-        :param name_only: If True, return only a list of the object names. 
-        If False, return the full metadata about each object. Defaults to False.
+        :param name_only: If True, return only a list of the object names. If False, return the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
 
         :return: A list of of either strings or a list of object metadata (the form of a dictionary)
@@ -232,8 +231,7 @@ class HCPHandler:
         :param key: Name of the object
         :type key: str
 
-        :param local_file_path: Path to a file on your local system where the 
-        contents of the object file can be put.
+        :param local_file_path: Path to a file on your local system where the contents of the object file can be put.
         :type local_file_path: str
         """
         try:
@@ -264,8 +262,7 @@ class HCPHandler:
         :param local_file_path: Path to the file to be uploaded
         :type local_file_path: str
 
-        :param key: An optional new name for the file object on the bucket. 
-        Defaults to the same name as the file
+        :param key: An optional new name for the file object on the bucket. Defaults to the same name as the file
         :type key: str, optional
         """
         raise_path_error(local_file_path)
@@ -346,9 +343,7 @@ class HCPHandler:
 
     def search_objects_in_bucket(self, search_string : str, case_sensitive = False) -> list[str]:
         """
-        Simple search method using substrings in order to find certain objects. 
-        
-        Case insensitive by default.
+        Simple search method using substrings in order to find certain objects. Case insensitive by default.
 
         :param search_string: Substring to be used in the search
         :type search_string: str
@@ -356,8 +351,7 @@ class HCPHandler:
         :param case_sensitive: Case sensitivity. Defaults to False
         :type case_sensitive: bool, optional
 
-        :return: List of object names that match the in some way to the 
-        object names
+        :return: List of object names that match the in some way to the object names
         :rtype: list[str]
         """
         search_result : list[str] = []
@@ -413,11 +407,11 @@ class HCPHandler:
         :type user_ID: str
 
         :param permission: What permission to be set. Valid options are:
-        - FULL_CONTROL 
-        - WRITE 
-        - WRITE_ACP 
-        - READ 
-        - READ_ACP\n
+            * FULL_CONTROL 
+            * WRITE 
+            * WRITE_ACP 
+            * READ 
+            * READ_ACP\n
         :type permission: str
         """
         self.s3_client.put_object_acl(
@@ -428,18 +422,17 @@ class HCPHandler:
 
     def modify_single_bucket_acl(self, user_ID : str, permission : str) -> None:
         """
-        Modify permissions for a user in the Access Control List (ACL) for the 
-        mounted bucket
+        Modify permissions for a user in the Access Control List (ACL) for the mounted bucket
 
         :param user_ID: The user name. Can either be the DisplayName or user_ID
         :type user_ID: str
         
-        :param permission: What permission to be set. Valid options are:
-        - FULL_CONTROL 
-        - WRITE 
-        - WRITE_ACP 
-        - READ 
-        - READ_ACP\n
+        :param permission: What permission to be set. Valid options are: 
+            * FULL_CONTROL 
+            * WRITE 
+            * WRITE_ACP 
+            * READ 
+            * READ_ACP\n
         :type permission: str
         """
         self.s3_client.put_bucket_acl(
@@ -451,14 +444,9 @@ class HCPHandler:
         """
         Modifies  permissions to multiple objects, see below.
 
-        In order to add permissions for multiple objects, we make use of a 
-        dictionary of a dictionary:
-        :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`
-        So for every object (key), we set the permissions for every user ID for 
-        that object. 
+        In order to add permissions for multiple objects, we make use of a dictionary of a dictionary: :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`. So for every object (key), we set the permissions for every user ID for that object. 
 
-        :param key_user_ID_permissions: The dictionary containing object name 
-        and user_id-permission dictionary
+        :param key_user_ID_permissions: The dictionary containing object name and user_id-permission dictionary
         :type key_user_ID_permissions: dict[str, dict[str, str]]
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
@@ -472,8 +460,7 @@ class HCPHandler:
         """
         Modify permissions for multiple users for the mounted bucket
 
-        :param user_ID_permissions: The dictionary containing the user name and 
-        the corresponding permission to be set to that user
+        :param user_ID_permissions: The dictionary containing the user name and the corresponding permission to be set to that user
         :type user_ID_permissions: dict[str, str]
         """
         self.s3_client.put_bucket_acl(

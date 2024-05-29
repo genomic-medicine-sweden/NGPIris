@@ -49,8 +49,7 @@ class HCIHandler:
         The token is used for every operation that needs to send a request to 
         HCI.
 
-        :raises VPNConnectionError: If there was a problem when requesting a token, a 
-        runtime error will be raised 
+        :raises VPNConnectionError: If there was a problem when requesting a token, a runtime error will be raised 
         """
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
         data = {
@@ -144,8 +143,7 @@ class HCIHandler:
         :param query_path: The raw query to be prettified
         :type query_path: dict
 
-        :param only_metadata: Boolean choice between only returning the metadata. 
-        Defaults to True
+        :param only_metadata: Boolean choice between only returning the metadata. Defaults to True
         :type only_metadata: bool, optional
 
         :return: A DataFrame of the query

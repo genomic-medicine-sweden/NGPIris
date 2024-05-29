@@ -86,8 +86,7 @@ def get_query_response(
     :param use_ssl: Boolean choice of using SSL
     :type use_ssl: bool
 
-    :param path_extension: possibly extend the request URL. Used for example 
-    when making SQL requests. Defaults to ""
+    :param path_extension: possibly extend the request URL. Used for example when making SQL requests. Defaults to ""
     :type path_extension: str, optional
 
     :return: A response containing information about the query
