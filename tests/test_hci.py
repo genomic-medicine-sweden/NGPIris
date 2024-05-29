@@ -28,6 +28,15 @@ def test_make_simple_raw_query() -> None:
     result = hci_h.raw_query(query)
     assert result["indexName"] == arbitrary_index
 
+def test_fail_raw_query() -> None:
+    query = {}
+    try:
+        hci_h.raw_query(query)
+    except:
+        assert True
+    else:
+        assert False
+
 def test_make_simple_raw_query_from_JSON() -> None:
     list_of_indexes = hci_h.list_index_names()
     arbitrary_index = list_of_indexes[randint(0, len(list_of_indexes) - 1)]
