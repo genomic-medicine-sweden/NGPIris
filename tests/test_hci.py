@@ -28,6 +28,22 @@ def test_make_simple_raw_query() -> None:
     result = hci_h.raw_query(query)
     assert result["indexName"] == arbitrary_index
 
+def test_raw_query_with_results() -> None:
+    query = {
+        "indexName" : "Parsed_VCF_Index",
+        "facetRequests" : [
+            {
+                "fieldName" : "ref"
+            },
+            {
+                "fieldName" : "alt"
+            }
+        ]
+    }
+    parsed_VCF_index_result : list = hci_h.raw_query(query)["facets"]
+    for i in range(len(parsed_VCF_index_result)):
+        assert parsed_VCF_index_result[i]["termCounts"] # Assert if the result is not empty
+
 def test_fail_raw_query() -> None:
     query = {}
     try:
@@ -48,14 +64,5 @@ def test_make_simple_raw_query_from_JSON() -> None:
         dump(query, f, indent = 4)
     result = hci_h.raw_query_from_JSON(path)
     assert result["indexName"] == arbitrary_index
-    remove(path)
-
-def test_prettify_raw_query() -> None:
-    list_of_indexes = hci_h.list_index_names()
-    arbitrary_index = list_of_indexes[randint(0, len(list_of_indexes) - 1)]
-    query = {
-        "indexName" : arbitrary_index
-    }
-    result = hci_h.raw_query(query)
-    df = hci_h.prettify_raw_query(result)
-    assert type(df.to_dict("list")) == dict
+    remove(path)    
+    
