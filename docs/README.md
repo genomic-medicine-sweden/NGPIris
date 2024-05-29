@@ -21,7 +21,7 @@ The current way to install NGP Iris is by the following steps:
 3. Run `pip install .`. This will install NGP Iris along with the required Python packages in your Python environment
 
 ### NGPr credentials
-In order to use NGP Iris, a JSON file containing your credentials for the NGPr. The template of the JSON file can be found in [credentials/credentials_template.json](credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI ***or*** both. Do note that you can't leave some parts of either the HCP or HCI credentials empty:
+In order to use NGP Iris, a JSON file containing your credentials for the NGPr. The template of the JSON file can be found in [credentials/credentials_template.json](../credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI ***or*** both. Do note that you can't leave some parts of either the HCP or HCI credentials empty:
 ```JSON
 {
   "hcp" : {
