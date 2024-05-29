@@ -1,7 +1,8 @@
 
 from NGPIris.hci import HCIHandler
 from random import randint
-from json import load, dump
+from json import dump
+from os import remove
 
 hci_h = HCIHandler("credentials/testCredentials.json")
 hci_h.request_token()
@@ -31,13 +32,14 @@ def test_make_simple_raw_query_from_JSON() -> None:
     list_of_indexes = hci_h.list_index_names()
     arbitrary_index = list_of_indexes[randint(0, len(list_of_indexes) - 1)]
     path = "tests/data/json_test_query.json"
-    with open(path, "r") as f1:
-        query : dict = load(f1)
-        query["indexName"] = arbitrary_index
-        with open(path, "w") as f2:
-            dump(query, f2, indent = 4)
+    with open(path, "w") as f:
+        query = {
+            "indexName": arbitrary_index
+        }
+        dump(query, f, indent = 4)
     result = hci_h.raw_query_from_JSON(path)
     assert result["indexName"] == arbitrary_index
+    remove(path)
 
 def test_prettify_raw_query() -> None:
     list_of_indexes = hci_h.list_index_names()
