@@ -96,26 +96,3 @@ def get_query_response(
     
     return response
     
-def process_raw_query(raw_query : dict, only_metadata : bool) -> list:
-    """
-    Take a raw query dictionary and turn it into a list of datapoints
-
-    :param raw_query: Raw query to be processed
-    :type raw_query: dict
-
-    :param only_metadata: Boolean choice between only returning the metadata
-    :type only_metadata: bool
-    
-    :return: List of datapoints from the response
-    :rtype: list
-    """ 
-    list_of_data = [] 
-    if only_metadata:
-        for result_dict in raw_query["results"]:
-            list_of_data.append({k : "".join(v) for k, v in result_dict["metadata"].items()})
-    else:
-        for result_dict in raw_query["results"]:
-            list_of_data.append(result_dict)
-    
-    return list_of_data
-    

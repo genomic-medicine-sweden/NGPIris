@@ -2,8 +2,7 @@
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.hci.helpers import (
     get_index_response,
-    get_query_response,
-    process_raw_query
+    get_query_response
 )
 from NGPIris.hci.exceptions import *
 
@@ -135,21 +134,3 @@ class HCIHandler:
             self.token, 
             self.use_ssl
         ).json())
-
-    def prettify_raw_query(self, raw_query : dict, only_metadata : bool = True) -> DataFrame:
-        """
-        Prettify a query in the shape of a DataFrame.
-
-        :param query_path: The raw query to be prettified
-        :type query_path: dict
-
-        :param only_metadata: Boolean choice between only returning the metadata. Defaults to True
-        :type only_metadata: bool, optional
-
-        :return: A DataFrame of the query
-        :rtype: DataFrame
-        """
-        
-        list_of_data = process_raw_query(raw_query, only_metadata)
-        
-        return DataFrame(list_of_data)
