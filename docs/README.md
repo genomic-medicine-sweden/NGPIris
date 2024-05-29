@@ -41,7 +41,7 @@ In order to use NGP Iris, a JSON file containing your credentials for the NGPr. 
 This will prompt NGP Iris to complain about incomplete credentials. Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
 ## Technical package documentation
-A thorough package documentation can be found in [docs.md](docs.md).
+A thorough package documentation can be found in the Technical documentation page.
 
 ## Basic usage
 NGP Iris can be used as a Python package or by using the command line. The following sections cover examples of how NGP Iris might be used as a package and how to use its various commands.
