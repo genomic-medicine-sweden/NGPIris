@@ -1,6 +1,5 @@
 
 from json import (
-    loads, 
     dumps
 )
 from requests import (
@@ -8,21 +7,6 @@ from requests import (
     get,
     post    
 )
-
-def raise_request_error(response : Response, url : str) -> None:
-    """
-    Raise a request error.
-
-    :param response: The response containing the error to be raised
-    :type response: requests.Response
-
-    :param url: The URL where the request was made
-    :type url: str
-
-    :raises RuntimeError: Will raise a runtime error for a request
-    """
-    error_msg : str = "The response code from the request made at " + url + " returned status code " + str(response.status_code) + ": " + str(loads(response.text)["errorMessage"])
-    raise RuntimeError(error_msg) from None
 
 def get_index_response(address : str, api_port : str, token : str, use_ssl : bool) -> Response:
     """
@@ -55,8 +39,7 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
         verify = use_ssl
     )
 
-    if response.status_code != 200:
-        raise_request_error(response, url)
+    response.raise_for_status()
 
     return response
 
@@ -109,8 +92,7 @@ def get_query_response(
         verify = use_ssl
     )
 
-    if response.status_code != 200:
-        raise_request_error(response, url)
+    response.raise_for_status()
     
     return response
     
