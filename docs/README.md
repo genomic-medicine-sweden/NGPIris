@@ -24,21 +24,21 @@ The current way to install NGP Iris is by the following steps:
 In order to use NGP Iris, a JSON file containing your credentials for the NGPr. The template of the JSON file can be found in [credentials/credentials_template.json](credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI ***or*** both. Do note that you can't leave some parts of either the HCP or HCI credentials empty:
 ```JSON
 {
-    "hcp" : {
-        "endpoint" : "some_endpoint",
-        "aws_access_key_id" : "",        <-- Empty field!
-        "aws_secret_access_key" : ""     <-- Empty field!
-    },
-    "hci" : {
-        "username" : "some_user",
-        "password" : "some_password",
-        "address" : "some_address",
-        "auth_port" : "some_auth_port",
-        "api_port" : "some_api_port"
-    }
+  "hcp" : {
+      "endpoint" : "some_endpoint",
+      "aws_access_key_id" : "",    
+      "aws_secret_access_key" : "" 
+  },
+  "hci" : {
+      "username" : "some_user",
+      "password" : "some_password",
+      "address" : "some_address",
+      "auth_port" : "some_auth_port",
+      "api_port" : "some_api_port"
+  }
 }
 ```
-This will prompt NGP Iris to complain about incomplete credentials. Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
+This will prompt NGP Iris to complain about incomplete credentials (since the entries `aws_access_key_id` and `aws_secret_access_key` are empty). Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
 ## Technical package documentation
 A thorough package documentation can be found in the Technical documentation page.
