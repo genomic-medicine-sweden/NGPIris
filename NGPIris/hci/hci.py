@@ -10,10 +10,6 @@ from requests import (
     Response,
     post
 )
-from pandas import (
-    DataFrame,
-    concat
-)
 from urllib3 import disable_warnings
 from json import load
 
