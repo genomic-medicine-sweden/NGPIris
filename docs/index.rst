@@ -5,12 +5,12 @@
 
 Welcome to NGP Iris's documentation!
 ====================================
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
    
-   modules.rst
+   README <README.md>
+   Technical documentation <modules.rst>
 
 Indices and tables
 ==================

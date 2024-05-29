@@ -8,7 +8,11 @@
 import sys
 import os
 from toml import load
+from marko import convert
+
 sys.path.insert(0, os.path.abspath(".."))
+
+#root_doc = "README"
 
 pyproject = load("../pyproject.toml")
 pyproject_project : dict = pyproject["project"]
@@ -26,11 +30,12 @@ release = pyproject_project["version"]
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc"]
+extensions = ["sphinx.ext.autodoc", "myst_parser"]
+
+source_suffix = [".rst", ".md"]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
 
 
 # -- Options for HTML output -------------------------------------------------
