@@ -22,6 +22,11 @@ def all_fields_empty(key : str, credentials : Credentials) -> bool:
     return all([v == "" for v in credentials[key].values()])
 
 def check_empty_field(credentials : Credentials):
+    if all([all_fields_empty(k, credentials) for k in credentials.keys()]):
+        raise RuntimeError(
+            "Missing entries in all fields in the credentials file. " +
+            "Please enter your credentials in the credentials file"
+        )
     empty_fields_per_entry : dict[str, list[str]] = {}
     for k1, d in credentials.items():
         # If all fields in *either* hci or hcp is empty then continue
