@@ -168,7 +168,7 @@ class HCPHandler:
         list_of_buckets : list[str] = response["name"]
         return list_of_buckets
     
-    def list_objects(self, name_only = False) -> list:
+    def list_objects(self, name_only : bool = False) -> list:
         """
         List all objects in the mounted bucket
 
@@ -300,7 +300,7 @@ class HCPHandler:
         for filename in filenames:
             self.upload_file(local_folder_path + filename)
 
-    def delete_objects(self, keys : list[str], verbose = True) -> None:
+    def delete_objects(self, keys : list[str], verbose : bool = True) -> None:
         """Delete a list of objects on the mounted bucket 
 
         :param keys: List of object names to be deleted
@@ -330,7 +330,7 @@ class HCPHandler:
                 does_not_exist.append("- " + key + "\n")
             print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
     
-    def delete_object(self, key : str, verbose = True) -> None:
+    def delete_object(self, key : str, verbose : bool = True) -> None:
         """
         Delete a single object in the mounted bucket
 
