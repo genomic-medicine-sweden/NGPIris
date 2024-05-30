@@ -58,7 +58,7 @@ class HCIHandler:
         }
         try:
             response : Response = post(url, data = data, verify = self.use_ssl)
-        except: 
+        except: # pragma: no cover
             error_msg : str = "The token request made at " + url + " failed. Please check your connection and that you have your VPN enabled"
             raise VPNConnectionError(error_msg) from None
 

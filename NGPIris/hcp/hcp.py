@@ -50,7 +50,7 @@ class HCPHandler:
         tenant_parse = parse("https://{}.hcp1.vgregion.se", self.endpoint)
         if type(tenant_parse) is Result:
             self.tenant = str(tenant_parse[0])
-        else:
+        else: # pragma: no cover
             raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file")
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
@@ -62,7 +62,7 @@ class HCPHandler:
         if not self.use_ssl:
             disable_warnings()
 
-        if proxy_path:
+        if proxy_path: # pragma: no cover
             s3_config = Config(
                 s3 = {
                     "addressing_style": "path",
@@ -89,7 +89,7 @@ class HCPHandler:
             config = s3_config
         )
 
-        if custom_config_path:
+        if custom_config_path: # pragma: no cover
             ini_config = ConfigParser()
             ini_config.read(custom_config_path)
 
@@ -141,16 +141,16 @@ class HCPHandler:
         # Check if bucket exist
         try:
             response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
-        except EndpointConnectionError as e:
+        except EndpointConnectionError as e: # pragma: no cover
             print(e)
             raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
         except ClientError as e:
             print(e)
             raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
-        except Exception as e:
+        except Exception as e: # pragma: no cover
             raise Exception(e)
             
-        if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
+        if response["ResponseMetadata"].get("HTTPStatusCode", -1) != 200: # pragma: no cover
             error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
             raise Exception(error_msg)
     
@@ -181,7 +181,7 @@ class HCPHandler:
         response_list_objects = dict(self.s3_client.list_objects_v2(
             Bucket = self.bucket_name
         ))
-        if "Contents" not in response_list_objects.keys():
+        if "Contents" not in response_list_objects.keys(): # pragma: no cover
             return []
         list_of_objects : list[dict] = response_list_objects["Contents"]
         if name_only:
@@ -219,9 +219,9 @@ class HCPHandler:
             response = self.get_object(key)
             if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
                 return True
-            else: 
+            else: # pragma: no cover
                 return False
-        except:
+        except: # pragma: no cover
             return False
 
     def download_file(self, key : str, local_file_path : str) -> None:
@@ -249,11 +249,11 @@ class HCPHandler:
                     Config = self.transfer_config,
                     Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                 )
-        except ClientError as e0:
+        except ClientError as e0: 
             print(str(e0))
-            print("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
-        except Exception as e:
-            print(str(e))
+            raise Exception("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+        except Exception as e: # pragma: no cover
+            raise Exception(e)
 
     def upload_file(self, local_file_path : str, key : str = "") -> None:
         """
@@ -381,7 +381,7 @@ class HCPHandler:
                 Key = key
             )
         except Exception as e:
-            exit(str(e))
+            raise Exception(e)
         return response
 
     def get_bucket_acl(self) -> dict:

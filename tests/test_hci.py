@@ -50,7 +50,7 @@ def test_fail_raw_query() -> None:
         hci_h.raw_query(query)
     except:
         assert True
-    else:
+    else: # pragma: no cover
         assert False
 
 def test_make_simple_raw_query_from_JSON() -> None:
