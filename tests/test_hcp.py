@@ -38,6 +38,10 @@ def test_upload_file() -> None:
     test_mount_bucket()
     hcp_h.upload_file(test_file_path)
 
+def test_upload_file_in_sub_directory() -> None:
+    test_mount_bucket()
+    hcp_h.upload_file(test_file_path, "a_sub_directory/a_file")
+
 def test_upload_nonexistent_file() -> None:
     test_mount_bucket()
     try: 
@@ -61,6 +65,11 @@ def test_upload_nonexisting_folder() -> None:
         assert False
 
 def test_get_file() -> None:
+    test_mount_bucket()
+    assert hcp_h.object_exists("a_sub_directory/a_file")
+    assert hcp_h.get_object("a_sub_directory/a_file")
+
+def test_get_file_in_sub_directory() -> None:
     test_mount_bucket()
     assert hcp_h.object_exists(test_file)
     assert hcp_h.get_object(test_file)
@@ -111,6 +120,8 @@ def test_get_bucket_acl() -> None:
 def test_delete_file() -> None:
     test_mount_bucket()
     hcp_h.delete_object(test_file)
+    hcp_h.delete_object("a_sub_directory/a_file")
+    hcp_h.delete_object("a_sub_directory")
     for file in listdir("tests/data/a folder of data/"):
         hcp_h.delete_object(file)
 
