@@ -38,9 +38,27 @@ def test_upload_file() -> None:
     test_mount_bucket()
     hcp_h.upload_file(test_file_path)
 
+def test_upload_nonexistent_file() -> None:
+    test_mount_bucket()
+    try: 
+        hcp_h.upload_file("tests/data/aTestFileThatDoesNotExist")
+    except:
+        assert True
+    else: # pragma: no cover
+        assert False
+
 def test_upload_folder() -> None:
     test_mount_bucket()
     hcp_h.upload_folder("tests/data/a folder of data/")
+
+def test_upload_nonexisting_folder() -> None:
+    test_mount_bucket()
+    try: 
+        hcp_h.upload_folder("tests/data/aFolderOfFilesThatDoesNotExist")
+    except:
+        assert True
+    else: # pragma: no cover
+        assert False
 
 def test_get_file() -> None:
     test_mount_bucket()
