@@ -1,7 +1,7 @@
 
 from NGPIris.hcp import HCPHandler
 from configparser import ConfigParser
-from os import mkdir, rmdir, remove
+from os import mkdir, rmdir, remove, listdir
 from filecmp import cmp
 
 hcp_h = HCPHandler("credentials/testCredentials.json")
@@ -59,15 +59,42 @@ def test_download_nonexistent_file() -> None:
         hcp_h.download_file("aFileThatDoesNotExist", result_path + "aFileThatDoesNotExist")
     except:
         assert True
-    else:
+    else: # pragma: no cover
         assert False
 
 def test_search_objects_in_bucket() -> None:
+    test_mount_bucket()
     hcp_h.search_objects_in_bucket(test_file)
+
+def test_get_object_acl() -> None:
+    test_mount_bucket()
+    hcp_h.get_object_acl(test_file)
+
+def test_get_bucket_acl() -> None:
+    test_mount_bucket()
+    hcp_h.get_bucket_acl()
+
+#def test_modify_single_object_acl() -> None:
+#    test_mount_bucket()
+#    hcp_h.modify_single_object_acl()
+#
+#def test_modify_single_bucket_acl() -> None:
+#    test_mount_bucket()
+#    hcp_h.modify_single_bucket_acl()
+#
+#def test_modify_object_acl() -> None:
+#    test_mount_bucket()
+#    hcp_h.modify_object_acl()
+#
+#def test_modify_bucket_acl() -> None:
+#    test_mount_bucket()
+#    hcp_h.modify_bucket_acl()
 
 def test_delete_file() -> None:
     test_mount_bucket()
     hcp_h.delete_object(test_file)
+    for file in listdir("tests/data/a folder of data/"):
+        hcp_h.delete_object(file)
 
 def test_delete_nonexistent_files() -> None:
     hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"])

@@ -375,13 +375,10 @@ class HCPHandler:
         :return: Return the ACL in the shape of a dictionary
         :rtype: dict
         """
-        try:
-            response : dict = self.s3_client.get_object_acl(
-                Bucket = self.bucket_name,
-                Key = key
-            )
-        except Exception as e:
-            raise Exception(e)
+        response : dict = self.s3_client.get_object_acl(
+            Bucket = self.bucket_name,
+            Key = key
+        )
         return response
 
     def get_bucket_acl(self) -> dict:
