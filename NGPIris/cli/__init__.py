@@ -115,6 +115,31 @@ def list_objects(context : Context, bucket : str, name_only : bool):
             out.append(dumps(d, indent = 4, default = str) + "\n")
         click.echo("".join(out))
 
+@cli.command()
+@click.argument("bucket")
+@click.argument("search_string")
+@click.option(
+    "-cs", 
+    "--case_sensitive", 
+    help = "Use case sensitivity?", 
+    default = False
+)
+@click.pass_context
+def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool):
+    """
+    Make simple search using substrings in a bucket/namespace on the HCP.
+
+    BUCKET is the name of the bucket in which to make the search.
+
+    SEARCH_STRING is any string that is to be used for the search.
+    """
+    hcph : HCPHandler = get_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    list_of_results = hcph.search_objects_in_bucket(search_string, case_sensitive)
+    click.echo("Search results:")
+    for result in list_of_results:
+        click.echo("- " + result)
+
 @click.command()
 @click.option(
     "--path",
@@ -130,7 +155,7 @@ def iris_generate_credentials_file(path : str, name : str):
     """
     Generate blank credentials file for the HCI and HCP. 
 
-    WARNING: This file will store sensisitve information (such as passwords) in plaintext.
+    WARNING: This file will store sensitive information (such as passwords) in plaintext.
     """
     credentials_dict = {
         "hcp" : {
