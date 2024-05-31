@@ -286,19 +286,23 @@ class HCPHandler:
                 Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
             )
 
-    def upload_folder(self, local_folder_path : str) -> None:
+    def upload_folder(self, local_folder_path : str, key : str = "") -> None:
         """
         Upload the contents of a folder to the mounted bucket
 
         :param local_folder_path: Path to the folder to be uploaded
         :type local_folder_path: str
+        :param key: An optional new name for the folder path on the bucket. Defaults to the same name as the local folder path
+        :type key: str, optional
         """
         raise_path_error(local_folder_path)
 
+        if not key:
+            key = local_folder_path
         filenames = listdir(local_folder_path)
 
         for filename in filenames:
-            self.upload_file(local_folder_path + filename)
+            self.upload_file(local_folder_path + filename, key + filename)
 
     def delete_objects(self, keys : list[str], verbose : bool = True) -> None:
         """Delete a list of objects on the mounted bucket 
