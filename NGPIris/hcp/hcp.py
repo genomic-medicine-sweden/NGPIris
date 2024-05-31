@@ -341,7 +341,17 @@ class HCPHandler:
         """
         self.delete_objects([key], verbose = verbose)
 
-    def search_objects_in_bucket(self, search_string : str, case_sensitive = False) -> list[str]:
+    def delete_folder(self, key : str, verbose : bool = True) -> None:
+        if key[-1] != "/":
+            key += "/"
+        object_path_in_folder = self.search_objects_in_bucket(key)
+        object_path_in_folder.remove(key)
+        for object_path in object_path_in_folder:
+            if object_path[-1] == "/":
+                raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
+        self.delete_objects(object_path_in_folder + [key], verbose = verbose)
+
+    def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> list[str]:
         """
         Simple search method using substrings in order to find certain objects. Case insensitive by default.
 
