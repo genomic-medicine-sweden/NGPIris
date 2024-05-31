@@ -53,7 +53,7 @@ def test_upload_nonexistent_file() -> None:
 
 def test_upload_folder() -> None:
     test_mount_bucket()
-    hcp_h.upload_folder("tests/data/a folder of data/")
+    hcp_h.upload_folder("tests/data/a folder of data/", "a folder of data/")
 
 def test_upload_nonexisting_folder() -> None:
     test_mount_bucket()
@@ -122,8 +122,21 @@ def test_delete_file() -> None:
     hcp_h.delete_object(test_file)
     hcp_h.delete_object("a_sub_directory/a_file")
     hcp_h.delete_object("a_sub_directory")
-    for file in listdir("tests/data/a folder of data/"):
-        hcp_h.delete_object(file)
+
+def test_delete_folder_with_sub_directory() -> None:
+    test_mount_bucket()
+    hcp_h.upload_file(test_file_path, "a folder of data/a sub dir/a file")
+    try:
+        hcp_h.delete_folder("a folder of data/")
+    except: 
+        assert True
+    else: # pragma: no cover 
+        assert False
+    hcp_h.delete_folder("a folder of data/a sub dir/")
+
+def test_delete_folder() -> None:
+    test_mount_bucket()
+    hcp_h.delete_folder("a folder of data/")
 
 def test_delete_nonexistent_files() -> None:
     hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"])
