@@ -342,6 +342,15 @@ class HCPHandler:
         self.delete_objects([key], verbose = verbose)
 
     def delete_folder(self, key : str, verbose : bool = True) -> None:
+        """
+        Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raisesd
+
+        :param key: The folder of objects to be deleted
+        :type key: str
+        :param verbose: Print the result of the deletion. defaults to True
+        :type verbose: bool, optional
+        :raises RuntimeError: If there are subfolders, a RuntimeError is raisesd
+        """
         if key[-1] != "/":
             key += "/"
         object_path_in_folder = self.search_objects_in_bucket(key)
