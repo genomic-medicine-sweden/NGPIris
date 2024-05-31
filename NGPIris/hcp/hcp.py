@@ -357,8 +357,12 @@ class HCPHandler:
         """
         if key[-1] != "/":
             key += "/"
-        object_path_in_folder = self.search_objects_in_bucket(key)
-        object_path_in_folder.remove(key)
+        object_path_in_folder = []
+        for s in self.search_objects_in_bucket(key):
+            parse_object = parse(key + "{}", s)
+            if type(parse_object) is Result:
+                object_path_in_folder.append(s)
+
         for object_path in object_path_in_folder:
             if object_path[-1] == "/":
                 raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
