@@ -169,7 +169,4 @@ Downloading files from a mounted bucket is done with <span style="color:green">`
 Deletion on the mounted bucket is made via the <span style="color:green">`delete_object`</span>, <span style="color:green">`delete_objects`</span> and <span style="color:green">`delete_folder`</span> methods.
 
 ### The `HCIHandler` class and its methods
-
-### Added features
-### Removed features
-### Modified features
+TBA
