@@ -6,6 +6,8 @@ This document is meant as a semi complete changelog for IRIS, that will hopefull
 ## CLI 
 IRIS 5 still features a Command Line Interface (CLI) like recent versions of IRIS. However, the new CLI is a bit different compared to before; the general structure of commands are totally different, but it still has the commands you would come to expect. 
 
+### The `iris` command
+
 Typing `iris --help` yields the following:
 ```cmd
 Usage: iris [OPTIONS] CREDENTIALS COMMAND [ARGS]...
@@ -52,21 +54,58 @@ Commands:
   utils     Advanced commands for specific purposes
 
 ```
-### Added features
-* `delete-folder`
-* `delete-object`
-* `list-buckets`
-* `list-objects`
-* `simple-search`
+#### Added features
+* `iris` commands:
+  * `delete-folder`
+  * `delete-object`
+  * `list-buckets`
+  * `list-objects`
+  * `simple-search`
 
-### Removed features
-* `delete`
-* `search`
-* `utils`
+#### Removed features
+* `iris` commands:
+  * `delete`
+  * `search`
+  * `utils`
 
-### Modified features
-* `download`
-* `upload`
+#### Modified features
+* `iris` commands:
+  * `download`
+  * `upload`
+
+### The `iris_generate_credentials_file` command
+
+IRIS 5 comes with a new separate command for generating your NGPr credentials: `iris_generate_credentials_file`. The idea with this command is to make it easier for anyone to ensure the correct structure of their credentials file. Typing `iris_generate_credentials_file --help` yields the following:
+```cmd
+Usage: iris_generate_credentials_file [OPTIONS]
+
+  Generate blank credentials file for the HCI and HCP.
+
+  WARNING: This file will store sensitive information (such as passwords) in
+  plaintext.
+
+Options:
+  --path TEXT  Path for where to put the new credentials file
+  --name TEXT  Custom name for the credentials file
+  --help       Show this message and exit.
+```
+Simply running `iris_generate_credentials_file` will generate a blank credentials file (which is just a JSON file) like the following:
+```json
+{
+  "hcp": {
+      "endpoint": "",
+      "aws_access_key_id": "",
+      "aws_secret_access_key": ""
+  },
+  "hci": {
+      "username": "",
+      "password": "",
+      "address": "",
+      "auth_port": "",
+      "api_port": ""
+  }
+}
+```
 
 ## Package
 ### Added features
