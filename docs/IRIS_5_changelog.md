@@ -166,7 +166,7 @@ Listing buckets in IRIS 5 yields the same result as in the previous versions. Ho
 
 Downloading files from a mounted bucket is done with <span style="color:green">`download_file`</span>. It outputs a progress bar and ETAs for files. Similarly, <span style="color:green">`upload_file`</span> uploads files to the mounted bucket with an associated progress bar and ETA. You can also upload a folder of files with <span style="color:green">`upload_folder`</span>. 
 
-
+Deletion on the mounted bucket is made via the <span style="color:green">`delete_object`</span>, <span style="color:green">`delete_objects`</span> and <span style="color:green">`delete_folder`</span> methods.
 
 ### The `HCIHandler` class and its methods
 
