@@ -108,6 +108,14 @@ class HCPHandler:
             )
     
     def get_response(self, path_extension : str = "") -> dict:
+        """
+        Make a request to the HCP in order to use the builtin MAPI
+
+        :param path_extension: Extension for the base request URL, defaults to the empty string
+        :type path_extension: str, optional
+        :return: The response as a dictionary
+        :rtype: dict
+        """
         url = self.base_request_url + path_extension
         headers = {
             "Authorization": "HCP " + self.token,
