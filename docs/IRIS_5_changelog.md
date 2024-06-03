@@ -164,6 +164,10 @@ In order to connect to a bucket in IRIS 5, you need to use the method <span styl
 
 Listing buckets in IRIS 5 yields the same result as in the previous versions. However, you can also list all objects in the bucket/namespace with <span style="color:green">`list_objects`</span>. By default, all metadata for each object is included, but this can be changed with the `name_only` parameter. If you need to search for an object however, we recommend using the <span style="color:green">`search_objects_in_bucket`</span> method (until sufficiently good HCI index searches can be made).
 
+Downloading files from a mounted bucket is done with <span style="color:green">`download_file`</span>. It outputs a progress bar and ETAs for files. Similarly, <span style="color:green">`upload_file`</span> uploads files to the mounted bucket with an associated progress bar and ETA. You can also upload a folder of files with <span style="color:green">`upload_folder`</span>. 
+
+
+
 ### The `HCIHandler` class and its methods
 
 ### Added features
