@@ -1,6 +1,6 @@
 
 import click
-from click.core import Context, Argument, Option
+from click.core import Context
 from json import dumps, dump
 from os import path
 
@@ -68,7 +68,7 @@ def download(context : Context, object : str, bucket : str, local_path : str):
 @click.argument("object")
 @click.argument("bucket")
 @click.pass_context
-def delete(context : Context, object : str, bucket : str):
+def delete_object(context : Context, object : str, bucket : str):
     """
     Delete an object from an HCP bucket/namespace. 
 
@@ -79,6 +79,22 @@ def delete(context : Context, object : str, bucket : str):
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     hcph.delete_object(object)
+
+@cli.command()
+@click.argument("folder")
+@click.argument("bucket")
+@click.pass_context
+def delete_folder(context : Context, folder : str, bucket : str):
+    """
+    Delete a folder from an HCP bucket/namespace. 
+
+    FOLDER is the name of the folder to be deleted.
+
+    BUCKET is the name of the bucket where the folder to be deleted exist.
+    """
+    hcph : HCPHandler = get_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    hcph.delete_folder(folder)
 
 @cli.command()
 @click.pass_context
