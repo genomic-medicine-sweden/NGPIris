@@ -55,20 +55,51 @@ Commands:
 
 ```
 #### Added features
-* `delete-folder`
-* `delete-object`
-* `list-buckets`
-* `list-objects`
-* `simple-search`
+* `delete-folder`: Deletes a folder on the HCP
+* `delete-object`: Deletes an object on the HCP
+* `list-buckets`: Lists all buckets that the user is allowed to see
+* `list-objects`: Lists all objects that the user is allowed to see
+* `simple-search`: Performs a simple search using a substring in order to find matching objects in a bucket/namespace
 
 #### Removed features
-* `delete`
-* `search`
-* `utils`
+* `delete`: Replaced by `delete-folder` and `delete-object`
+* `search`: Replaced by `simple-search`
+* `utils`: Removed since it didn't contain anything particularly useful that can be moved to being separate subcommands in the future
 
 #### Modified features
-* `download`
-* `upload`
+* `download`:
+  * Does pretty much the same thing as previous versions in terms of CLI
+  * `iris path/to/credentials.json download --help`:
+    * ```cmd
+      Usage: iris CREDENTIALS download [OPTIONS] OBJECT BUCKET LOCAL_PATH
+
+        Download files from an HCP bucket/namespace.
+
+        OBJECT is the name of the object to be downloaded.
+
+        BUCKET is the name of the upload destination bucket.
+
+        LOCAL_PATH is the path to where the downloaded objects are to be stored
+        locally.
+
+      Options:
+        --help  Show this message and exit.
+      ```
+* `upload`:
+  * Does pretty much the same thing as previous versions in terms of CLI
+  * `iris path/to/credentials.json upload --help`:
+    * ```cmd
+      Usage: iris CREDENTIALS upload [OPTIONS] FILE_OR_FOLDER BUCKET
+
+        Upload files to an HCP bucket/namespace.
+
+        FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
+
+        BUCKET is the name of the upload destination bucket.
+
+      Options:
+        --help  Show this message and exit.
+      ```
 
 ### The `iris_generate_credentials_file` command
 
