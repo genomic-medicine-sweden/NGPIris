@@ -139,7 +139,30 @@ Simply running `iris_generate_credentials_file` will generate a blank credential
 The updated codebase for IRIS 5 contains some major changes to use of the package, but should still be familiar. The use cases of IRIS 5 is sill intended to be the same as in previous versions. The difference between IRIS 5 and previous versions is the new syntax and names of classes, methods and functions. Everything in IRIS 5 was inspired by the previous implementations of the `boto3` library, which means that most functionality should still exist, but in a different form; methods and functions may have new names, and they might be combined or separated. A good starting point for how to use IRIS 5 is the README and the technical documentation of the package. Below is a summary of the alterations made to IRIS 5. In order to avoid confusion, IRIS 5 content is marked in <span style="color:green">green</span> and old content is marked in <span style="color:red">red</span>.
 
 ### The `HCPHandler` class and its methods
-The <span style="color:green">`HCPHandler`</span> class is the replacement for <span style="color:red">`HCPManager`</span>. 
+The <span style="color:green">`HCPHandler`</span> class is the replacement for <span style="color:red">`HCPManager`</span>. Their class parameters are the following:
+```python
+HCPHandler(self, 
+  credentials_path : str, 
+  use_ssl : bool = False, 
+  proxy_path : str = "", 
+  custom_config_path : str = ""
+)
+```
+```python
+HCPHandler(self, 
+  endpoint = "", 
+  aws_access_key_id = "", 
+  aws_secret_access_key = "", 
+  bucket = None, 
+  credentials_path = "", 
+  debug = False
+)
+```
+As you can see, the differences between the two in terms of parameters are significant. Most of the information going into <span style="color:red">`HCPManager`</span> is moved to the credentials file, where the <span style="color:green">`credentials_path`</span> parameter in the <span style="color:green">`HCPHandler`</span> class parsed. The rest of the parameters are optional and more information about them can be found in the technical documentation. 
+
+In order to connect to a bucket in IRIS 5, you need to use the method <span style="color:green">`mount_bucket`</span>. This method effectively replaces <span style="color:red">`set_bucket`</span> and <span style="color:red">`attach_bucket`</span>. <span style="color:green">`mount_bucket`</span> only performs side-effects, so nothing is returned (just like <span style="color:red">`set_bucket`</span> and <span style="color:red">`attach_bucket`</span>). 
+
+Listing buckets in IRIS 5 yields the same result as in the previous versions. However, you can also list all objects in the bucket/namespace with <span style="color:green">`list_objects`</span>. By default, all metadata for each object is included, but this can be changed with the `name_only` parameter. If you need to search for an object however, we recommend using the <span style="color:green">`search_objects_in_bucket`</span> method (until sufficiently good HCI index searches can be made).
 
 ### The `HCIHandler` class and its methods
 
