@@ -19,11 +19,13 @@ Options:
   --help     Show this message and exit.
 
 Commands:
-  delete        Delete an object from an HCP bucket/namespace.
-  download      Download files from an HCP bucket/namespace.
-  list-buckets  List the available buckets/namespaces on the HCP.
-  list-objects  List the objects in a certain bucket/namespace on the HCP.
-  upload        Upload files to an HCP bucket/namespace.
+  delete-folder  Delete a folder from an HCP bucket/namespace.
+  delete-object  Delete an object from an HCP bucket/namespace.
+  download       Download files from an HCP bucket/namespace.
+  list-buckets   List the available buckets/namespaces on the HCP.
+  list-objects   List the objects in a certain bucket/namespace on the HCP.
+  simple-search  Make simple search using substrings in a...
+  upload         Upload files to an HCP bucket/namespace.
 ```
 The previous version of IRIS would similarly yield the following:
 ```cmd
@@ -51,14 +53,20 @@ Commands:
 
 ```
 ### Added features
+* `delete-folder`
+* `delete-object`
 * `list-buckets`
 * `list-objects`
+* `simple-search`
 
 ### Removed features
-* 
+* `delete`
+* `search`
+* `utils`
 
 ### Modified features
-* 
+* `download`
+* `upload`
 
 ## Package
 ### Added features
