@@ -136,7 +136,12 @@ Simply running `iris_generate_credentials_file` will generate a blank credential
 ```
 
 ## Package
-The updated codebase for IRIS 5 contains some major changes to use of the package, but should still be familiar. The use cases of IRIS 5 is sill intended to be the same as in previous versions. The difference between IRIS 5 and previous versions is the new syntax and names of classes, methods and functions. Everything in IRIS 5 was inspired by the previous implementations of the `boto3` library, which means that most functionality should still exist, but in a different form; methods and functions may have new names, and they might be combined or separated. A good starting point for how to use IRIS 5 is the README and the technical documentation of the package. Below is a summary of the alterations made to IRIS 5.
+The updated codebase for IRIS 5 contains some major changes to use of the package, but should still be familiar. The use cases of IRIS 5 is sill intended to be the same as in previous versions. The difference between IRIS 5 and previous versions is the new syntax and names of classes, methods and functions. Everything in IRIS 5 was inspired by the previous implementations of the `boto3` library, which means that most functionality should still exist, but in a different form; methods and functions may have new names, and they might be combined or separated. A good starting point for how to use IRIS 5 is the README and the technical documentation of the package. Below is a summary of the alterations made to IRIS 5. In order to avoid confusion, IRIS 5 content is marked in <span style="color:green">green</span> and old content is marked in <span style="color:red">red</span>.
+
+### The `HCPHandler` class and its methods
+The <span style="color:green">`HCPHandler`</span> class is the replacement for <span style="color:red">`HCPManager`</span>. 
+
+### The `HCIHandler` class and its methods
 
 ### Added features
 ### Removed features
