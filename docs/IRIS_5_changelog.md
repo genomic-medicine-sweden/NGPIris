@@ -149,7 +149,7 @@ HCPHandler(self,
 )
 ```
 ```python
-HCPHandler(self, 
+HCPManager(self, 
   endpoint = "", 
   aws_access_key_id = "", 
   aws_secret_access_key = "", 
@@ -169,4 +169,25 @@ Downloading files from a mounted bucket is done with <span style="color:green">`
 Deletion on the mounted bucket is made via the <span style="color:green">`delete_object`</span>, <span style="color:green">`delete_objects`</span> and <span style="color:green">`delete_folder`</span> methods.
 
 ### The `HCIHandler` class and its methods
-TBA
+The <span style="color:green">`HCIHandler`</span> class is the replacement for <span style="color:red">`HCIManager`</span>. Their class parameters are the following:
+```python
+HCIHandler(self, 
+  credentials_path : str, 
+  use_ssl : bool = False
+)
+```
+
+```python
+HCIManager(self,
+  password = "", 
+  credentials_path = ""
+)
+```
+
+In terms of parameters, the `password` input is moved to the credentials file instead of being a separate parameter. Also note that the `credentials_path` parameter is now required, as opposed to in previous versions. 
+
+In order to perform any operations on the HCI, we first need to request a token. We do this by calling <span style="color:green">`request_token`</span>. This method only performs side-effects. 
+
+We can list the index names by using <span style="color:green">`list_index_names`</span> and then pick out some metadata about any of those indices that came from that list with <span style="color:green">`look_up_index`</span>. 
+
+We can also make queries to the HCI via the <span style="color:green">`raw_query`</span> and <span style="color:green">`raw_query_from_JSON`</span> methods. The queries themselves have the following structure:
