@@ -55,23 +55,20 @@ Commands:
 
 ```
 #### Added features
-* `iris` commands:
-  * `delete-folder`
-  * `delete-object`
-  * `list-buckets`
-  * `list-objects`
-  * `simple-search`
+* `delete-folder`
+* `delete-object`
+* `list-buckets`
+* `list-objects`
+* `simple-search`
 
 #### Removed features
-* `iris` commands:
-  * `delete`
-  * `search`
-  * `utils`
+* `delete`
+* `search`
+* `utils`
 
 #### Modified features
-* `iris` commands:
-  * `download`
-  * `upload`
+* `download`
+* `upload`
 
 ### The `iris_generate_credentials_file` command
 
