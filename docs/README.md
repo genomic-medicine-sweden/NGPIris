@@ -1,5 +1,5 @@
-# NGP Iris 👀
-NGP Iris is a light-weight tool for interacting with a Hitachi Content Platform (HCP) using S3 in the `boto3` package. NGP Iris is designed with two use cases in mind:
+# NGP IRIS 👀
+NGP IRIS, or just Iris, is a light-weight tool for interacting with a Hitachi Content Platform (HCP) using S3 in the `boto3` package. NGP Iris is designed with two use cases in mind:
 * A simple, clear, real-time interaction with NGPr file management
 * Improving process flow for performing off-site data analysis by using automated transfer scripts
 
@@ -14,14 +14,18 @@ Both of these cases can be achieved as either a [Python package](#as-a-python-pa
 [^1]: Most versions of Python 3 should work
 
 ### Installation
-The current way to install NGP Iris is by the following steps:
+Iris can be installed via PyPi by running the following:
+```bash
+pip install NGPIris
+```
 
+If you wish, you can also install Iris with the following steps:
 1. Clone this repository
 2. Open a terminal in your local copy of the repository
-3. Run `pip install .`. This will install NGP Iris along with the required Python packages in your Python environment
+3. Run `pip install .`. This will install Iris along with the required Python packages in your Python environment
 
 ### NGPr credentials
-In order to use NGP Iris, a JSON file containing your credentials for the NGPr. The template of the JSON file can be found in [credentials/credentials_template.json](../credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI ***or*** both. Do note that you can't leave some parts of either the HCP or HCI credentials empty:
+In order to use Iris, a JSON file containing your credentials for the NGPr. The template of the JSON file can be found in [credentials/credentials_template.json](../credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI ***or*** both. Do note that you can't leave some parts of either the HCP or HCI credentials empty:
 ```JSON
 {
   "hcp" : {
@@ -38,13 +42,13 @@ In order to use NGP Iris, a JSON file containing your credentials for the NGPr. 
   }
 }
 ```
-This will prompt NGP Iris to complain about incomplete credentials (since the entries `aws_access_key_id` and `aws_secret_access_key` are empty). Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
+This will prompt Iris to complain about incomplete credentials (since the entries `aws_access_key_id` and `aws_secret_access_key` are empty). Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
 ## Technical package documentation
 A thorough package documentation can be found in the Technical documentation page.
 
 ## Basic usage
-NGP Iris can be used as a Python package or by using the command line. The following sections cover examples of how NGP Iris might be used as a package and how to use its various commands.
+Iris can be used as a Python package or by using the command line. The following sections cover examples of how Iris might be used as a package and how to use its various commands.
 
 ### As a Python package
 #### Connect to HCP
@@ -63,19 +67,16 @@ When you have successfully mounted a bucket, you can then do different operation
 ##### Upload files
 ```Python
 # Upload a single file to HCP
-hcph.upload_object_file("myFile")
+hcph.upload_file("myFile")
 
 # Upload folder contents to HCP
-hcph.upload_object_folder("./myFiles/")
+hcph.upload_folder("myFiles/")
 ```
 
 ##### Download files
 ```Python
 # Download a single object from HCP
-hcph.download_object_file("myObject")
-
-# Download all objects from HCP to a local folder
-hcph.download_all_object_files("./myDownloadedFiles/")
+hcph.download_file("myObject")
 ```
 
 #### Connect to HCI
@@ -83,7 +84,7 @@ In order to connect to the HCI, we first need to create an `HCIHandler` object a
 ```Python
 import NGPIris.hci as hci
 
-hcih = hci.HCIHandler("./credentials/myCredentials.json")
+hcih = hci.HCIHandler("myCredentials.json")
 
 hcih.request_token()
 ```
@@ -93,7 +94,7 @@ import NGPIris.hci as hci
 from pprint import pprint
 import json
 
-hcih = hci.HCIHandler("./credentials/myCredentials.json")
+hcih = hci.HCIHandler("myCredentials.json")
 
 hcih.request_token()
 
@@ -137,16 +138,32 @@ Options:
   --help     Show this message and exit.
 
 Commands:
-  delete        Delete an object from an HCP bucket/namespace.
-  download      Download files from an HCP bucket/namespace.
-  list-buckets  List the available buckets/namespaces on the HCP.
-  list-objects  List the objects in a certain bucket/namespace on the HCP.
-  upload        Upload files to an HCP bucket/namespace.
+  delete-folder  Delete a folder from an HCP bucket/namespace.
+  delete-object  Delete an object from an HCP bucket/namespace.
+  download       Download files from an HCP bucket/namespace.
+  list-buckets   List the available buckets/namespaces on the HCP.
+  list-objects   List the objects in a certain bucket/namespace on the HCP.
+  simple-search  Make simple search using substrings in a...
+  upload         Upload files to an HCP bucket/namespace.
 ```
 
-#### The `delete` command
+#### The `delete-folder` command
 ```
-Usage: iris CREDENTIALS delete [OPTIONS] OBJECT BUCKET
+Usage: iris CREDENTIALS delete-folder [OPTIONS] FOLDER BUCKET
+
+  Delete a folder from an HCP bucket/namespace.
+
+  FOLDER is the name of the folder to be deleted.
+
+  BUCKET is the name of the bucket where the folder to be deleted exist.
+
+Options:
+  --help  Show this message and exit.
+```
+
+#### The `delete-object` command
+```
+Usage: iris CREDENTIALS delete-object [OPTIONS] OBJECT BUCKET
 
   Delete an object from an HCP bucket/namespace.
 
@@ -197,6 +214,21 @@ Options:
   -no, --name-only BOOLEAN  Output only the name of the objects instead of all
                             the associated metadata
   --help                    Show this message and exit.
+```
+
+#### The `simple-search` command
+```
+Usage: iris CREDENTIALS simple-search [OPTIONS] BUCKET SEARCH_STRING
+
+  Make simple search using substrings in a bucket/namespace on the HCP.
+
+  BUCKET is the name of the bucket in which to make the search.
+
+  SEARCH_STRING is any string that is to be used for the search.
+
+Options:
+  -cs, --case_sensitive BOOLEAN  Use case sensitivity?
+  --help                         Show this message and exit.
 ```
 
 #### The `upload` command
