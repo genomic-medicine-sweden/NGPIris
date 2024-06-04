@@ -11,6 +11,7 @@ Welcome to NGP Iris's documentation!
    
    README <README.md>
    Technical documentation <modules.rst>
+   Changelog for IRIS 5 <IRIS_5_changelog.md>
 
 Indices and tables
 ==================
