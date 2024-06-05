@@ -178,10 +178,6 @@ class HCPHandler:
 
         :param bucket_name: The name of the bucket to be mounted
         :type bucket_name: str
-
-        :raises VPNConnectionError: If there is no VPN connection
-        :raises BucketNotFound: If no bucket of that name was found
-        :raises Exception: Other exceptions
         """
 
         # Check if bucket exist
