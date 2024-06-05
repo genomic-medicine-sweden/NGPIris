@@ -1,14 +1,20 @@
 # NGP IRIS 5 Tutorial
-* [NGP IRIS 5 Tutorial](#ngp-iris-5-tutorial)
-  * [Introduction](#introduction)
-  * [CLI](#cli)
-    * [The `iris` command](#the-iris-command)
-      * [Example use cases](#example-use-cases)
-    * [The `iris_generate_credentials_file` command](#the-iris_generate_credentials_file-command)
-  * [Package](#package)
-    * [The `HCPHandler` class and its methods](#the-hcphandler-class-and-its-methods)
-    * [The `HCIHandler` class and its methods](#the-hcihandler-class-and-its-methods)
-
+---
+- [Introduction](#introduction)
+- [CLI](#cli)
+  - [The `iris` command](#the-iris-command)
+    - [Example use cases](#example-use-cases)
+      - [Listing buckets/namespaces](#listing-bucketsnamespaces)
+      - [Downloading a file](#downloading-a-file)
+      - [Uploading a file](#uploading-a-file)
+      - [Searching for a file](#searching-for-a-file)
+      - [Delete a file](#delete-a-file)
+      - [Delete a folder](#delete-a-folder)
+  - [The `iris_generate_credentials_file` command](#the-iris_generate_credentials_file-command)
+- [Package](#package)
+  - [The `HCPHandler` class and its methods](#the-hcphandler-class-and-its-methods)
+  - [The `HCIHandler` class and its methods](#the-hcihandler-class-and-its-methods)
+---
 ## Introduction
 IRIS 5 is a complete overhaul of the previous versions of IRIS, mainly in terms of its codebase. The general functionality like download from and upload to the HCP are still here, but might differ from previous versions from what you are used to. This document will hopefully shed some light on what you (the user) can expect and how your workflow with IRIS might change in comparison to previous versions of IRIS. 
 
@@ -80,7 +86,12 @@ Commands:
         --help  Show this message and exit.
       ```
 #### Example use cases
-
+##### Listing buckets/namespaces
+##### Downloading a file
+##### Uploading a file
+##### Searching for a file
+##### Delete a file
+##### Delete a folder
 
 ### The `iris_generate_credentials_file` command
 IRIS 5 comes with a new separate command for generating your NGPr credentials: `iris_generate_credentials_file`. The idea with this command is to make it easier for anyone to ensure the correct structure of their credentials file. Typing `iris_generate_credentials_file --help` yields the following:
