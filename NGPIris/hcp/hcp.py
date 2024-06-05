@@ -132,6 +132,44 @@ class HCPHandler:
 
         return dict(response.json())
 
+    def test_connection(self, bucket_name : str = ""):
+        """
+        Test the connection to the mounted bucket or another bucket which is 
+        supplied as the argument :py:obj:`bucket_name`.
+
+        :param bucket_name: The name of the bucket to be mounted. Defaults to the empty string
+        :type bucket_name: str, optional
+
+        :raises RuntimeError: If no bucket is selected
+        :raises VPNConnectionError: If there is no VPN connection
+        :raises BucketNotFound: If no bucket of that name was found
+        :raises Exception: Other exceptions
+
+        :return: _description_
+        :rtype: _type_
+        """
+        if not bucket_name and self.bucket_name:
+            bucket_name = self.bucket_name
+        elif bucket_name:
+            pass
+        else:
+            raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` paramter for `test_connection`")
+        try:
+            response =  dict(self.s3_client.head_bucket(Bucket = bucket_name))
+        except EndpointConnectionError as e: # pragma: no cover
+            print(e)
+            raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
+        except ClientError as e:
+            print(e)
+            raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+        except Exception as e: # pragma: no cover
+            raise Exception(e)
+            
+        if response["ResponseMetadata"].get("HTTPStatusCode", -1) != 200: # pragma: no cover
+            error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
+            raise Exception(error_msg)
+        return response
+        
     def mount_bucket(self, bucket_name : str) -> None:
         """
         Mount bucket that is to be used. This method needs to executed in order 
@@ -147,21 +185,7 @@ class HCPHandler:
         """
 
         # Check if bucket exist
-        try:
-            response : dict = self.s3_client.head_bucket(Bucket = bucket_name)
-        except EndpointConnectionError as e: # pragma: no cover
-            print(e)
-            raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
-        except ClientError as e:
-            print(e)
-            raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
-        except Exception as e: # pragma: no cover
-            raise Exception(e)
-            
-        if response["ResponseMetadata"].get("HTTPStatusCode", -1) != 200: # pragma: no cover
-            error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
-            raise Exception(error_msg)
-    
+        self.test_connection(bucket_name = bucket_name)
         self.bucket_name = bucket_name
 
     def list_buckets(self) -> list[str]:

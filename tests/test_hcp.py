@@ -30,6 +30,22 @@ def test_mount_nonexisting_bucket() -> None:
     else: # pragma: no cover
         assert False
 
+def test_test_connection() -> None:
+    test_mount_bucket()
+    hcp_h.test_connection()
+
+def test_test_connection_with_bucket_name() -> None:
+    hcp_h.test_connection(bucket_name = test_bucket)
+
+def test_test_connection_without_mounting_bucket() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    try:
+        _hcp_h.test_connection()
+    except:
+        assert True
+    else: # pragma: no cover
+        assert False
+
 def test_list_objects() -> None:
     test_mount_bucket()
     assert type(hcp_h.list_objects()) == list
