@@ -132,7 +132,7 @@ class HCPHandler:
 
         return dict(response.json())
 
-    def test_connection(self, bucket_name : str = ""):
+    def test_connection(self, bucket_name : str = "") -> dict:
         """
         Test the connection to the mounted bucket or another bucket which is 
         supplied as the argument :py:obj:`bucket_name`.
@@ -145,8 +145,8 @@ class HCPHandler:
         :raises BucketNotFound: If no bucket of that name was found
         :raises Exception: Other exceptions
 
-        :return: _description_
-        :rtype: _type_
+        :return: A dictionary of the response
+        :rtype: dict
         """
         if not bucket_name and self.bucket_name:
             bucket_name = self.bucket_name
