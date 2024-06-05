@@ -138,13 +138,14 @@ Options:
   --help     Show this message and exit.
 
 Commands:
-  delete-folder  Delete a folder from an HCP bucket/namespace.
-  delete-object  Delete an object from an HCP bucket/namespace.
-  download       Download files from an HCP bucket/namespace.
-  list-buckets   List the available buckets/namespaces on the HCP.
-  list-objects   List the objects in a certain bucket/namespace on the HCP.
-  simple-search  Make simple search using substrings in a...
-  upload         Upload files to an HCP bucket/namespace.
+  delete-folder    Delete a folder from an HCP bucket/namespace.
+  delete-object    Delete an object from an HCP bucket/namespace.
+  download         Download files from an HCP bucket/namespace.
+  list-buckets     List the available buckets/namespaces on the HCP.
+  list-objects     List the objects in a certain bucket/namespace on the...
+  simple-search    Make simple search using substrings in a...
+  test-connection  Test the connection to a bucket/namespace.
+  upload           Upload files to an HCP bucket/namespace.
 ```
 
 #### The `delete-folder` command

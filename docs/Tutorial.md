@@ -1,10 +1,20 @@
-# NGP IRIS 5 changelog
-IRIS 5 is a complete overhaul of the previous versions of IRIS, mainly in terms of its codebase. The general functionality like download from and upload to the HCP are still here, but might differ from previous versions from what you are used to. 
+# NGP IRIS 5 Tutorial
+* [NGP IRIS 5 Tutorial](#ngp-iris-5-tutorial)
+  * [Introduction](#introduction)
+  * [CLI](#cli)
+    * [The `iris` command](#the-iris-command)
+    * [The `iris_generate_credentials_file` command](#the-iris_generate_credentials_file-command)
+  * [Package](#package)
+    * [The `HCPHandler` class and its methods](#the-hcphandler-class-and-its-methods)
+    * [The `HCIHandler` class and its methods](#the-hcihandler-class-and-its-methods)
 
-This document is meant as a semi complete changelog for IRIS, that will hopefully shed some light on what you (the user) can expect and how your workflow with IRIS might change.
+## Introduction
+IRIS 5 is a complete overhaul of the previous versions of IRIS, mainly in terms of its codebase. The general functionality like download from and upload to the HCP are still here, but might differ from previous versions from what you are used to. This document will hopefully shed some light on what you (the user) can expect and how your workflow with IRIS might change in comparison to previous versions of IRIS. 
+
+IRIS 5, like previous versions of IRIS, consists of two main parts: a Python package and an associated Command Line Interface (CLI), which are described below. 
 
 ## CLI 
-IRIS 5 still features a Command Line Interface (CLI) like recent versions of IRIS. However, the new CLI is a bit different compared to before; the general structure of commands are totally different, but it still has the commands you would come to expect. 
+IRIS 5 features a CLI like recent versions of IRIS. However, the new CLI is a bit different compared to before; the general structure of subcommands are totally different, but it still has the subcommands you would come to expect. 
 
 ### The `iris` command
 
@@ -30,46 +40,10 @@ Commands:
   test-connection  Test the connection to a bucket/namespace.
   upload           Upload files to an HCP bucket/namespace.
 ```
-The previous version of IRIS would similarly yield the following:
-```cmd
-Usage: iris [OPTIONS] COMMAND [ARGS]...
-
-  NGP intelligence and repository interface software
-
-Options:
-  -c, --credentials PATH     File containing ep, id & key  [required]
-  -b, --bucket TEXT          Bucket name  [required]
-  -ep, --endpoint TEXT       Endpoint URL override
-  -id, --access_key_id TEXT  Amazon key identifier override
-  -key, --access_key TEXT    Amazon secret access key override
-  -p, --password TEXT        NGPintelligence password
-  -l, --logfile PATH         Logs activity to provided file
-  --version                  Show the version and exit.
-  --help                     Show this message and exit.
-
-Commands:
-  delete    Delete a file on the HCP
-  download  Download files using a given query
-  search    List all file hits for a given query by directly calling HCP
-  upload    Upload fastq files / fastq folder structure
-  utils     Advanced commands for specific purposes
-
-```
-#### Added features
 * `delete-folder`: Deletes a folder on the HCP
 * `delete-object`: Deletes an object on the HCP
-* `list-buckets`: Lists all buckets that the user is allowed to see
-* `list-objects`: Lists all objects that the user is allowed to see
-* `simple-search`: Performs a simple search using a substring in order to find matching objects in a bucket/namespace
-
-#### Removed features
-* `delete`: Replaced by `delete-folder` and `delete-object`
-* `search`: Replaced by `simple-search`
-* `utils`: Removed since it didn't contain anything particularly useful that can be moved to being separate subcommands in the future
-
-#### Modified features
 * `download`:
-  * Does pretty much the same thing as previous versions in terms of CLI
+  * Downloads a file from a bucket/namespace on the HCP
   * `iris path/to/credentials.json download --help`:
     * ```cmd
       Usage: iris CREDENTIALS download [OPTIONS] OBJECT BUCKET LOCAL_PATH
@@ -86,8 +60,11 @@ Commands:
       Options:
         --help  Show this message and exit.
       ```
+* `list-buckets`: Lists all buckets that the user is allowed to see
+* `list-objects`: Lists all objects that the user is allowed to see
+* `simple-search`: Performs a simple search using a substring in order to find matching objects in a bucket/namespace
 * `upload`:
-  * Does pretty much the same thing as previous versions in terms of CLI
+  * Uploads either a file or a folder to a bucket/namespace on the HCP
   * `iris path/to/credentials.json upload --help`:
     * ```cmd
       Usage: iris CREDENTIALS upload [OPTIONS] FILE_OR_FOLDER BUCKET
@@ -102,8 +79,8 @@ Commands:
         --help  Show this message and exit.
       ```
 
-### The `iris_generate_credentials_file` command
 
+### The `iris_generate_credentials_file` command
 IRIS 5 comes with a new separate command for generating your NGPr credentials: `iris_generate_credentials_file`. The idea with this command is to make it easier for anyone to ensure the correct structure of their credentials file. Typing `iris_generate_credentials_file --help` yields the following:
 ```cmd
 Usage: iris_generate_credentials_file [OPTIONS]
