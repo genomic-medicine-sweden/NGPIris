@@ -3,7 +3,6 @@ name = "NGPIris"
 version = "5.0.0"
 dependencies = [
     "requests >= 2.31.0",
-    "pandas >= 2.1.4",
     "urllib3 == 1.26.18",
     "requests >= 2.31.0",
     "boto3 >= 1.26.76",
@@ -21,19 +20,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["NGPIris", "NGPIris.hci", "NGPIris.hcp", "NGPIris.parse_credentials", "NGPIris.utils", "NGPIris.cli"]
-
-[[tool.pydoc-markdown.loaders]]
-type = "python"
-search_path = [ "./NGPIris" ]
-
-[tool.pydoc-markdown.renderer]
-type = "markdown"
-render_toc = true
-
-[[tool.pydoc-markdown.renderer.pages]]
-title = "NGP Iris 2 documentation"
-name = "index"
-contents = [ "*" ]
 
 [tool.pytype]
 inputs = ["NGPIris"]
