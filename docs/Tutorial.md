@@ -3,6 +3,7 @@
   * [Introduction](#introduction)
   * [CLI](#cli)
     * [The `iris` command](#the-iris-command)
+      * [Example use cases](#example-use-cases)
     * [The `iris_generate_credentials_file` command](#the-iris_generate_credentials_file-command)
   * [Package](#package)
     * [The `HCPHandler` class and its methods](#the-hcphandler-class-and-its-methods)
@@ -14,7 +15,7 @@ IRIS 5 is a complete overhaul of the previous versions of IRIS, mainly in terms 
 IRIS 5, like previous versions of IRIS, consists of two main parts: a Python package and an associated Command Line Interface (CLI), which are described below. 
 
 ## CLI 
-IRIS 5 features a CLI like recent versions of IRIS. However, the new CLI is a bit different compared to before; the general structure of subcommands are totally different, but it still has the subcommands you would come to expect. 
+IRIS 5 features a CLI like recent versions of IRIS. However, the new CLI is a bit different compared to before; the general structure of subcommands for the `iris` command are totally different, but it still has the subcommands you would come to expect. A new command, `iris_generate_credentials_file`, has also been added. It will generate an empty credentials file that can be filled in with your own NGPr credentials. 
 
 ### The `iris` command
 
@@ -78,6 +79,7 @@ Commands:
       Options:
         --help  Show this message and exit.
       ```
+#### Example use cases
 
 
 ### The `iris_generate_credentials_file` command
