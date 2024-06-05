@@ -156,6 +156,18 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     for result in list_of_results:
         click.echo("- " + result)
 
+@cli.command()
+@click.argument("bucket")
+@click.pass_context
+def test_connection(context : Context, bucket : str):
+    """
+    Test the connection to a bucket/namespace.
+
+    BUCKET is the name of the bucket for which a connection test should be made.
+    """
+    hcph : HCPHandler = get_HCPHandler(context)
+    click.echo(hcph.test_connection(bucket))
+
 @click.command()
 @click.option(
     "--path",
