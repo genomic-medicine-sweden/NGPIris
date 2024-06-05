@@ -87,7 +87,13 @@ Commands:
       ```
 #### Example use cases
 ##### Listing buckets/namespaces
+```shell
+iris path/to/your/credentials.json list-buckets
+```
 ##### Downloading a file
+```shell
+iris path/to/your/credentials.json download path/to/your/file/on/the/bucket the_name_of_the_bucket path/on/your/local/machine
+```
 ##### Uploading a file
 ##### Searching for a file
 ##### Delete a file
