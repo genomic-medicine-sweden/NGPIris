@@ -137,7 +137,7 @@ def list_objects(context : Context, bucket : str, name_only : bool):
 @click.option(
     "-cs", 
     "--case_sensitive", 
-    help = "Use case sensitivity?", 
+    help = "Use case sensitivity? Default value is False", 
     default = False
 )
 @click.pass_context
