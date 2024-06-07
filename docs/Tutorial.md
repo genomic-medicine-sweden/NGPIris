@@ -23,7 +23,9 @@
       - [Delete a folder](#delete-a-folder-1)
   - [The `HCIHandler` class](#the-hcihandler-class)
     - [Example use cases](#example-use-cases-2)
-      - [](#)
+      - [List index names](#list-index-names)
+      - [Look up information of an index](#look-up-information-of-an-index)
+      - [Make queries](#make-queries)
 ---
 ## Introduction
 IRIS 5 is a complete overhaul of the previous versions of IRIS, mainly in terms of its codebase. The general functionality like download from and upload to the HCP are still here, but might differ from previous versions from what you are used to. This document will hopefully shed some light on what you (the user) can expect and how your workflow with IRIS might change in comparison to previous versions of IRIS. 
@@ -253,6 +255,7 @@ hcp_h.mount_bucket("myBucket")
 hcp_h.delete_folder("path/to/folder/in/bucket/")
 ```
 ### The `HCIHandler` class 
+IRIS 5 comes with a class for handling connections with the HCI:
 ```python
 HCIHandler(
   self, 
@@ -260,5 +263,64 @@ HCIHandler(
   use_ssl : bool = False
 )
 ```
+A token can be requested to the handler, which in turn allows us to make requests to the HCI:
+```python
+from NGPIris.hci import HCIHandler
+
+hci_h = HCIHandler("credentials.json")
+
+hci_h.request_token()
+```
 #### Example use cases
-##### 
+##### List index names
+```python
+from NGPIris.hci import HCIHandler
+
+hci_h = HCIHandler("credentials.json")
+hci_h.request_token()
+
+print(hci_h.list_index_names())
+```
+##### Look up information of an index
+```python
+from NGPIris.hci import HCIHandler
+from pprint import pprint
+from json import dumps
+
+hci_h = HCIHandler("credentials.json")
+hci_h.request_token()
+
+pprint(
+    dumps(
+        hci_h.look_up_index("myIndex"), # A dictionary is returned, so we use 
+        indent = 4                      # dumps and pprint in order to make the 
+    )                                   # output more readable
+)
+```
+##### Make queries
+```python
+from NGPIris.hci import HCIHandler
+from pprint import pprint
+from json import dumps
+
+hci_h = HCIHandler("credentials.json")
+hci_h.request_token()
+
+query = {
+    "indexName" : "myIndex",
+    "facetRequests" : [
+        {
+            "fieldName" : "ref"
+        },
+        {
+            "fieldName" : "alt"
+        }
+    ]
+}
+pprint(
+    dumps(
+        hci_h.raw_query(query), # A dictionary is returned, so we use 
+        indent = 4              # dumps and pprint in order to make the 
+    )                           # output more readable
+)
+```
