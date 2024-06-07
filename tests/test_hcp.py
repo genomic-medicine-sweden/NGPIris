@@ -1,7 +1,8 @@
 
+from typing import Callable
 from NGPIris.hcp import HCPHandler
 from configparser import ConfigParser
-from os import mkdir, rmdir, remove, listdir
+from os import mkdir, rmdir, remove
 from filecmp import cmp
 
 hcp_h = HCPHandler("credentials/testCredentials.json")
@@ -15,6 +16,14 @@ test_file = ini_config.get("hcp_tests","data_test_file")
 test_file_path = "tests/data/" + test_file
 
 result_path = "tests/data/results/"
+
+def _without_mounting(test : Callable) -> None:
+    try:
+        test()
+    except:
+        assert True
+    else: # pragma: no cover
+        assert False
 
 def test_list_buckets() -> None:
     assert hcp_h.list_buckets()
@@ -50,9 +59,17 @@ def test_list_objects() -> None:
     test_mount_bucket()
     assert type(hcp_h.list_objects()) == list
 
+def test_list_objects_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.list_objects)
+
 def test_upload_file() -> None:
     test_mount_bucket()
     hcp_h.upload_file(test_file_path)
+
+def test_upload_file_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.upload_file)
 
 def test_upload_file_in_sub_directory() -> None:
     test_mount_bucket()
@@ -71,6 +88,10 @@ def test_upload_folder() -> None:
     test_mount_bucket()
     hcp_h.upload_folder("tests/data/a folder of data/", "a folder of data/")
 
+def test_upload_folder_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.upload_folder)
+
 def test_upload_nonexisting_folder() -> None:
     test_mount_bucket()
     try: 
@@ -85,6 +106,11 @@ def test_get_file() -> None:
     assert hcp_h.object_exists("a_sub_directory/a_file")
     assert hcp_h.get_object("a_sub_directory/a_file")
 
+def test_get_folder_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.object_exists)
+    _without_mounting(_hcp_h.get_object)
+
 def test_get_file_in_sub_directory() -> None:
     test_mount_bucket()
     assert hcp_h.object_exists(test_file)
@@ -95,6 +121,10 @@ def test_download_file() -> None:
     mkdir(result_path)
     hcp_h.download_file(test_file, result_path + test_file)
     assert cmp(result_path + test_file, test_file_path)
+
+def test_download_file_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.download_file)
 
 def test_download_nonexistent_file() -> None:
     test_mount_bucket()
@@ -109,13 +139,25 @@ def test_search_objects_in_bucket() -> None:
     test_mount_bucket()
     hcp_h.search_objects_in_bucket(test_file)
 
+def test_search_objects_in_bucket_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.search_objects_in_bucket)
+
 def test_get_object_acl() -> None:
     test_mount_bucket()
     hcp_h.get_object_acl(test_file)
 
+def test_get_object_acl_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.get_object_acl)
+
 def test_get_bucket_acl() -> None:
     test_mount_bucket()
     hcp_h.get_bucket_acl()
+
+def test_get_bucket_acl_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.get_bucket_acl)
 
 #def test_modify_single_object_acl() -> None:
 #    test_mount_bucket()
@@ -139,6 +181,10 @@ def test_delete_file() -> None:
     hcp_h.delete_object("a_sub_directory/a_file")
     hcp_h.delete_object("a_sub_directory")
 
+def test_delete_file_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.delete_object)
+
 def test_delete_folder_with_sub_directory() -> None:
     test_mount_bucket()
     hcp_h.upload_file(test_file_path, "a folder of data/a sub dir/a file")
@@ -153,6 +199,10 @@ def test_delete_folder_with_sub_directory() -> None:
 def test_delete_folder() -> None:
     test_mount_bucket()
     hcp_h.delete_folder("a folder of data/")
+
+def test_delete_folder_without_mounting() -> None:
+    _hcp_h = HCPHandler("credentials/testCredentials.json")
+    _without_mounting(_hcp_h.delete_folder)
 
 def test_delete_nonexistent_files() -> None:
     hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"])
