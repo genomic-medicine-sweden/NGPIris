@@ -2,7 +2,8 @@
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.hcp.helpers import (
     raise_path_error,
-    create_access_control_policy
+    create_access_control_policy,
+    check_mounted
 )
 from NGPIris.hcp.exceptions import *
 
@@ -196,6 +197,7 @@ class HCPHandler:
         list_of_buckets : list[str] = response["name"]
         return list_of_buckets
     
+    @check_mounted
     def list_objects(self, name_only : bool = False) -> list:
         """
         List all objects in the mounted bucket
@@ -217,6 +219,7 @@ class HCPHandler:
         else:
             return list_of_objects
     
+    @check_mounted
     def get_object(self, key : str) -> dict:
         """
         Retrieve object metadata
@@ -233,6 +236,7 @@ class HCPHandler:
         ))
         return response
 
+    @check_mounted
     def object_exists(self, key : str) -> bool:
         """
         Check if a given object is in the mounted bucket
@@ -252,6 +256,7 @@ class HCPHandler:
         except: # pragma: no cover
             return False
 
+    @check_mounted
     def download_file(self, key : str, local_file_path : str) -> None:
         """
         Download one object file from the mounted bucket
@@ -283,6 +288,7 @@ class HCPHandler:
         except Exception as e: # pragma: no cover
             raise Exception(e)
 
+    @check_mounted
     def upload_file(self, local_file_path : str, key : str = "") -> None:
         """
         Upload one file to the mounted bucket
@@ -314,6 +320,7 @@ class HCPHandler:
                 Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
             )
 
+    @check_mounted
     def upload_folder(self, local_folder_path : str, key : str = "") -> None:
         """
         Upload the contents of a folder to the mounted bucket
@@ -332,6 +339,7 @@ class HCPHandler:
         for filename in filenames:
             self.upload_file(local_folder_path + filename, key + filename)
 
+    @check_mounted
     def delete_objects(self, keys : list[str], verbose : bool = True) -> None:
         """Delete a list of objects on the mounted bucket 
 
@@ -362,6 +370,7 @@ class HCPHandler:
                 does_not_exist.append("- " + key + "\n")
             print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
     
+    @check_mounted
     def delete_object(self, key : str, verbose : bool = True) -> None:
         """
         Delete a single object in the mounted bucket
@@ -373,6 +382,7 @@ class HCPHandler:
         """
         self.delete_objects([key], verbose = verbose)
 
+    @check_mounted
     def delete_folder(self, key : str, verbose : bool = True) -> None:
         """
         Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raisesd
@@ -396,6 +406,7 @@ class HCPHandler:
                 raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
         self.delete_objects(object_path_in_folder + [key], verbose = verbose)
 
+    @check_mounted
     def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> list[str]:
         """
         Simple search method using substrings in order to find certain objects. Case insensitive by default.
@@ -420,6 +431,7 @@ class HCPHandler:
                 search_result.append(key)
         return search_result
 
+    @check_mounted
     def get_object_acl(self, key : str) -> dict:
         """
         Get the object Access Control List (ACL)
@@ -436,6 +448,7 @@ class HCPHandler:
         )
         return response
 
+    @check_mounted
     def get_bucket_acl(self) -> dict:
         """
         Get the bucket Access Control List (ACL)
@@ -448,6 +461,7 @@ class HCPHandler:
         )
         return response
 
+    @check_mounted
     def modify_single_object_acl(self, key : str, user_ID : str, permission : str) -> None:
         """
         Modify permissions for a user in the Access Control List (ACL) for one object
@@ -473,6 +487,7 @@ class HCPHandler:
             AccessControlPolicy = create_access_control_policy({user_ID : permission})
         )
 
+    @check_mounted
     def modify_single_bucket_acl(self, user_ID : str, permission : str) -> None:
         """
         Modify permissions for a user in the Access Control List (ACL) for the mounted bucket
@@ -494,6 +509,7 @@ class HCPHandler:
             AccessControlPolicy = create_access_control_policy({user_ID : permission})
         )
 
+    @check_mounted
     def modify_object_acl(self, key_user_ID_permissions : dict[str, dict[str, str]]) -> None:
         """
         Modifies  permissions to multiple objects, see below.
@@ -510,6 +526,7 @@ class HCPHandler:
                 AccessControlPolicy = create_access_control_policy(user_ID_permissions)
             )
 
+    @check_mounted
     def modify_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
         """
         Modify permissions for multiple users for the mounted bucket
