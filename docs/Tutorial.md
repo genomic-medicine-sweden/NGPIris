@@ -86,6 +86,7 @@ Commands:
         --help  Show this message and exit.
       ```
 #### Example use cases
+The following subsections contain examples of simple use cases for IRIS 5. Of course, correct paths and bucket names should be replaced for your circumstances.
 ##### Listing buckets/namespaces
 ```shell
 iris path/to/your/credentials.json list-buckets
@@ -95,9 +96,26 @@ iris path/to/your/credentials.json list-buckets
 iris path/to/your/credentials.json download path/to/your/file/on/the/bucket the_name_of_the_bucket path/on/your/local/machine
 ```
 ##### Uploading a file
+```shell
+iris path/to/your/credentials.json upload destination/path/on/the/bucket the_name_of_the_bucket path/to/your/file/on/your/local/machine
+```
 ##### Searching for a file
+By default, the `simple-search` command is case insensitive:
+```shell
+iris path/to/your/credentials.json simple-search the_name_of_the_bucket your_search_string
+```
+This can be changed with the `--case_sensitive` option:
+```shell
+iris path/to/your/credentials.json simple-search --case_sensitive True the_name_of_the_bucket your_case_sensitive_search_string
+```
 ##### Delete a file
+```shell
+iris path/to/your/credentials.json delete-object path/to/your/file/on/the/bucket the_name_of_the_bucket
+```
 ##### Delete a folder
+```shell
+iris path/to/your/credentials.json delete-folder path/to/your/folder/on/the/bucket/ the_name_of_the_bucket
+```
 
 ### The `iris_generate_credentials_file` command
 IRIS 5 comes with a new separate command for generating your NGPr credentials: `iris_generate_credentials_file`. The idea with this command is to make it easier for anyone to ensure the correct structure of their credentials file. Typing `iris_generate_credentials_file --help` yields the following:
