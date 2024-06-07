@@ -11,11 +11,11 @@ Welcome to NGP Iris's documentation!
    
    README <README.md>
    Technical documentation <modules.rst>
+   Tutorial <Tutorial.md>
    Changelog for IRIS 5 <IRIS_5_changelog.md>
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
