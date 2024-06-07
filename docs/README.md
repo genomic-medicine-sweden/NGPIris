@@ -45,62 +45,62 @@ In order to use Iris, a JSON file containing your credentials for the NGPr. The 
 This will prompt Iris to complain about incomplete credentials (since the entries `aws_access_key_id` and `aws_secret_access_key` are empty). Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
 ## Technical package documentation
-A thorough package documentation can be found in the Technical documentation page.
+A thorough package documentation can be found in the [technical documentation page]().
 
 ## Basic usage
-Iris can be used as a Python package or by using the command line. The following sections cover examples of how Iris might be used as a package and how to use its various commands.
+Iris can be used as a Python package or by using the command line. The following sections cover some examples of how Iris might be used as a package and how to use its various commands. However, we highly recommend checking out the [tutorial](/docs/Tutorial.md) containing more example use cases.
 
 ### As a Python package
 #### Connect to HCP
 In order to connect to the HCP, we first need to create an `HCPHandler` object and mount it to some bucket:
 ```Python
-import NGPIris.hcp as hcp
+from NGPIris.hcp import HCPHandler
 
-hcph = hcp.HCPHandler("myCredentials.json")
+hcp_h = HCPHandler("credentials.json")
 
-hcph.mount_bucket("myBucket")
+hcp_h.mount_bucket("myBucket")
 ```
-If you are unsure which buckets you are allowed to see, you can use `hcph.list_buckets()` in order to list all available buckets to you.
+If you are unsure which buckets you are allowed to see, you can use `hcp_h.list_buckets()` in order to list all available buckets to you.
 
-When you have successfully mounted a bucket, you can then do different operations onto the bucket. Object names on the bucket can be listed by typing `print(hcph.list_objects(True))`. 
+When you have successfully mounted a bucket, you can then do different operations onto the bucket. Object names on the bucket can be listed by typing `print(hcp_h.list_objects(True))`. 
 
 ##### Upload files
 ```Python
 # Upload a single file to HCP
-hcph.upload_file("myFile")
+hcp_h.upload_file("myFile")
 
 # Upload folder contents to HCP
-hcph.upload_folder("myFiles/")
+hcp_h.upload_folder("myFiles/")
 ```
 
 ##### Download files
 ```Python
 # Download a single object from HCP
-hcph.download_file("myObject")
+hcp_h.download_file("myObject")
 ```
 
 #### Connect to HCI
 In order to connect to the HCI, we first need to create an `HCIHandler` object and request an authorization token:
 ```Python
-import NGPIris.hci as hci
+from NGPIris.hci import HCIHandler
 
-hcih = hci.HCIHandler("myCredentials.json")
+hci_h = HCIHandler("credentials.json")
 
-hcih.request_token()
+hci_h.request_token()
 ```
-Note that the token is stored inside of the `HCIHandler` object called `hcih`. We can now request a list of indexes that are available by typing `print(hcih.list_index_names())`. We can also look up information about a certain index with `print(hcih.look_up_index("myIndex"))`. It is recommended to combine the use of the pretty print module `pprint` and the `json` module for this output, as it is mostly unreadable otherwise:
+Note that the token is stored inside of the `HCIHandler` object called `hci_h`. We can now request a list of indexes that are available by typing `print(hci_h.list_index_names())`. We can also look up information about a certain index with `print(hci_h.look_up_index("myIndex"))`. It is recommended to combine the use of the pretty print module `pprint` and the `json` module for this output, as it is mostly unreadable otherwise:
 ```Python
 import NGPIris.hci as hci
 from pprint import pprint
 import json
 
-hcih = hci.HCIHandler("myCredentials.json")
+hci_h = hci.HCIHandler("myCredentials.json")
 
-hcih.request_token()
+hci_h.request_token()
 
 pprint(
     json.dumps(
-        hcih.look_up_index("myIndex"), 
+        hci_h.look_up_index("myIndex"), 
         indent = 4
     )
 )
