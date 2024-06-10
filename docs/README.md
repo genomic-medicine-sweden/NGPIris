@@ -76,7 +76,7 @@ hcp_h.upload_folder("myFiles/")
 ##### Download files
 ```Python
 # Download a single object from HCP
-hcp_h.download_file("myObject")
+hcp_h.download_file("myFile")
 ```
 
 #### Connect to HCI
@@ -90,11 +90,11 @@ hci_h.request_token()
 ```
 Note that the token is stored inside of the `HCIHandler` object called `hci_h`. We can now request a list of indexes that are available by typing `print(hci_h.list_index_names())`. We can also look up information about a certain index with `print(hci_h.look_up_index("myIndex"))`. It is recommended to combine the use of the pretty print module `pprint` and the `json` module for this output, as it is mostly unreadable otherwise:
 ```Python
-import NGPIris.hci as hci
+from NGPIris.hci import HCIHandler
 from pprint import pprint
 import json
 
-hci_h = hci.HCIHandler("myCredentials.json")
+hci_h = HCIHandler("credentials.json")
 
 hci_h.request_token()
 
@@ -230,6 +230,18 @@ Usage: iris CREDENTIALS simple-search [OPTIONS] BUCKET SEARCH_STRING
 Options:
   -cs, --case_sensitive BOOLEAN  Use case sensitivity?
   --help                         Show this message and exit.
+```
+
+#### The `test-connection` command
+```
+Usage: iris CREDENTIALS test-connection [OPTIONS] BUCKET
+
+  Test the connection to a bucket/namespace.
+
+  BUCKET is the name of the bucket for which a connection test should be made.
+
+Options:
+  --help  Show this message and exit.
 ```
 
 #### The `upload` command
