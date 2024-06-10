@@ -2,7 +2,7 @@
 import click
 from click.core import Context
 from json import dumps, dump
-from os import path
+from pathlib import Path
 
 from NGPIris.hcp import HCPHandler
 
@@ -40,7 +40,7 @@ def upload(context : Context, file_or_folder : str, bucket : str):
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    if path.isdir(file_or_folder):
+    if Path(file_or_folder).is_dir():
         hcph.upload_folder(file_or_folder)
     else:
         hcph.upload_file(file_or_folder)
@@ -199,8 +199,16 @@ def iris_generate_credentials_file(path : str, name : str):
             "api_port" : ""
         }
     }
-    name = name.split(".")[0]
-    file_path = path + name + ".json"
+    name = name.split(".")[0] + ".json"
+
+    if not Path(path).is_dir():
+        Path(path).mkdir()
+
+    if path == ".":
+        file_path = name    
+    else:
+        file_path = path + name
+        
     with open(file_path, "w") as f:
         dump(credentials_dict, f, indent = 4)
 
