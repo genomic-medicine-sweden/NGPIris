@@ -44,6 +44,8 @@ In order to use Iris, a JSON file containing your credentials for the NGPr. The 
 ```
 This will prompt Iris to complain about incomplete credentials (since the entries `aws_access_key_id` and `aws_secret_access_key` are empty). Of course, the same error would occur if the reverse between the HCP and HCI fields would be true.
 
+**NOTE:** the `endpoint` field should not contain `https://` or any port number.
+
 ## Technical package documentation
 A thorough package documentation can be found in the [technical documentation page]().
 
