@@ -171,12 +171,12 @@ def test_connection(context : Context, bucket : str):
 @click.command()
 @click.option(
     "--path",
-    help = "Path for where to put the new credentials file",
+    help = "Path for where to put the new credentials file.",
     default = ""
 )
 @click.option(
     "--name",
-    help = "Custom name for the credentials file",
+    help = "Custom name for the credentials file. Will filter out everything after a \".\" character, if any exist.",
     default = "credentials"
 )
 def iris_generate_credentials_file(path : str, name : str):
@@ -199,6 +199,7 @@ def iris_generate_credentials_file(path : str, name : str):
             "api_port" : ""
         }
     }
+    name = name.split(".")[0]
     file_path = path + name + ".json"
     with open(file_path, "w") as f:
         dump(credentials_dict, f, indent = 4)
