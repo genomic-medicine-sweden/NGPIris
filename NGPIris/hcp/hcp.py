@@ -52,7 +52,7 @@ class HCPHandler:
         if type(tenant_parse) is Result:
             self.tenant = str(tenant_parse[0])
         else: # pragma: no cover
-            raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file. Hint: The endpoint should *not* contain \"https://\"")
+            raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file. Hint: The endpoint should *not* contain \"https://\" or port numbers")
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
