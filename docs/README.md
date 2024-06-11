@@ -1,5 +1,5 @@
 # NGP IRIS 👀
-NGP IRIS, or just Iris, is a light-weight tool for interacting with a Hitachi Content Platform (HCP) using S3 in the `boto3` package. NGP Iris is designed with two use cases in mind:
+NGP IRIS, or just Iris, is a tool for interacting with a Hitachi Content Platform (HCP) using S3 in the `boto3` package. NGP Iris is designed with two use cases in mind:
 * A simple, clear, real-time interaction with NGPr file management
 * Improving process flow for performing off-site data analysis by using automated transfer scripts
 
