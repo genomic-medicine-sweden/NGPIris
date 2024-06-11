@@ -259,3 +259,16 @@ Usage: iris CREDENTIALS upload [OPTIONS] FILE_OR_FOLDER BUCKET
 Options:
   --help  Show this message and exit.
 ```
+## Testing
+Assuming that the repository has been cloned, run the following tests:
+```shell
+pytype
+```
+```shell
+pytest
+```
+## Compiling the documentation
+```shell
+cd docs/
+make html
+```
