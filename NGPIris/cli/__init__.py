@@ -27,16 +27,16 @@ def cli(context : Context, credentials : str):
     context.obj["hcph"] = HCPHandler(credentials)
 
 @cli.command()
-@click.argument("file-or-folder")
 @click.argument("bucket")
+@click.argument("file-or-folder")
 @click.pass_context
-def upload(context : Context, file_or_folder : str, bucket : str):
+def upload(context : Context, bucket : str, file_or_folder : str):
     """
     Upload files to an HCP bucket/namespace. 
     
-    FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
-
     BUCKET is the name of the upload destination bucket.
+
+    FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
@@ -65,32 +65,32 @@ def download(context : Context, object : str, bucket : str, local_path : str):
     hcph.download_file(object, local_path)
 
 @cli.command()
-@click.argument("object")
 @click.argument("bucket")
+@click.argument("object")
 @click.pass_context
-def delete_object(context : Context, object : str, bucket : str):
+def delete_object(context : Context, bucket : str, object : str):
     """
     Delete an object from an HCP bucket/namespace. 
 
-    OBJECT is the name of the object to be deleted.
-
     BUCKET is the name of the bucket where the object to be deleted exist.
+
+    OBJECT is the name of the object to be deleted.
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     hcph.delete_object(object)
 
 @cli.command()
-@click.argument("folder")
 @click.argument("bucket")
+@click.argument("folder")
 @click.pass_context
-def delete_folder(context : Context, folder : str, bucket : str):
+def delete_folder(context : Context, bucket : str, folder : str):
     """
     Delete a folder from an HCP bucket/namespace. 
 
-    FOLDER is the name of the folder to be deleted.
-
     BUCKET is the name of the bucket where the folder to be deleted exist.
+
+    FOLDER is the name of the folder to be deleted.
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
