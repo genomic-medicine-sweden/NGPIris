@@ -199,15 +199,19 @@ def iris_generate_credentials_file(path : str, name : str):
             "api_port" : ""
         }
     }
+
     name = name.split(".")[0] + ".json"
 
-    if not Path(path).is_dir():
-        Path(path).mkdir()
+    if not path[-1] == "/":
+        path += "/"
 
     if path == ".":
         file_path = name    
     else:
         file_path = path + name
+    
+    if not Path(path).is_dir():
+        Path(path).mkdir()
         
     with open(file_path, "w") as f:
         dump(credentials_dict, f, indent = 4)
