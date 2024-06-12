@@ -46,23 +46,34 @@ def upload(context : Context, bucket : str, file_or_folder : str):
         hcph.upload_file(file_or_folder)
 
 @cli.command()
-@click.argument("object")
 @click.argument("bucket")
+@click.argument("object_path")
 @click.argument("local_path")
+@click.option(
+    "-f", 
+    "--force", 
+    help = "Overwrite existing file with the same name", 
+    is_flag = True
+)
 @click.pass_context
-def download(context : Context, object : str, bucket : str, local_path : str):
+def download(context : Context, bucket : str, object_path : str, local_path : str, force : bool):
     """
-    Download files from an HCP bucket/namespace.
-
-    OBJECT is the name of the object to be downloaded.
+    Download a file from an HCP bucket/namespace.
 
     BUCKET is the name of the upload destination bucket.
 
-    LOCAL_PATH is the path to where the downloaded objects are to be stored locally.
+    OBJECT_PATH is the path to the object to be downloaded.
+
+    LOCAL_PATH is the folder where the downloaded object is to be stored locally.
     """
+    if not Path(local_path).exists():
+        Path(local_path).mkdir()
+    downloaded_object_path = Path(local_path) / Path(object_path).name
+    if downloaded_object_path.exists() and not force:
+        exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    hcph.download_file(object, local_path)
+    hcph.download_file(object_path, downloaded_object_path.as_posix())
 
 @cli.command()
 @click.argument("bucket")
