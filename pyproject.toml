@@ -1,10 +1,35 @@
-[metadata]
-name = "NGPIris"
-[build-system]
-requires = ["setuptools>=42","wheel"]
-build-backend = "setuptools.build_meta"
 [project]
 name = "NGPIris"
-authors = [{name = "Isak Sylvin", email = "isak.sylvin@gu.se"},]
-readme="README.md"
-dynamic = ["version","description"]
+version = "5.0.0-beta1"
+dependencies = [
+    "requests >= 2.31.0",
+    "urllib3 == 1.26.18",
+    "requests >= 2.31.0",
+    "boto3 >= 1.26.76",
+    "parse >= 1.19.1",
+    "tqdm >= 4.66.2",
+    "click >= 8.1.7"
+]
+authors = [
+    {name = "Erik Brink", email = "erik.brink@gu.se"}
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["NGPIris", "NGPIris.hci", "NGPIris.hcp", "NGPIris.parse_credentials", "NGPIris.utils", "NGPIris.cli"]
+
+[tool.pytype]
+inputs = ["NGPIris"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+filterwarnings = "ignore::urllib3.connectionpool.InsecureRequestWarning"
+
+[project.scripts]
+iris = "NGPIris.cli:cli"
+iris_generate_credentials_file = "NGPIris.cli:iris_generate_credentials_file"

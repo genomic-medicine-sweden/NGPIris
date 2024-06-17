@@ -1,1 +1,1 @@
-from .hci import HCIManager
+from NGPIris.hci.hci import HCIHandler

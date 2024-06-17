@@ -1,1 +1,1 @@
-from .hcp import HCPManager
+from NGPIris.hcp.hcp import HCPHandler

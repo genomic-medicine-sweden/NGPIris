@@ -1,39 +1,39 @@
-import os
-import hashlib
 
-from NGPIris.hcp.config import get_config
+from os import path as p
+from typing import Callable, TypeVar, ParamSpec
 
-config = get_config()
+from NGPIris.hcp.exceptions import NoBucketMounted
 
+def create_access_control_policy(user_ID_permissions : dict[str, str]) -> dict:
+    access_control_policy : dict[str, list] = {
+        "Grants" : []
+    }
+    for user_ID, permission in user_ID_permissions.items():
+        if not permission in ["FULL_CONTROL", "WRITE", "WRITE_ACP", "READ", "READ_ACP"]:
+            print("Invalid permission option:", permission)
+            exit()
+        grantee = {
+            "Grantee": {
+                "ID": user_ID,
+                "Type": "CanonicalUser"
+            },
+            "Permission": permission
+        }
+        access_control_policy["Grants"].append(grantee)
+    return access_control_policy
 
-def calculate_etag(local_path):
-    file_size = os.stat(local_path).st_size
-    size_threshold = int(config.get('hcp', 'size_threshold'))
+def raise_path_error(path : str):
+    if not p.exists(path):
+        raise FileNotFoundError("\"" + path + "\"" + " does not exist")
 
-    chunk_size = int(config.get('hcp', 'chunk_size'))
-    if file_size > size_threshold:
+T = TypeVar("T")
+P = ParamSpec("P")
 
-        chunk_hashes = []
-        with open(local_path, 'rb') as fp:
-            while True:
-                data_chunk = fp.read(chunk_size)
-                if not data_chunk:
-                    break
-
-                chunk_hashes.append(hashlib.sha256(data_chunk))
-
-        binary_digests = b''.join(chunk_hash.digest() for chunk_hash in chunk_hashes)
-        binary_hash = hashlib.sha256(binary_digests).hexdigest()
-        return f'"{binary_hash}-{len(chunk_hashes)}"'
-
-    else:
-        file_hash = hashlib.md5()
-        with open(local_path, 'rb') as fp:
-            while True:
-                data_chunk = fp.read(chunk_size)
-                if not data_chunk:
-                    break
-
-                file_hash.update(data_chunk)
-
-        return f'"{file_hash.hexdigest()}"'
+def check_mounted(method : Callable[P, T]) -> Callable[P, T]:
+    def check_if_mounted(*args : P.args, **kwargs : P.kwargs) -> T:
+        self = args[0]
+        if not self.bucket_name: # type: ignore
+            raise NoBucketMounted("No bucket is mounted")
+        return method(*args, **kwargs)
+    return check_if_mounted
+    
