@@ -133,3 +133,27 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+.pytest*
+.pytype*
+.vscode*
+.venv*
+build*/
+*dist*/
+dl/*
+
+credentials/*.json
+!credentials/credentials_template.json
+queries/*.json
+!queries/query_template.json
+proxies/*.json
+!proxies/proxy_template.json
+tests/*.ini
+!tests/test_conf_template.ini
+
+.DS_Store
+*.pyc
+__pycache__
+*.egg-info
+
+.coverage

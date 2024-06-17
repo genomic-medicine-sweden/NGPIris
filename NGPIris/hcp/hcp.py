@@ -1,295 +1,540 @@
-#!/usr/bin/env python
-"""
-Module for simple interfacing with the HCP cloud storage.
-"""
-import os
-import re
-import sys
-import time
-import boto3
-import urllib3
-import botocore
-import threading
 
-from functools import wraps
-from botocore.utils import fix_s3_host
+from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.hcp.helpers import (
+    raise_path_error,
+    create_access_control_policy,
+    check_mounted
+)
+from NGPIris.hcp.exceptions import *
+
+from boto3 import client
 from botocore.client import Config
+from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
+from configparser import ConfigParser
 
-from NGPIris.preproc import preproc
-from NGPIris.hcp.helpers import calculate_etag
-from NGPIris.hcp.errors import (UnattachedBucketError, LocalFileExistsError,
-                                UnknownSourceTypeError, MismatchChecksumError,
-                                ReadLargeFileError, ConnectionError)
-from NGPIris.hcp.config import get_config
-from NGPIris import log
-config = get_config()
+from os import (
+    path,
+    stat,
+    listdir
+)
+from json import dumps
+from parse import (
+    parse,
+    search,
+    Result
+)
+from requests import get
+from urllib3 import disable_warnings
+from tqdm import tqdm
 
-class ProgressPercentage(object):
-    """Progressbar for both upload and download of files."""
-    def __init__(self, source):
-        self._source = source
+_KB = 1024
+_MB = _KB * _KB
 
-        if isinstance(self._source, str):  # Local file
-            self._size = os.path.getsize(self._source)
-        elif hasattr(self._source, 'size'):  # Object summary
-            self._size = self._source.size
-        elif hasattr(self._source, 'content_length'):  # Object
-            self._size = self._source.content_length
+class HCPHandler:
+    def __init__(self, credentials_path : str, use_ssl : bool = False, proxy_path : str = "", custom_config_path : str = "") -> None:
+        """
+        Class for handling HCP requests.
+
+        :param credentials_path: Path to the JSON credentials file
+        :type credentials_path: str
+        
+        :param use_ssl: Boolean choice between using SSL, defaults to False
+        :type use_ssl: bool, optional
+        
+        :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
+        :type custom_config_path: str, optional
+        """
+        credentials_handler = CredentialsHandler(credentials_path)
+        self.hcp = credentials_handler.hcp
+        self.endpoint = "https://" + self.hcp["endpoint"]
+        tenant_parse = parse("https://{}.hcp1.vgregion.se", self.endpoint)
+        if type(tenant_parse) is Result:
+            self.tenant = str(tenant_parse[0])
+        else: # pragma: no cover
+            raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file. Hint: The endpoint should *not* contain \"https://\" or port numbers")
+        self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
+        self.aws_access_key_id = self.hcp["aws_access_key_id"]
+        self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
+        self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
+        self.bucket_name = None
+        self.use_ssl = use_ssl
+
+        if not self.use_ssl:
+            disable_warnings()
+
+        if proxy_path: # pragma: no cover
+            s3_config = Config(
+                s3 = {
+                    "addressing_style": "path",
+                    "payload_signing_enabled": True
+                },
+                signature_version = "s3v4",
+                proxies = CredentialsHandler(proxy_path).hcp
+            )
         else:
-            raise UnknownSourceTypeError(f'Unknown source format {source}')
+            s3_config = Config(
+                s3 = {
+                    "addressing_style": "path",
+                    "payload_signing_enabled": True
+                },
+                signature_version = "s3v4"
+            )
 
-        self._seen_so_far = 0
-        self._lock = threading.Lock()
+        self.s3_client = client(
+            "s3", 
+            aws_access_key_id = self.aws_access_key_id, 
+            aws_secret_access_key = self.aws_secret_access_key,
+            endpoint_url = self.endpoint,
+            verify = self.use_ssl,
+            config = s3_config
+        )
 
-        self._previous_time = time.time()
-        self._previous_bytesize = self._seen_so_far
-        self._interval = 0.1
-        self._speed = 0
-        self._creation_time = time.time()
+        if custom_config_path: # pragma: no cover
+            ini_config = ConfigParser()
+            ini_config.read(custom_config_path)
 
-    def _calculate_speed(self):
-        curr_time = time.time()
-        if curr_time - self._interval > self._previous_time:
-            delta_time = curr_time - self._previous_time or 0.0001  # Avoid division by zero
-            speed = (self._seen_so_far - self._previous_bytesize) / delta_time
-            self._speed = round(speed / (1024 ** 2), 2)
-            self._previous_time = curr_time
-            self._previous_bytesize = self._seen_so_far
+            self.transfer_config = TransferConfig(
+                multipart_threshold = ini_config.getint("hcp", "multipart_threshold"),
+                max_concurrency = ini_config.getint("hcp", "max_concurrency"),
+                multipart_chunksize = ini_config.getint("hcp", "multipart_chunksize"),
+                use_threads = ini_config.getboolean("hcp", "use_threads")
+            )
+        else:
+            self.transfer_config = TransferConfig(
+                multipart_threshold = 10 * _MB,
+                max_concurrency = 60,
+                multipart_chunksize = 40 * _MB,
+                use_threads = True
+            )
+    
+    def get_response(self, path_extension : str = "") -> dict:
+        """
+        Make a request to the HCP in order to use the builtin MAPI
 
-        return self._speed
+        :param path_extension: Extension for the base request URL, defaults to the empty string
+        :type path_extension: str, optional
+        :return: The response as a dictionary
+        :rtype: dict
+        """
+        url = self.base_request_url + path_extension
+        headers = {
+            "Authorization": "HCP " + self.token,
+            "Cookie": "hcp-ns-auth=" + self.token,
+            "Accept": "application/json"
+        }
+        response = get(
+            url, 
+            headers=headers,
+            verify=self.use_ssl
+        )
 
-    def _trim_text(self, text):
-        """Trim text to fit current terminal size."""
-        if not os.isatty(0):
-            return ''
+        response.raise_for_status()
 
-        terminal_width = 80
-        if sys.platform == "win32":
+        return dict(response.json())
+
+    def test_connection(self, bucket_name : str = "") -> dict:
+        """
+        Test the connection to the mounted bucket or another bucket which is 
+        supplied as the argument :py:obj:`bucket_name`.
+
+        :param bucket_name: The name of the bucket to be mounted. Defaults to the empty string
+        :type bucket_name: str, optional
+
+        :raises RuntimeError: If no bucket is selected
+        :raises VPNConnectionError: If there is no VPN connection
+        :raises BucketNotFound: If no bucket of that name was found
+        :raises Exception: Other exceptions
+
+        :return: A dictionary of the response
+        :rtype: dict
+        """
+        if not bucket_name and self.bucket_name:
+            bucket_name = self.bucket_name
+        elif bucket_name:
             pass
-        elif sys.platform == "linux":
-            pass
         else:
-            terminal_width = os.get_terminal_size()[0]
-
-
-        if len(text) > terminal_width:
-            diff = len(text) - terminal_width
-            text = text[:len(text)-diff-3] + '...'
-
-        return text
-
-    def __call__(self, bytes_amount):
-        with self._lock:
-            self._seen_so_far += bytes_amount
-            speed = abs(self._calculate_speed())
-            percentage = (self._seen_so_far / self._size) * 100
-            text = "\r%s  %s / %s  %s  (%.2f%%)" % (self._source,
-                                                    self._seen_so_far,
-                                                    self._size,
-                                                    f'{speed}MB/s',
-                                                    percentage)
-            text = self._trim_text(text)
-            print(f'{text}', end='')
-            sys.stdout.flush()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        print('')
-        delta_time = (self._previous_time - self._creation_time) or 0.0001  # Avoid division by zero
-        avg_transfer_speed = self._size/delta_time
-        avg_transfer_speed_mb = avg_transfer_speed / 1_000_000
-        rounded_speed = abs(round(avg_transfer_speed_mb, 2))
-        if rounded_speed == 0.0:
-            rounded_speed = "Inf."
-        print(f'Average transfer speed {rounded_speed} MB/s')
-
-
-def bucketcheck(fn):
-    """Checks to see that bucket is attached before executing."""
-    @wraps(fn)
-    def wrapped(self, *args, **kwargs):
-        if hasattr(self, 'bucket'):
-            return fn(self, *args, **kwargs)
-        else:
-            raise UnattachedBucketError('Attempted work on unattached bucket. Aborting...')
-
-    return wrapped
-
-
-class HCPManager:
-
-
-    def __init__(self, endpoint="", aws_access_key_id="", aws_secret_access_key="", \
-                 bucket=None, credentials_path="", debug=False):
-        self.bucketname = bucket
-        self.bucket = None
-       
-        if credentials_path != "":
-            c = preproc.read_credentials(credentials_path)
-            self.set_credentials(c['endpoint'], c['aws_access_key_id'], c['aws_secret_access_key'])  
-        else:
-            self.set_credentials(endpoint, aws_access_key_id, aws_secret_access_key)
-
-        # Very verbose. Use with care.
-        if debug:
-            boto3.set_stream_logger(name='botocore')
-
-        session = boto3.session.Session(
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key)
-
-        s3_config = Config(s3={'addressing_style': 'path',
-                               'payload_signing_enabled': True
-                               },
-                           signature_version='s3v4')
-
-        self.s3 = session.resource('s3',
-                                   endpoint_url=self.endpoint,
-                                   verify=False,  # Checks for SLL certificate. Disables because of already "secure" solution.
-                                   config=s3_config)
-
-        self.transfer_config = TransferConfig(multipart_threshold=config.getint('hcp', 'size_threshold'),
-                                              max_concurrency=config.getint('hcp', 'max_concurrency'),
-                                              multipart_chunksize=config.getint('hcp', 'chunk_size'))
-
-        self.s3.meta.client.meta.events.unregister('before-sign.s3', fix_s3_host)
-
-        if self.bucketname:
-            self.attach_bucket(bucket)
-
-    def list_buckets(self):
-        """List all available buckets at endpoint."""
-        return [bucket.name for bucket in self.s3.buckets.all()]
-
-    def test_connection(self):
-        """Validate the connection works with as little overhead as possible."""
-        if self.bucketname is None:
-            raise UnattachedBucketError("No bucket assigned for connection test")
+            raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` paramter for `test_connection`")
         try:
-            self.s3.meta.client.head_bucket(Bucket=self.bucketname)
-        except Exception:
-            log.error("Invalid access, credentials or bucket specified.")
-            #sys.exit(-1)
-            #raise ConnectionError("Invalid access, credentials or bucket specified.")
+            response =  dict(self.s3_client.head_bucket(Bucket = bucket_name))
+        except EndpointConnectionError as e: # pragma: no cover
+            print(e)
+            raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
+        except ClientError as e:
+            print(e)
+            raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+        except Exception as e: # pragma: no cover
+            raise Exception(e)
+            
+        if response["ResponseMetadata"].get("HTTPStatusCode", -1) != 200: # pragma: no cover
+            error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
+            raise Exception(error_msg)
+        return response
+        
+    def mount_bucket(self, bucket_name : str) -> None:
+        """
+        Mount bucket that is to be used. This method needs to executed in order 
+        for most of the other methods to work. It mainly concerns operations with 
+        download and upload. 
 
-    def set_bucket(self, bucket):
-        self.bucketname = bucket
+        :param bucket_name: The name of the bucket to be mounted
+        :type bucket_name: str
+        """
 
-    def attach_bucket(self, bucketname):
-        """Attempt to attach to the given bucket."""
-        if bucketname is None:
-            log.error("Attempted to attach bucket. But no bucket named.")
-        self.bucket = self.s3.Bucket(bucketname)
-        if hasattr(self, 'objects'):
-            delattr(self, 'objects')  # Incase of already attached bucket
+        # Check if bucket exist
+        self.test_connection(bucket_name = bucket_name)
+        self.bucket_name = bucket_name
 
-    def set_credentials(self, endpoint, aws_access_key_id, aws_secret_access_key):
-        """Mounts credentials to HCPManager object"""
-        self.endpoint = endpoint
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
+    def list_buckets(self) -> list[str]:
+        """
+        List all available buckets at endpoint.
 
-    @bucketcheck
-    def get_object(self, key):
-        """Return object with exact matching key."""
-        obj = self.bucket.Object(key)
+        :return: A list of buckets
+        :rtype: list[str]
+        """
+        
+        response = self.get_response("/namespaces")
+        list_of_buckets : list[str] = response["name"]
+        return list_of_buckets
+    
+    @check_mounted
+    def list_objects(self, name_only : bool = False) -> list:
+        """
+        List all objects in the mounted bucket
+
+        :param name_only: If True, return only a list of the object names. If False, return the full metadata about each object. Defaults to False.
+        :type name_only: bool, optional
+
+        :return: A list of of either strings or a list of object metadata (the form of a dictionary)
+        :rtype: list
+        """
+        response_list_objects = dict(self.s3_client.list_objects_v2(
+            Bucket = self.bucket_name
+        ))
+        if "Contents" not in response_list_objects.keys(): # pragma: no cover
+            return []
+        list_of_objects : list[dict] = response_list_objects["Contents"]
+        if name_only:
+            return [object["Key"] for object in list_of_objects]
+        else:
+            return list_of_objects
+    
+    @check_mounted
+    def get_object(self, key : str) -> dict:
+        """
+        Retrieve object metadata
+
+        :param key: The object name
+        :type key: str
+
+        :return: A dictionary containing the object metadata
+        :rtype: dict
+        """
+        response = dict(self.s3_client.get_object(
+            Bucket = self.bucket_name,
+            Key = key
+        ))
+        return response
+
+    @check_mounted
+    def object_exists(self, key : str) -> bool:
+        """
+        Check if a given object is in the mounted bucket
+
+        :param key: The object name
+        :type key: str
+
+        :return: True if the object exist, otherwise False
+        :rtype: bool
+        """
         try:
-            obj.content_length  # Good enough?
-        except botocore.exceptions.ClientError:
-            return None
-        return obj
+            response = self.get_object(key)
+            if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
+                return True
+            else: # pragma: no cover
+                return False
+        except: # pragma: no cover
+            return False
 
-    @bucketcheck
-    def get_objects(self):
-        """Return all objects in bucket."""
-        if hasattr(self, 'objects'):
-            return self.objects
-        else:
-            self.objects = list(self.bucket.objects.all())
-            return self.objects
+    @check_mounted
+    def download_file(self, key : str, local_file_path : str) -> None:
+        """
+        Download one object file from the mounted bucket
 
-    @bucketcheck
-    def reload_objects(self):
-        """Reload and return all objects in bucket."""
-        self.objects = list(self.bucket.objects.all())
-        return self.objects
+        :param key: Name of the object
+        :type key: str
 
-    @bucketcheck
-    def search_objects(self, string, mode="all"):
-        """Return all objects whose keys contain the given string."""
-        if not hasattr(self, 'objects'):
-            self.get_objects()
-        string = string.replace('.', '\.') #escape dots
-        string = string.replace('*','.*') #support normie asterix
-        cstr = re.compile(f'.*{string}.*') #pad string with 'any' on both sides
-        if mode == "all":
-            return [obj for obj in self.objects if re.search(cstr, obj.key) ]
-        elif mode == "file":
-            return [obj for obj in self.objects if re.search(cstr, os.path.basename(obj.key))]
-        elif mode == "dir":
-            return [obj for obj in self.objects if re.search(cstr, obj.key) and obj.key[-1] == "/"]
- 
+        :param local_file_path: Path to a file on your local system where the contents of the object file can be put.
+        :type local_file_path: str
+        """
+        try:
+            file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
+            with tqdm(
+                total = file_size, 
+                unit = "B", 
+                unit_scale = True, 
+                desc = key
+            ) as pbar:
+                self.s3_client.download_file(
+                    Bucket = self.bucket_name, 
+                    Key = key, 
+                    Filename = local_file_path, 
+                    Config = self.transfer_config,
+                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                )
+        except ClientError as e0: 
+            print(str(e0))
+            raise Exception("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+        except Exception as e: # pragma: no cover
+            raise Exception(e)
 
-    @bucketcheck
-    def upload_file(self, local_path, remote_key, metadata={}, force=False, callback=True):
-        """Upload local file to remote as path with associated metadata."""
-        if force:
-            self.delete_key(remote_key)
+    @check_mounted
+    def upload_file(self, local_file_path : str, key : str = "") -> None:
+        """
+        Upload one file to the mounted bucket
 
+        :param local_file_path: Path to the file to be uploaded
+        :type local_file_path: str
 
-        with ProgressPercentage(local_path) as progress:
-            self.bucket.upload_file(local_path,
-                                    remote_key,
-                                    ExtraArgs={'Metadata': metadata},
-                                    Config=self.transfer_config,
-                                    Callback=progress if callback else None)
+        :param key: An optional new name for the file object on the bucket. Defaults to the same name as the file
+        :type key: str, optional
+        """
+        raise_path_error(local_file_path)
 
-        remote_obj = self.get_object(remote_key)
-        calculated_etag = calculate_etag(local_path)
+        if not key:
+            file_name = path.basename(local_file_path)
+            key = file_name
 
-        if calculated_etag != remote_obj.e_tag:
-            self.delete_object(remote_obj)
-            raise MismatchChecksumError('Local and remote file checksums differ. Removing remote file.')
+        file_size : int = stat(local_file_path).st_size
+        with tqdm(
+            total = file_size, 
+            unit = "B", 
+            unit_scale = True, 
+            desc = local_file_path
+        ) as pbar:
+            self.s3_client.upload_file(
+                Filename = local_file_path, 
+                Bucket = self.bucket_name, 
+                Key = key,
+                Config = self.transfer_config,
+                Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+            )
 
-    @bucketcheck
-    def download_file(self, obj, local_path, force=False, callback=True):
-        """Download objects file to specified local file."""
-        if isinstance(obj, str):
-            obj = self.get_object(obj)
+    @check_mounted
+    def upload_folder(self, local_folder_path : str, key : str = "") -> None:
+        """
+        Upload the contents of a folder to the mounted bucket
 
-        if os.path.exists(local_path):
-            if not force:
-                raise LocalFileExistsError(f'Local file already exists: {local_path}')
+        :param local_folder_path: Path to the folder to be uploaded
+        :type local_folder_path: str
+        :param key: An optional new name for the folder path on the bucket. Defaults to the same name as the local folder path
+        :type key: str, optional
+        """
+        raise_path_error(local_folder_path)
 
-        dirname = os.path.dirname(local_path)
-        if dirname != "":
-            os.makedirs(dirname, exist_ok=True)
+        if not key:
+            key = local_folder_path
+        filenames = listdir(local_folder_path)
 
-        if os.path.isdir(local_path):
-            local_path = os.path.join(local_path, os.path.basename(obj.key))
+        for filename in filenames:
+            self.upload_file(local_folder_path + filename, key + filename)
 
-        with ProgressPercentage(obj) as progress:
-            self.bucket.download_file(obj.key,
-                                      local_path,
-                                      Callback=progress if callback else None)
+    @check_mounted
+    def delete_objects(self, keys : list[str], verbose : bool = True) -> None:
+        """Delete a list of objects on the mounted bucket 
 
-    @bucketcheck
-    def delete_object(self, obj):
-        """Delete the provided object."""
-        self.bucket.delete_objects(Delete={'Objects': [{'Key': obj.key}]})
+        :param keys: List of object names to be deleted
+        :type keys: list[str]
 
-    @bucketcheck
-    def delete_key(self, key):
-        """Delete an object using the provided key."""
-        self.bucket.delete_objects(Delete={'Objects': [{'Key': key}]})
+        :param verbose: Print the result of the deletion. Defaults to True
+        :type verbose: bool, optional
+        """
+        object_list = []
+        for key in keys:
+            object_list.append({"Key" : key})
 
-    @bucketcheck
-    def read_object(self, obj):
-        """Read the object content. Unwise for large files"""
-        if obj.content_length < 100000:  # NOTE Arbitrarily set
-            return obj.get()['Body'].read().decode('utf-8')
-        else:
-            raise ReadLargeFileError(f'Object size too large for reading: {obj.content_length}')
+        deletion_dict = {"Objects": object_list}
+
+        list_of_objects_before = self.list_objects(True)
+
+        response : dict = self.s3_client.delete_objects(
+            Bucket = self.bucket_name,
+            Delete = deletion_dict
+        )
+        if verbose:
+            print(dumps(response, indent=4))
+        diff : set[str] = set(keys) - set(list_of_objects_before)
+        if diff:
+            does_not_exist = []
+            for key in diff:
+                does_not_exist.append("- " + key + "\n")
+            print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
+    
+    @check_mounted
+    def delete_object(self, key : str, verbose : bool = True) -> None:
+        """
+        Delete a single object in the mounted bucket
+
+        :param key: The object to be deleted
+        :type key: str
+        :param verbose: Print the result of the deletion. Defaults to True
+        :type verbose: bool, optional
+        """
+        self.delete_objects([key], verbose = verbose)
+
+    @check_mounted
+    def delete_folder(self, key : str, verbose : bool = True) -> None:
+        """
+        Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raisesd
+
+        :param key: The folder of objects to be deleted
+        :type key: str
+        :param verbose: Print the result of the deletion. defaults to True
+        :type verbose: bool, optional
+        :raises RuntimeError: If there are subfolders, a RuntimeError is raisesd
+        """
+        if key[-1] != "/":
+            key += "/"
+        object_path_in_folder = []
+        for s in self.search_objects_in_bucket(key):
+            parse_object = parse(key + "{}", s)
+            if type(parse_object) is Result:
+                object_path_in_folder.append(s)
+
+        for object_path in object_path_in_folder:
+            if object_path[-1] == "/":
+                raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
+        self.delete_objects(object_path_in_folder + [key], verbose = verbose)
+
+    @check_mounted
+    def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> list[str]:
+        """
+        Simple search method using substrings in order to find certain objects. Case insensitive by default.
+
+        :param search_string: Substring to be used in the search
+        :type search_string: str
+
+        :param case_sensitive: Case sensitivity. Defaults to False
+        :type case_sensitive: bool, optional
+
+        :return: List of object names that match the in some way to the object names
+        :rtype: list[str]
+        """
+        search_result : list[str] = []
+        for key in self.list_objects(True):
+            parse_object = search(
+                search_string, 
+                key, 
+                case_sensitive = case_sensitive
+            )
+            if type(parse_object) is Result:
+                search_result.append(key)
+        return search_result
+
+    @check_mounted
+    def get_object_acl(self, key : str) -> dict:
+        """
+        Get the object Access Control List (ACL)
+
+        :param key: The name of the object
+        :type key: str
+
+        :return: Return the ACL in the shape of a dictionary
+        :rtype: dict
+        """
+        response : dict = self.s3_client.get_object_acl(
+            Bucket = self.bucket_name,
+            Key = key
+        )
+        return response
+
+    @check_mounted
+    def get_bucket_acl(self) -> dict:
+        """
+        Get the bucket Access Control List (ACL)
+
+        :return: Return the ACL in the shape of a dictionary
+        :rtype: dict
+        """
+        response : dict = self.s3_client.get_bucket_acl(
+            Bucket = self.bucket_name
+        )
+        return response
+
+    @check_mounted
+    def modify_single_object_acl(self, key : str, user_ID : str, permission : str) -> None:
+        """
+        Modify permissions for a user in the Access Control List (ACL) for one object
+
+        :param key: The name of the object
+        :type key: str
+
+        :param user_ID: The user name. Can either be the DisplayName or user_ID
+        :type user_ID: str
+
+        :param permission: 
+            What permission to be set. Valid options are:
+                * FULL_CONTROL 
+                * WRITE 
+                * WRITE_ACP 
+                * READ 
+                * READ_ACP\n
+        :type permission: str
+        """
+        self.s3_client.put_object_acl(
+            Bucket = self.bucket_name,
+            Key = key,
+            AccessControlPolicy = create_access_control_policy({user_ID : permission})
+        )
+
+    @check_mounted
+    def modify_single_bucket_acl(self, user_ID : str, permission : str) -> None:
+        """
+        Modify permissions for a user in the Access Control List (ACL) for the mounted bucket
+
+        :param user_ID: The user name. Can either be the DisplayName or user_ID
+        :type user_ID: str
+        
+        :param permission: 
+            What permission to be set. Valid options are: 
+                * FULL_CONTROL 
+                * WRITE 
+                * WRITE_ACP 
+                * READ 
+                * READ_ACP\n
+        :type permission: str
+        """
+        self.s3_client.put_bucket_acl(
+            Bucket = self.bucket_name,
+            AccessControlPolicy = create_access_control_policy({user_ID : permission})
+        )
+
+    @check_mounted
+    def modify_object_acl(self, key_user_ID_permissions : dict[str, dict[str, str]]) -> None:
+        """
+        Modifies  permissions to multiple objects, see below.
+
+        In order to add permissions for multiple objects, we make use of a dictionary of a dictionary: :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`. So for every object (key), we set the permissions for every user ID for that object. 
+
+        :param key_user_ID_permissions: The dictionary containing object name and user_id-permission dictionary
+        :type key_user_ID_permissions: dict[str, dict[str, str]]
+        """
+        for key, user_ID_permissions in key_user_ID_permissions.items():
+            self.s3_client.put_object_acl(
+                Bucket = self.bucket_name,
+                Key = key,
+                AccessControlPolicy = create_access_control_policy(user_ID_permissions)
+            )
+
+    @check_mounted
+    def modify_bucket_acl(self, user_ID_permissions : dict[str, str]) -> None:
+        """
+        Modify permissions for multiple users for the mounted bucket
+
+        :param user_ID_permissions: The dictionary containing the user name and the corresponding permission to be set to that user
+        :type user_ID_permissions: dict[str, str]
+        """
+        self.s3_client.put_bucket_acl(
+            Bucket = self.bucket_name,
+            AccessControlPolicy = create_access_control_policy(user_ID_permissions)
+        )

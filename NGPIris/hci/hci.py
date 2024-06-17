@@ -1,86 +1,132 @@
-#!/usr/bin/env python3
 
-# Script that uses HCI Search API.
-# Get a json with information from selected index on HCI.
+from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.hci.helpers import (
+    get_index_response,
+    get_query_response
+)
+from NGPIris.hci.exceptions import *
 
+from requests import (
+    Response,
+    post
+)
+from urllib3 import disable_warnings
+from json import load
 
-import argparse
-import requests
-import ast
-import json
-import os
-import sys
-import urllib3
+class HCIHandler:
+    def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
+        """
+        Class for handling HCI requests.
 
-from NGPIris import WD, log
+        :param credentials_path: Path to the JSON credentials file
+        :type credentials_path: str
 
-from NGPIris.preproc import preproc
+        :param use_ssl: Boolean choice between using SSL, defaults to False
+        :type use_ssl: bool, optional
+        """
+        credentials_handler = CredentialsHandler(credentials_path)
+        self.hci = credentials_handler.hci
+        self.username = self.hci["username"]
+        self.password = self.hci["password"]
+        self.address = self.hci["address"]
+        self.auth_port = self.hci["auth_port"]
+        self.api_port = self.hci["api_port"]
+        self.token = ""
 
-class HCIManager:
+        self.use_ssl = use_ssl
+
+        if not self.use_ssl:
+            disable_warnings()
     
-    def __init__(self,password="", credentials_path=""):
-        if credentials_path:
-            c = preproc.read_credentials(credentials_path)
+    def request_token(self) -> None:
+        """
+        Request a token from the HCI, which is stored in the HCIHandler object. 
+        The token is used for every operation that needs to send a request to 
+        HCI.
 
-        self.password = password if password else c('password','')
-        self.address = "10.81.222.13"
-        self.authport = "8000"
-        self.apiport = "8888"
+        :raises VPNConnectionError: If there was a problem when requesting a token, a runtime error will be raised 
+        """
+        url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
+        data = {
+            "grant_type": "password", 
+            "username": self.username, 
+            "password": self.password,
+            "scope": "*",  
+            "client_secret": "hci-client", 
+            "client_id": "hci-client", 
+            "realm": "LOCAL"
+        }
+        try:
+            response : Response = post(url, data = data, verify = self.use_ssl)
+        except: # pragma: no cover
+            error_msg : str = "The token request made at " + url + " failed. Please check your connection and that you have your VPN enabled"
+            raise VPNConnectionError(error_msg) from None
 
-    def get_password(self):
-        return self.password
+        token : str = response.json()["access_token"]
+        self.token = token
 
-    def create_template(self, index, query):
-        """Reorganises query to standard format"""
-        with open(f"{WD}/hci/template_query.json", "r") as sample:
-            data = json.load(sample)
-            data["indexName"] = index
-            data["queryString"] = query
+    def list_index_names(self) -> list[str]:
+        """
+        Retrieve a list of all index names.
 
-        with open(f"{WD}/hci/package.json", "w") as signal:
-            json.dump(data, signal, indent=4)
+        :return: A list of index names
+        :rtype: list[str]
+        """
+        response : Response = get_index_response(self.address, self.api_port, self.token, self.use_ssl)
+        return [entry["name"]for entry in response.json()]
+    
+    def look_up_index(self, index_name : str) -> dict:
+        """
+        Look up index information in the form of a dictionary by submitting 
+        the index name. Will return an empty dictionary if no index was found.
 
+        :param index_name: The index name
+        :type index_name: str
 
-    def generate_token(self):
-        """Generate a security token from a password"""
-        my_key = requests.post(f"https://{self.address}:{self.authport}/auth/oauth/", 
-                 data={"grant_type": "password", "username": "admin", "password": f"{self.password}", "scope": "*",  
-                 "client_secret": "hci-client", "client_id": "hci-client", "realm": "LOCAL"}, verify=False)
-        if my_key.status_code == 401:
-            raise Exception("Invalid index password specified")
-        return ast.literal_eval(my_key.text)["access_token"].lstrip()
+        :return: A dictionary containing information about an index
+        :rtype: dict
+        """
+        response : Response = get_index_response(self.address, self.api_port, self.token, self.use_ssl)
 
+        for entry in response.json():
+            if entry["name"] == index_name:
+                return dict(entry)
+        
+        return {}
 
-    def query(self, token):
-        """Queries the HCI using a token"""
-        with open ("{}/hci/package.json".format(WD), "r") as signal:
-            json_data = json.load(signal)
-        response = requests.post(f"https://{self.address}:{self.apiport}/api/search/query", 
-                   headers={"accept": "application/json", "Authorization": f"Bearer {token}"}, 
-                   json=json_data, verify=False) 
-        return response.text
+    def raw_query(self, query_dict : dict[str, str]) -> dict:
+        """
+        Make query to an HCI index, with a dictionary
 
-    def pretty_query(self, token):
-       """Return the result of a query in json loaded format"""
-       return json.loads(self.query(token))["results"]
+        :param query_dict: Dictionary consisting of the query
+        :type query_dict: dict[str, str]
 
+        :return: Dictionary containing the raw query
+        :rtype: dict
+        """
+        return dict(get_query_response(
+            query_dict, 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl
+        ).json())
+            
+    def raw_query_from_JSON(self, query_path : str) -> dict:
+        """
+        Make query to an HCI index, with prewritten query in a JSON file
 
-    # If using index, it searches through all indexes if nothing else is specified. 
-    def get_index(self, token, index="all"):
-        if index == "all":
-            response = requests.get(f"https://{self.address}:{self.apiport}/api/search/indexes", 
-                       headers={"accept": "application/json","Authorization": f"Bearer {token}"}, verify=False)
-            response_string = response.text
-            fixed_response = ast.literal_eval(response_string.replace("true", "True").replace("false", "False"))
-            return fixed_response
+        :param query_path: Path to the JSON file
+        :type query_path: str
 
-        else:
-            response = requests.get(f"https://{self.address}:{self.apiport}/api/search/indexes", 
-                       headers={"accept": "application/json","Authorization": f"Bearer {token}"}, verify=False)
-            response_string = response.text
-            fixed_response = response_string.replace("true", "True").replace("false", "False")
-
-            to_loop = ast.literal_eval(fixed_response)
-            for each_dict in to_loop:
-                if each_dict["name"] == index:
-                    return each_dict
+        :return: Dictionary containing the raw query
+        :rtype: dict
+        """
+        with open(query_path, "r") as inp:
+            return dict(get_query_response(
+            dict(load(inp)), 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl
+        ).json())
