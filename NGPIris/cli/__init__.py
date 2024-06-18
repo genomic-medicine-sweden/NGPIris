@@ -212,17 +212,19 @@ def iris_generate_credentials_file(path : str, name : str):
     }
 
     name = name.split(".")[0] + ".json"
+    if path:
+        if not path[-1] == "/":
+            path += "/"
 
-    if not path[-1] == "/":
-        path += "/"
-
-    if path == ".":
-        file_path = name    
-    else:
-        file_path = path + name
+        if path == ".":
+            file_path = name    
+        else:
+            file_path = path + name
     
-    if not Path(path).is_dir():
-        Path(path).mkdir()
+        if not Path(path).is_dir():
+            Path(path).mkdir()
+    else:
+        file_path = name
         
     with open(file_path, "w") as f:
         dump(credentials_dict, f, indent = 4)
