@@ -5,6 +5,7 @@ from json import dumps, dump
 from pathlib import Path
 
 from NGPIris.hcp import HCPHandler
+from NGPIris.cli.helpers import checkversion
 
 def get_HCPHandler(context : Context)-> HCPHandler:
     return context.obj["hcph"]
@@ -38,6 +39,7 @@ def upload(context : Context, bucket : str, file_or_folder : str):
 
     FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
     """
+    checkversion()
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if Path(file_or_folder).is_dir():
@@ -66,6 +68,7 @@ def download(context : Context, bucket : str, object_path : str, local_path : st
 
     LOCAL_PATH is the folder where the downloaded object is to be stored locally.
     """
+    checkversion()
     if not Path(local_path).exists():
         Path(local_path).mkdir()
     downloaded_object_path = Path(local_path) / Path(object_path).name
