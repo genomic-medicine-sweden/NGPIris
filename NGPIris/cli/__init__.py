@@ -29,21 +29,24 @@ def cli(context : Context, credentials : str):
 @cli.command()
 @click.argument("bucket")
 @click.argument("file-or-folder")
+@click.argument("object_path")
 @click.pass_context
-def upload(context : Context, bucket : str, file_or_folder : str):
+def upload(context : Context, bucket : str, file_or_folder : str, object_path : str):
     """
     Upload files to an HCP bucket/namespace. 
     
     BUCKET is the name of the upload destination bucket.
 
     FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
+    
+    OBJECT-PATH is the destination path on the HCP. 
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if Path(file_or_folder).is_dir():
-        hcph.upload_folder(file_or_folder)
+        hcph.upload_folder(file_or_folder, object_path)
     else:
-        hcph.upload_file(file_or_folder)
+        hcph.upload_file(file_or_folder, object_path)
 
 @cli.command()
 @click.argument("bucket")

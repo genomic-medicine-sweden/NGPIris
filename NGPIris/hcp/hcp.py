@@ -5,7 +5,11 @@ from NGPIris.hcp.helpers import (
     create_access_control_policy,
     check_mounted
 )
-from NGPIris.hcp.exceptions import *
+from NGPIris.hcp.exceptions import (
+    VPNConnectionError,
+    BucketNotFound,
+    ObjectAlreadyExist
+)
 
 from boto3 import client
 from botocore.client import Config
@@ -305,20 +309,23 @@ class HCPHandler:
             file_name = path.basename(local_file_path)
             key = file_name
 
-        file_size : int = stat(local_file_path).st_size
-        with tqdm(
-            total = file_size, 
-            unit = "B", 
-            unit_scale = True, 
-            desc = local_file_path
-        ) as pbar:
-            self.s3_client.upload_file(
-                Filename = local_file_path, 
-                Bucket = self.bucket_name, 
-                Key = key,
-                Config = self.transfer_config,
-                Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
-            )
+        if self.object_exists(key):
+            raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
+        else:
+            file_size : int = stat(local_file_path).st_size
+            with tqdm(
+                total = file_size, 
+                unit = "B", 
+                unit_scale = True, 
+                desc = local_file_path
+            ) as pbar:
+                self.s3_client.upload_file(
+                    Filename = local_file_path, 
+                    Bucket = self.bucket_name, 
+                    Key = key,
+                    Config = self.transfer_config,
+                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                )
 
     @check_mounted
     def upload_folder(self, local_folder_path : str, key : str = "") -> None:
