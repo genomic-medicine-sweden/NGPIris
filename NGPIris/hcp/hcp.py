@@ -409,7 +409,7 @@ class HCPHandler:
     @check_mounted
     def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> list[str]:
         """
-        Simple search method using substrings in order to find certain objects. Case insensitive by default.
+        Simple search method using substrings in order to find certain objects. Case insensitive by default. Does not utilise the HCI
 
         :param search_string: Substring to be used in the search
         :type search_string: str
