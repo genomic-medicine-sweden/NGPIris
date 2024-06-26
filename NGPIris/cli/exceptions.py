@@ -1,0 +1,2 @@
+class TooOutdatedVersion(Exception):
+    pass

@@ -9,7 +9,8 @@ dependencies = [
     "boto3 >= 1.26.76",
     "parse >= 1.19.1",
     "tqdm >= 4.66.2",
-    "click >= 8.1.7"
+    "click >= 8.1.7",
+    "packaging >= 24.1"
 ]
 authors = [
     {name = "Erik Brink", email = "erik.brink@gu.se"}
@@ -18,6 +19,9 @@ authors = [
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.NGPIris]
+least_viable_version = "5.0.1"
 
 [tool.setuptools.packages.find]
 include = ["NGPIris", "NGPIris.hci", "NGPIris.hcp", "NGPIris.parse_credentials", "NGPIris.utils", "NGPIris.cli"]
