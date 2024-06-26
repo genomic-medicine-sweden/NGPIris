@@ -6,3 +6,6 @@ class BucketNotFound(Exception):
 
 class NoBucketMounted(Exception):
     pass
+
+class ObjectAlreadyExist(Exception):
+    pass
