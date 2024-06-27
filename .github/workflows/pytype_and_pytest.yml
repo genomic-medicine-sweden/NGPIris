@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  pytype_and_pytest:
 
     runs-on: ubuntu-latest
 
