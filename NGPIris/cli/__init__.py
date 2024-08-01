@@ -1,8 +1,10 @@
 
 import click
 from click.core import Context
-from json import dumps, dump
+from json import dump
 from pathlib import Path
+from pandas import DataFrame
+from botocore.paginate import PageIterator, Paginator
 
 from NGPIris.hcp import HCPHandler
 
@@ -136,14 +138,19 @@ def list_objects(context : Context, bucket : str, name_only : bool):
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    objects_list = hcph.list_objects(name_only)
+    paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
+    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
+    list_of_objects = []
+    for page in pages:
+        for object in page["Contents"]:
+            if name_only:
+                list_of_objects.append(object["Key"])
+            else:
+                list_of_objects.append(object)
     if name_only:
-        click.echo(format_list(objects_list))
-    else: 
-        out = []
-        for d in objects_list:
-            out.append(dumps(d, indent = 4, default = str) + "\n")
-        click.echo("".join(out))
+        click.echo_via_pager(format_list(list_of_objects))
+    else:
+        click.echo_via_pager(DataFrame(list_of_objects).to_markdown(None, mode = None))
 
 @cli.command()
 @click.argument("bucket")
