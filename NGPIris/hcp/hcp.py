@@ -13,6 +13,7 @@ from NGPIris.hcp.exceptions import (
 
 from boto3 import client
 from botocore.client import Config
+from botocore.paginate import PageIterator, Paginator
 from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 from configparser import ConfigParser
@@ -212,16 +213,16 @@ class HCPHandler:
         :return: A list of of either strings or a list of object metadata (the form of a dictionary)
         :rtype: list
         """
-        response_list_objects = dict(self.s3_client.list_objects_v2(
-            Bucket = self.bucket_name
-        ))
-        if "Contents" not in response_list_objects.keys(): # pragma: no cover
-            return []
-        list_of_objects : list[dict] = response_list_objects["Contents"]
-        if name_only:
-            return [object["Key"] for object in list_of_objects]
-        else:
-            return list_of_objects
+        paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
+        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
+        list_of_objects = []
+        for page in pages:
+            for object in page["Contents"]:
+                if name_only:
+                    list_of_objects.append(object["Key"])
+                else:
+                    list_of_objects.append(object)
+        return list_of_objects
     
     @check_mounted
     def get_object(self, key : str) -> dict:
