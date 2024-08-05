@@ -189,6 +189,18 @@ class HCPHandler:
         self.test_connection(bucket_name = bucket_name)
         self.bucket_name = bucket_name
 
+    def create_bucket(self, bucket_name : str) -> None:
+        """
+        Create a bucket. The user in the given credentials will be the owner 
+        of the bucket
+
+        :param bucket_name: Name of the new bucket
+        :type bucket_name: str
+        """
+        self.s3_client.create_bucket(
+            Bucket = bucket_name
+        )
+
     def list_buckets(self) -> list[str]:
         """
         List all available buckets at endpoint.
