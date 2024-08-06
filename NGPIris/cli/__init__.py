@@ -3,17 +3,48 @@ import click
 from click.core import Context
 from json import dump
 from pathlib import Path
-from pandas import DataFrame
 from botocore.paginate import PageIterator, Paginator
+from typing import Any, Generator
+from os import get_terminal_size
+from math import floor
+from tabulate import tabulate
 
 from NGPIris.hcp import HCPHandler
 
-def get_HCPHandler(context : Context)-> HCPHandler:
+def get_HCPHandler(context : Context) -> HCPHandler:
     return context.obj["hcph"]
 
 def format_list(list_of_things : list) -> str:
     list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
     return "".join(list_of_buckets).strip("\n")
+
+def _list_objects_generator(hcph : HCPHandler, name_only : bool) -> Generator[str, Any, None]:
+    paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
+    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
+    (nb_of_cols, _) = get_terminal_size()
+    max_width = floor(nb_of_cols / 5)
+    if (not name_only):
+        yield tabulate(
+            [],
+            headers = ["Key", "LastModified", "ETag", "Size", "StorageClass"],
+            tablefmt = "plain",
+            stralign = "center"
+        ) + "\n" + "-"*nb_of_cols + "\n"
+    for object in pages.search("Contents[?!ends_with(Key, '/')][]"): # filter objects that does not end with "/"
+        if name_only:
+            yield str(object["Key"]) + "\n"
+        else:
+            yield tabulate(
+                [
+                    [str(object["Key"]), 
+                        str(object["LastModified"]), 
+                        str(object["ETag"]), 
+                        str(object["Size"]), 
+                        str(object["StorageClass"])]
+                ],
+                maxcolwidths = max_width,
+                tablefmt = "plain"
+            ) + "\n" + "-"*nb_of_cols + "\n"
 
 @click.group()
 @click.argument("credentials")
@@ -121,16 +152,6 @@ def list_buckets(context : Context):
     hcph : HCPHandler = get_HCPHandler(context)
     click.echo(format_list(hcph.list_buckets()))
 
-def _list_objects_generator(hcph : HCPHandler, name_only : bool):
-    paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
-    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
-    for page in pages:
-        for object in page["Contents"]:
-            if name_only:
-                yield str(object["Key"]) + "\n"
-            else:
-                yield str(object) + "\n"
-
 @cli.command()
 @click.argument("bucket")
 @click.option(
@@ -149,7 +170,6 @@ def list_objects(context : Context, bucket : str, name_only : bool):
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     click.echo_via_pager(_list_objects_generator(hcph, name_only))
-    #click.echo_via_pager(DataFrame(list_of_objects).to_markdown(None, mode = None))
 
 @cli.command()
 @click.argument("bucket")
