@@ -121,6 +121,16 @@ def list_buckets(context : Context):
     hcph : HCPHandler = get_HCPHandler(context)
     click.echo(format_list(hcph.list_buckets()))
 
+def _list_objects_generator(hcph : HCPHandler, name_only : bool):
+    paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
+    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
+    for page in pages:
+        for object in page["Contents"]:
+            if name_only:
+                yield str(object["Key"]) + "\n"
+            else:
+                yield str(object) + "\n"
+
 @cli.command()
 @click.argument("bucket")
 @click.option(
@@ -138,19 +148,8 @@ def list_objects(context : Context, bucket : str, name_only : bool):
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
-    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
-    list_of_objects = []
-    for page in pages:
-        for object in page["Contents"]:
-            if name_only:
-                list_of_objects.append(object["Key"])
-            else:
-                list_of_objects.append(object)
-    if name_only:
-        click.echo_via_pager(format_list(list_of_objects))
-    else:
-        click.echo_via_pager(DataFrame(list_of_objects).to_markdown(None, mode = None))
+    click.echo_via_pager(_list_objects_generator(hcph, name_only))
+    #click.echo_via_pager(DataFrame(list_of_objects).to_markdown(None, mode = None))
 
 @cli.command()
 @click.argument("bucket")
