@@ -33,6 +33,8 @@ from requests import get
 from urllib3 import disable_warnings
 from tqdm import tqdm
 
+from typing import Generator
+
 _KB = 1024
 _MB = _KB * _KB
 
@@ -203,27 +205,24 @@ class HCPHandler:
         return list_of_buckets
     
     @check_mounted
-    def list_objects(self, name_only : bool = False) -> list:
+    def list_objects(self, name_only : bool = False) -> Generator:
         """
-        List all objects in the mounted bucket
+        List all objects in the mounted bucket as a generator. If one wishes to 
+        get the result as a list, use :py:function:`list(list_objects())`
 
-        :param name_only: If True, return only a list of the object names. If False, return the full metadata about each object. Defaults to False.
+        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
-
-        :return: A list of of either strings or a list of object metadata (the form of a dictionary)
-        :rtype: list
+        :yield: A generator of all objects in a bucket
+        :rtype: Generator
         """
         paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
-        list_of_objects = []
         for page in pages:
             for object in page["Contents"]:
                 if name_only:
-                    list_of_objects.append(object["Key"])
+                    yield str(object["Key"])
                 else:
-                    list_of_objects.append(object)
-        return list_of_objects
-    
+                    yield object
     @check_mounted
     def get_object(self, key : str) -> dict:
         """
