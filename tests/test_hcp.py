@@ -57,7 +57,7 @@ def test_test_connection_without_mounting_bucket() -> None:
 
 def test_list_objects() -> None:
     test_mount_bucket()
-    assert type(hcp_h.list_objects()) == list
+    assert type(list(hcp_h.list_objects())) == list
 
 def test_list_objects_without_mounting() -> None:
     _hcp_h = HCPHandler("credentials/testCredentials.json")
