@@ -21,7 +21,6 @@ from configparser import ConfigParser
 from pathlib import Path
 
 from os import (
-    path,
     stat,
     listdir
 )
@@ -310,7 +309,7 @@ class HCPHandler:
 
     @check_mounted
     def download_folder(self, folder_key : str, local_folder_path : str) -> None:
-        if path.isdir(local_folder_path):
+        if Path(local_folder_path).is_dir():
             for object in self.list_objects(folder_key):
                 p = Path(local_folder_path) / Path(object["Key"])
                 if object["Key"][-1] == "/":
@@ -334,7 +333,7 @@ class HCPHandler:
         raise_path_error(local_file_path)
 
         if not key:
-            file_name = path.basename(local_file_path)
+            file_name = Path(local_file_path).name
             key = file_name
 
         if self.object_exists(key):
