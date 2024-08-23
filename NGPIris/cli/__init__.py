@@ -92,11 +92,11 @@ def upload(context : Context, bucket : str, file_or_folder : str, object_path : 
     is_flag = True
 )
 @click.pass_context
-def download(context : Context, bucket : str, object_path : str, local_path : str, force : bool):
+def download_file(context : Context, bucket : str, object_path : str, local_path : str, force : bool):
     """
     Download a file from an HCP bucket/namespace.
 
-    BUCKET is the name of the upload destination bucket.
+    BUCKET is the name of the download source bucket.
 
     OBJECT_PATH is the path to the object to be downloaded.
 
@@ -104,12 +104,35 @@ def download(context : Context, bucket : str, object_path : str, local_path : st
     """
     if not Path(local_path).exists():
         Path(local_path).mkdir()
+    
     downloaded_object_path = Path(local_path) / Path(object_path).name
     if downloaded_object_path.exists() and not force:
         exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     hcph.download_file(object_path, downloaded_object_path.as_posix())
+
+@cli.command()
+@click.argument("bucket")
+@click.argument("folder_path")
+@click.argument("local_path")
+@click.pass_context
+def download_folder(context : Context, bucket : str, folder_path : str, local_path : str):
+    """
+    Download a folder from an HCP bucket/namespace.
+
+    BUCKET is the name of the download source bucket.
+
+    FOLDER_PATH is the path to the object folder to be downloaded.
+
+    LOCAL_PATH is the folder where the downloaded object folder is to be stored locally.
+    """
+    if not Path(local_path).exists():
+        Path(local_path).mkdir()
+    
+    hcph : HCPHandler = get_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    hcph.download_folder(folder_path, Path(local_path).as_posix())
 
 @cli.command()
 @click.argument("bucket")

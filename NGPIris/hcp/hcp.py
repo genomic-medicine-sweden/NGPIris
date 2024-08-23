@@ -18,6 +18,8 @@ from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 from configparser import ConfigParser
 
+from pathlib import Path
+
 from os import (
     path,
     stat,
@@ -217,11 +219,13 @@ class HCPHandler:
         return list_of_buckets
     
     @check_mounted
-    def list_objects(self, name_only : bool = False) -> Generator:
+    def list_objects(self, path_key : str = "", name_only : bool = False) -> Generator:
         """
         List all objects in the mounted bucket as a generator. If one wishes to 
         get the result as a list, use :py:function:`list(list_objects())`
 
+        :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders.
+        :type path_key: str, optional
         :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
         :yield: A generator of all objects in a bucket
@@ -229,12 +233,11 @@ class HCPHandler:
         """
         paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
-        for page in pages:
-            for object in page["Contents"]:
-                if name_only:
-                    yield str(object["Key"])
-                else:
-                    yield object
+        for object in pages.search("Contents[?starts_with(Key, '" + path_key + "')][]"):
+            if name_only:
+                yield str(object["Key"])
+            else:
+                yield object
                     
     @check_mounted
     def get_object(self, key : str) -> dict:
@@ -306,6 +309,18 @@ class HCPHandler:
             raise Exception(e)
 
     @check_mounted
+    def download_folder(self, folder_key : str, local_folder_path : str) -> None:
+        if path.isdir(local_folder_path):
+            for object in self.list_objects(folder_key):
+                p = Path(local_folder_path) / Path(object["Key"])
+                if object["Key"][-1] == "/":
+                    p.mkdir()
+                else:
+                    self.download_file(object["Key"], p.as_posix())
+        else:
+            raise Exception(local_folder_path + " is not a directory")
+
+    @check_mounted
     def upload_file(self, local_file_path : str, key : str = "") -> None:
         """
         Upload one file to the mounted bucket
@@ -375,7 +390,7 @@ class HCPHandler:
 
         deletion_dict = {"Objects": object_list}
 
-        list_of_objects_before = self.list_objects(True)
+        list_of_objects_before = self.list_objects(name_only = True)
 
         response : dict = self.s3_client.delete_objects(
             Bucket = self.bucket_name,
@@ -441,7 +456,7 @@ class HCPHandler:
         :rtype: list[str]
         """
         search_result : list[str] = []
-        for key in self.list_objects(True):
+        for key in self.list_objects(name_only = True):
             parse_object = search(
                 search_string, 
                 key, 
