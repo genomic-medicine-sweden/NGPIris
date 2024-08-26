@@ -283,7 +283,7 @@ class HCPHandler:
         :param key: Name of the object
         :type key: str
 
-        :param local_file_path: Path to a file on your local system where the contents of the object file can be put.
+        :param local_file_path: Path to a file on your local system where the contents of the object file can be put
         :type local_file_path: str
         """
         try:
@@ -309,6 +309,17 @@ class HCPHandler:
 
     @check_mounted
     def download_folder(self, folder_key : str, local_folder_path : str) -> None:
+        """
+        Download multiple objects from a folder in the mounted bucket
+
+        :param folder_key: Name of the folder
+        :type folder_key: str
+
+        :param local_folder_path: Path to a folder on your local system where the contents of the objects can be put
+        :type local_folder_path: str
+
+        :raises Exception: If local_folder_path is not a directory
+        """
         if Path(local_folder_path).is_dir():
             for object in self.list_objects(folder_key):
                 p = Path(local_folder_path) / Path(object["Key"])
