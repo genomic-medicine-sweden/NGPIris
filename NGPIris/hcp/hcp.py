@@ -34,6 +34,8 @@ from requests import get
 from urllib3 import disable_warnings
 from tqdm import tqdm
 
+from bitmath import TiB, Byte
+
 from typing import Generator
 
 _KB = 1024
@@ -308,7 +310,7 @@ class HCPHandler:
             raise Exception(e)
 
     @check_mounted
-    def download_folder(self, folder_key : str, local_folder_path : str) -> None:
+    def download_folder(self, folder_key : str, local_folder_path : str, download_limit_in_bytes : Byte = TiB(1).to_Byte()) -> None:
         """
         Download multiple objects from a folder in the mounted bucket
 
@@ -320,12 +322,17 @@ class HCPHandler:
 
         :raises Exception: If local_folder_path is not a directory
         """
+        
         if Path(local_folder_path).is_dir():
+            current_download_size_in_bytes = Byte(0)
             for object in self.list_objects(folder_key):
                 p = Path(local_folder_path) / Path(object["Key"])
                 if object["Key"][-1] == "/":
                     p.mkdir()
                 else:
+                    current_download_size_in_bytes += Byte(object["Size"])
+                    if current_download_size_in_bytes >= download_limit_in_bytes:
+                        raise Exception("The download limit was reached when downloading files")
                     self.download_file(object["Key"], p.as_posix())
         else:
             raise Exception(local_folder_path + " is not a directory")
