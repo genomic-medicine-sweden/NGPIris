@@ -310,7 +310,7 @@ class HCPHandler:
             raise Exception(e)
 
     @check_mounted
-    def download_folder(self, folder_key : str, local_folder_path : str, download_limit_in_bytes : Byte = TiB(1).to_Byte()) -> None:
+    def download_folder(self, folder_key : str, local_folder_path : str, use_download_limit : bool = False, download_limit_in_bytes : Byte = TiB(1).to_Byte()) -> None:
         """
         Download multiple objects from a folder in the mounted bucket
 
@@ -331,7 +331,7 @@ class HCPHandler:
                     p.mkdir()
                 else:
                     current_download_size_in_bytes += Byte(object["Size"])
-                    if current_download_size_in_bytes >= download_limit_in_bytes:
+                    if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
                         raise Exception("The download limit was reached when downloading files")
                     self.download_file(object["Key"], p.as_posix())
         else:
