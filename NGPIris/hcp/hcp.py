@@ -320,9 +320,15 @@ class HCPHandler:
         :param local_folder_path: Path to a folder on your local system where the contents of the objects can be put
         :type local_folder_path: str
 
+        :param use_download_limit: Boolean choice for using a download limit. Defaults to False
+        :type use_download_limit: bool, optional
+
+        :param download_limit_in_bytes: The optional download limit in Byte (from the package `bitmath`). Defaults to 1 TB (`TiB(1).to_Byte()`)
+        :type download_limit_in_bytes: Byte, optional
+
         :raises Exception: If local_folder_path is not a directory
+        :raises Exception: If download limit was reached while downloading files
         """
-        
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(0)
             for object in self.list_objects(folder_key):
