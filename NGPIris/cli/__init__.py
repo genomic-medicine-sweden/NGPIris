@@ -121,7 +121,7 @@ def download_file(context : Context, bucket : str, object_path : str, local_path
 @click.argument("folder_path")
 @click.argument("local_path")
 @click.option(
-    "-i", 
+    "-iw", 
     "--ignore_warning", 
     help = "Ignore the download limit", 
     is_flag = True
