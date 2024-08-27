@@ -8,7 +8,9 @@ from NGPIris.hcp.helpers import (
 from NGPIris.hcp.exceptions import (
     VPNConnectionError,
     BucketNotFound,
-    ObjectAlreadyExist
+    ObjectAlreadyExist,
+    DownloadLimitReached,
+    NotADirectory
 )
 
 from boto3 import client
@@ -326,8 +328,8 @@ class HCPHandler:
         :param download_limit_in_bytes: The optional download limit in Byte (from the package `bitmath`). Defaults to 1 TB (`TiB(1).to_Byte()`)
         :type download_limit_in_bytes: Byte, optional
 
-        :raises Exception: If local_folder_path is not a directory
-        :raises Exception: If download limit was reached while downloading files
+        :raises DownloadLimitReached: If download limit was reached while downloading files
+        :raises NotADirectory: If local_folder_path is not a directory
         """
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(0)
@@ -338,10 +340,10 @@ class HCPHandler:
                 else:
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
-                        raise Exception("The download limit was reached when downloading files")
+                        raise DownloadLimitReached("The download limit was reached when downloading files")
                     self.download_file(object["Key"], p.as_posix())
         else:
-            raise Exception(local_folder_path + " is not a directory")
+            raise NotADirectory(local_folder_path + " is not a directory")
 
     @check_mounted
     def upload_file(self, local_file_path : str, key : str = "") -> None:

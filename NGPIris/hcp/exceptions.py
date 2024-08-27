@@ -9,3 +9,9 @@ class NoBucketMounted(Exception):
 
 class ObjectAlreadyExist(Exception):
     pass
+
+class DownloadLimitReached(Exception):
+    pass
+
+class NotADirectory(Exception):
+    pass
