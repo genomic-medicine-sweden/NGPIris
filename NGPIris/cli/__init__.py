@@ -135,8 +135,6 @@ def download_folder(context : Context, bucket : str, folder_path : str, local_pa
     if folder_path == "/":
         folder_path = ""
     hcph.download_folder(folder_path, Path(local_path).as_posix())
-    #duration = time.time() - start
-    #click.echo("Time: " + str(duration) + " seconds")
 
 @cli.command()
 @click.argument("bucket")
