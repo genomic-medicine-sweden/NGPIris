@@ -147,6 +147,7 @@ def download_folder(context : Context, bucket : str, folder_path : str, local_pa
 
     cumulative_download_size = Byte(0)
     if not ignore_warning:
+        click.echo("Computing download size...")
         for object in hcph.list_objects(folder_path):
             object : dict
             cumulative_download_size += Byte(object["Size"])
