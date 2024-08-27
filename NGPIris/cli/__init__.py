@@ -8,6 +8,10 @@ from typing import Any, Generator
 from os import get_terminal_size
 from math import floor
 from tabulate import tabulate
+from bitmath import (
+    Byte,
+    TiB
+)
 
 from NGPIris.hcp import HCPHandler
 
@@ -116,8 +120,14 @@ def download_file(context : Context, bucket : str, object_path : str, local_path
 @click.argument("bucket")
 @click.argument("folder_path")
 @click.argument("local_path")
+@click.option(
+    "-i", 
+    "--ignore_warning", 
+    help = "Ignore the download limit", 
+    is_flag = True
+)
 @click.pass_context
-def download_folder(context : Context, bucket : str, folder_path : str, local_path : str):
+def download_folder(context : Context, bucket : str, folder_path : str, local_path : str, ignore_warning : bool):
     """
     Download a folder from an HCP bucket/namespace.
 
@@ -134,6 +144,20 @@ def download_folder(context : Context, bucket : str, folder_path : str, local_pa
     hcph.mount_bucket(bucket)
     if folder_path == "/":
         folder_path = ""
+
+    cumulative_download_size = Byte(0)
+    if not ignore_warning:
+        for object in hcph.list_objects(folder_path):
+            object : dict
+            cumulative_download_size += Byte(object["Size"])
+            if cumulative_download_size >= TiB(1):
+                click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
+                inp = click.getchar(True)
+                if inp == "y" or inp == "Y":
+                    break
+                else: # inp == "n" or inp == "N" or something else
+                    exit("\nAborting download")
+    
     hcph.download_folder(folder_path, Path(local_path).as_posix())
 
 @cli.command()
