@@ -8,6 +8,12 @@ from typing import Any, Generator
 from os import get_terminal_size
 from math import floor
 from tabulate import tabulate
+from bitmath import (
+    Byte,
+    TiB
+)
+
+from pprint import pprint
 
 from NGPIris.hcp import HCPHandler
 
@@ -45,6 +51,9 @@ def _list_objects_generator(hcph : HCPHandler, name_only : bool) -> Generator[st
                 maxcolwidths = max_width,
                 tablefmt = "plain"
             ) + "\n" + "-"*nb_of_cols + "\n"
+
+def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
+    return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
 
 @click.group()
 @click.argument("credentials")
@@ -88,28 +97,63 @@ def upload(context : Context, bucket : str, file_or_folder : str, object_path : 
 @click.option(
     "-f", 
     "--force", 
-    help = "Overwrite existing file with the same name", 
+    help = "Overwrite existing file with the same name (single file donwload only)", 
+    is_flag = True
+)
+@click.option(
+    "-iw", 
+    "--ignore_warning", 
+    help = "Ignore the download limit", 
     is_flag = True
 )
 @click.pass_context
-def download(context : Context, bucket : str, object_path : str, local_path : str, force : bool):
+def download(context : Context, bucket : str, object_path : str, local_path : str, force : bool, ignore_warning : bool):
     """
-    Download a file from an HCP bucket/namespace.
+    Download a file or folder from an HCP bucket/namespace.
 
-    BUCKET is the name of the upload destination bucket.
+    BUCKET is the name of the download source bucket.
 
-    OBJECT_PATH is the path to the object to be downloaded.
+    OBJECT_PATH is the path to the object or object folder to be downloaded.
 
-    LOCAL_PATH is the folder where the downloaded object is to be stored locally.
+    LOCAL_PATH is the folder where the downloaded object or object folder is to be stored locally. 
     """
-    if not Path(local_path).exists():
-        Path(local_path).mkdir()
-    downloaded_object_path = Path(local_path) / Path(object_path).name
-    if downloaded_object_path.exists() and not force:
-        exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    hcph.download_file(object_path, downloaded_object_path.as_posix())
+    if not Path(local_path).exists():
+        Path(local_path).mkdir()
+    
+    if object_is_folder(object_path, hcph):
+        if object_path == "/":
+            object_path = ""
+
+        cumulative_download_size = Byte(0)
+        if not ignore_warning:
+            click.echo("Computing download size...")
+            for object in hcph.list_objects(object_path):
+                object : dict
+                cumulative_download_size += Byte(object["Size"])
+                if cumulative_download_size >= TiB(1):
+                    click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
+                    inp = click.getchar(True)
+                    if inp == "y" or inp == "Y":
+                        break
+                    else: # inp == "n" or inp == "N" or something else
+                        exit("\nAborting download")
+    
+        hcph.download_folder(object_path, Path(local_path).as_posix())
+    else: 
+        if Byte(hcph.get_object(object_path)["ContentLength"]) >= TiB(1):
+            click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
+            inp = click.getchar(True)
+            if inp == "y" or inp == "Y":
+                pass
+            else: # inp == "n" or inp == "N" or something else
+                exit("\nAborting download")
+
+        downloaded_object_path = Path(local_path) / Path(object_path).name
+        if downloaded_object_path.exists() and not force:
+            exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
+        hcph.download_file(object_path, downloaded_object_path.as_posix())
 
 @cli.command()
 @click.argument("bucket")
