@@ -415,19 +415,19 @@ class HCPHandler:
 
         deletion_dict = {"Objects": object_list}
 
-        list_of_objects_before = self.list_objects(name_only = True)
-
         response : dict = self.s3_client.delete_objects(
             Bucket = self.bucket_name,
             Delete = deletion_dict
         )
         if verbose:
             print(dumps(response, indent=4))
-        diff : set[str] = set(keys) - set(list_of_objects_before)
-        if diff:
-            does_not_exist = []
-            for key in diff:
+        
+        deleted_dict_list : list[dict] = response["Deleted"]
+        does_not_exist = []
+        for deleted_dict in deleted_dict_list:
+            if not "VersionId" in deleted_dict:
                 does_not_exist.append("- " + key + "\n")
+        if does_not_exist:
             print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
     
     @check_mounted
