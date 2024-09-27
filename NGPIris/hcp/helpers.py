@@ -26,6 +26,8 @@ def raise_path_error(path : str):
     if not p.exists(path):
         raise FileNotFoundError("\"" + path + "\"" + " does not exist")
 
+# Decorator for checking if a bucket is mounted. This is meant to be used by 
+# class methods, hence its possibly odd typing.
 T = TypeVar("T")
 P = ParamSpec("P")
 
