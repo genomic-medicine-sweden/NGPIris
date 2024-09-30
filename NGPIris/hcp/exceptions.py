@@ -4,6 +4,9 @@ class VPNConnectionError(Exception):
 class BucketNotFound(Exception):
     pass
 
+class BucketForbidden(Exception):
+    pass
+
 class NoBucketMounted(Exception):
     pass
 

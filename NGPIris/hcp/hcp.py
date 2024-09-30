@@ -8,6 +8,7 @@ from NGPIris.hcp.helpers import (
 from NGPIris.hcp.exceptions import (
     VPNConnectionError,
     BucketNotFound,
+    BucketForbidden,
     ObjectAlreadyExist,
     DownloadLimitReached,
     NotADirectory
@@ -168,19 +169,20 @@ class HCPHandler:
         else:
             raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` paramter for `test_connection`")
         try:
-            response =  dict(self.s3_client.head_bucket(Bucket = bucket_name))
+            response = dict(self.s3_client.head_bucket(Bucket = bucket_name))
         except EndpointConnectionError as e: # pragma: no cover
             print(e)
             raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
         except ClientError as e:
-            print(e)
-            raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+            status_code = e.response["ResponseMetadata"].get("HTTPStatusCode", -1)
+            match status_code:
+                case 404:
+                    raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+                case 403:
+                    raise BucketForbidden("Bucket \"" + bucket_name + "\" could not be accessed due to lack of permissions")
         except Exception as e: # pragma: no cover
             raise Exception(e)
             
-        if response["ResponseMetadata"].get("HTTPStatusCode", -1) != 200: # pragma: no cover
-            error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
-            raise Exception(error_msg)
         return response
         
     def mount_bucket(self, bucket_name : str) -> None:
