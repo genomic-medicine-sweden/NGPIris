@@ -1,16 +1,19 @@
 class VPNConnectionError(Exception):
     pass
 
+class NoBucketMounted(Exception):
+    pass
+
 class BucketNotFound(Exception):
     pass
 
 class BucketForbidden(Exception):
     pass
 
-class NoBucketMounted(Exception):
+class ObjectAlreadyExist(Exception):
     pass
 
-class ObjectAlreadyExist(Exception):
+class ObjectDoesNotExist(Exception):
     pass
 
 class DownloadLimitReached(Exception):

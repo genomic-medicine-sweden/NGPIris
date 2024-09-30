@@ -10,6 +10,7 @@ from NGPIris.hcp.exceptions import (
     BucketNotFound,
     BucketForbidden,
     ObjectAlreadyExist,
+    ObjectDoesNotExist,
     DownloadLimitReached,
     NotADirectory
 )
@@ -293,6 +294,10 @@ class HCPHandler:
         :type local_file_path: str
         """
         try:
+            self.get_object(key)
+        except:
+            raise ObjectDoesNotExist("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+        try:
             file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
             with tqdm(
                 total = file_size, 
@@ -309,7 +314,7 @@ class HCPHandler:
                 )
         except ClientError as e0: 
             print(str(e0))
-            raise Exception("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+            raise e0
         except Exception as e: # pragma: no cover
             raise Exception(e)
 
@@ -333,6 +338,10 @@ class HCPHandler:
         :raises DownloadLimitReached: If download limit was reached while downloading files
         :raises NotADirectory: If local_folder_path is not a directory
         """
+        try:
+            self.get_object(folder_key)
+        except:
+            raise ObjectDoesNotExist("Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(0)
             for object in self.list_objects(folder_key):
