@@ -20,6 +20,11 @@ def format_list(list_of_things : list) -> str:
     return "".join(list_of_buckets).strip("\n")
 
 def _list_objects_generator(hcph : HCPHandler, name_only : bool) -> Generator[str, Any, None]:
+    """
+    Handle object list as a paginator that `click` can handle. It works slightly 
+    different from `list_objects` in `hcp.py` in order to make the output 
+    printable in a terminal
+    """
     paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
     pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
     (nb_of_cols, _) = get_terminal_size()
