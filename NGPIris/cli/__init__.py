@@ -97,7 +97,7 @@ def upload(context : Context, bucket : str, file_or_folder : str, object_path : 
 @click.option(
     "-f", 
     "--force", 
-    help = "Overwrite existing file with the same name (single file donwload only)", 
+    help = "Overwrite existing file with the same name (single file download only)", 
     is_flag = True
 )
 @click.option(
