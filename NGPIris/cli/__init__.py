@@ -8,12 +8,7 @@ from typing import Any, Generator
 from os import get_terminal_size
 from math import floor
 from tabulate import tabulate
-from bitmath import (
-    Byte,
-    TiB
-)
-
-from pprint import pprint
+from bitmath import Byte, TiB
 
 from NGPIris.hcp import HCPHandler
 
