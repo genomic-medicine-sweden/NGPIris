@@ -1,17 +1,59 @@
 
 import click
 from click.core import Context
-from json import dumps, dump
+from json import dump
 from pathlib import Path
+from botocore.paginate import PageIterator, Paginator
+from typing import Any, Generator
+from os import get_terminal_size
+from math import floor
+from tabulate import tabulate
+from bitmath import Byte, TiB
 
 from NGPIris.hcp import HCPHandler
 
-def get_HCPHandler(context : Context)-> HCPHandler:
+def get_HCPHandler(context : Context) -> HCPHandler:
     return context.obj["hcph"]
 
 def format_list(list_of_things : list) -> str:
     list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
     return "".join(list_of_buckets).strip("\n")
+
+def _list_objects_generator(hcph : HCPHandler, name_only : bool) -> Generator[str, Any, None]:
+    """
+    Handle object list as a paginator that `click` can handle. It works slightly 
+    different from `list_objects` in `hcp.py` in order to make the output 
+    printable in a terminal
+    """
+    paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
+    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
+    (nb_of_cols, _) = get_terminal_size()
+    max_width = floor(nb_of_cols / 5)
+    if (not name_only):
+        yield tabulate(
+            [],
+            headers = ["Key", "LastModified", "ETag", "Size", "StorageClass"],
+            tablefmt = "plain",
+            stralign = "center"
+        ) + "\n" + "-"*nb_of_cols + "\n"
+    for object in pages.search("Contents[?!ends_with(Key, '/')][]"): # filter objects that does not end with "/"
+        if name_only:
+            yield str(object["Key"]) + "\n"
+        else:
+            yield tabulate(
+                [
+                    [str(object["Key"]), 
+                        str(object["LastModified"]), 
+                        str(object["ETag"]), 
+                        str(object["Size"]), 
+                        str(object["StorageClass"])]
+                ],
+                maxcolwidths = max_width,
+                tablefmt = "plain"
+            ) + "\n" + "-"*nb_of_cols + "\n"
+
+def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
+    return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
 
 @click.group()
 @click.argument("credentials")
@@ -28,52 +70,90 @@ def cli(context : Context, credentials : str):
 
 @cli.command()
 @click.argument("bucket")
-@click.argument("file-or-folder")
+@click.argument("source")
+@click.argument("destination")
 @click.pass_context
-def upload(context : Context, bucket : str, file_or_folder : str):
+def upload(context : Context, bucket : str, source : str, destination : str):
     """
     Upload files to an HCP bucket/namespace. 
     
     BUCKET is the name of the upload destination bucket.
 
-    FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
+    SOURCE is the path to the file or folder of files to be uploaded.
+    
+    DESTINATION is the destination path on the HCP. 
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    if Path(file_or_folder).is_dir():
-        hcph.upload_folder(file_or_folder)
+    if Path(source).is_dir():
+        hcph.upload_folder(source, destination)
     else:
-        hcph.upload_file(file_or_folder)
+        hcph.upload_file(source, destination)
 
 @cli.command()
 @click.argument("bucket")
-@click.argument("object_path")
-@click.argument("local_path")
+@click.argument("source")
+@click.argument("destination")
 @click.option(
     "-f", 
     "--force", 
-    help = "Overwrite existing file with the same name", 
+    help = "Overwrite existing file with the same name (single file download only)", 
+    is_flag = True
+)
+@click.option(
+    "-iw", 
+    "--ignore_warning", 
+    help = "Ignore the download limit", 
     is_flag = True
 )
 @click.pass_context
-def download(context : Context, bucket : str, object_path : str, local_path : str, force : bool):
+def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool):
     """
-    Download a file from an HCP bucket/namespace.
+    Download a file or folder from an HCP bucket/namespace.
 
-    BUCKET is the name of the upload destination bucket.
+    BUCKET is the name of the download source bucket.
 
-    OBJECT_PATH is the path to the object to be downloaded.
+    SOURCE is the path to the object or object folder to be downloaded.
 
-    LOCAL_PATH is the folder where the downloaded object is to be stored locally.
+    DESTINATION is the folder where the downloaded object or object folder is to be stored locally. 
     """
-    if not Path(local_path).exists():
-        Path(local_path).mkdir()
-    downloaded_object_path = Path(local_path) / Path(object_path).name
-    if downloaded_object_path.exists() and not force:
-        exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    hcph.download_file(object_path, downloaded_object_path.as_posix())
+    if not Path(destination).exists():
+        Path(destination).mkdir()
+    
+    if object_is_folder(source, hcph):
+        if source == "/":
+            source = ""
+
+        cumulative_download_size = Byte(0)
+        if not ignore_warning:
+            click.echo("Computing download size...")
+            for object in hcph.list_objects(source):
+                object : dict
+                cumulative_download_size += Byte(object["Size"])
+                if cumulative_download_size >= TiB(1):
+                    click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
+                    inp = click.getchar(True)
+                    if inp == "y" or inp == "Y":
+                        break
+                    else: # inp == "n" or inp == "N" or something else
+                        exit("\nAborting download")
+    
+        hcph.download_folder(source, Path(destination).as_posix())
+    else: 
+        if Byte(hcph.get_object(source)["ContentLength"]) >= TiB(1):
+            click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
+            inp = click.getchar(True)
+            if inp == "y" or inp == "Y":
+                pass
+            else: # inp == "n" or inp == "N" or something else
+                exit("\nAborting download")
+
+        downloaded_source = Path(destination) / Path(source).name
+        if downloaded_source.exists() and not force:
+            exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
+        hcph.download_file(source, downloaded_source.as_posix())
 
 @cli.command()
 @click.argument("bucket")
@@ -133,14 +213,7 @@ def list_objects(context : Context, bucket : str, name_only : bool):
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    objects_list = hcph.list_objects(name_only)
-    if name_only:
-        click.echo(format_list(objects_list))
-    else: 
-        out = []
-        for d in objects_list:
-            out.append(dumps(d, indent = 4, default = str) + "\n")
-        click.echo("".join(out))
+    click.echo_via_pager(_list_objects_generator(hcph, name_only))
 
 @cli.command()
 @click.argument("bucket")

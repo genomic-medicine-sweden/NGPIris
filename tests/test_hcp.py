@@ -2,7 +2,8 @@
 from typing import Callable
 from NGPIris.hcp import HCPHandler
 from configparser import ConfigParser
-from os import mkdir, rmdir, remove
+from pathlib import Path
+from shutil import rmtree
 from filecmp import cmp
 
 hcp_h = HCPHandler("credentials/testCredentials.json")
@@ -57,7 +58,7 @@ def test_test_connection_without_mounting_bucket() -> None:
 
 def test_list_objects() -> None:
     test_mount_bucket()
-    assert type(hcp_h.list_objects()) == list
+    assert type(list(hcp_h.list_objects())) == list
 
 def test_list_objects_without_mounting() -> None:
     _hcp_h = HCPHandler("credentials/testCredentials.json")
@@ -118,7 +119,7 @@ def test_get_file_in_sub_directory() -> None:
 
 def test_download_file() -> None:
     test_mount_bucket()
-    mkdir(result_path)
+    Path(result_path).mkdir()
     hcp_h.download_file(test_file, result_path + test_file)
     assert cmp(result_path + test_file, test_file_path)
 
@@ -134,6 +135,10 @@ def test_download_nonexistent_file() -> None:
         assert True
     else: # pragma: no cover
         assert False
+
+def test_download_folder() -> None:
+    test_mount_bucket()
+    hcp_h.download_folder("a folder of data/", result_path)
 
 def test_search_objects_in_bucket() -> None:
     test_mount_bucket()
@@ -208,5 +213,4 @@ def test_delete_nonexistent_files() -> None:
     hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"])
 
 def test_clean_up() -> None:
-    remove(result_path + test_file)
-    rmdir(result_path)
+    rmtree(result_path)

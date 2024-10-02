@@ -5,16 +5,26 @@ from NGPIris.hcp.helpers import (
     create_access_control_policy,
     check_mounted
 )
-from NGPIris.hcp.exceptions import *
+from NGPIris.hcp.exceptions import (
+    VPNConnectionError,
+    BucketNotFound,
+    BucketForbidden,
+    ObjectAlreadyExist,
+    ObjectDoesNotExist,
+    DownloadLimitReached,
+    NotADirectory
+)
 
 from boto3 import client
 from botocore.client import Config
+from botocore.paginate import PageIterator, Paginator
 from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 from configparser import ConfigParser
 
+from pathlib import Path
+
 from os import (
-    path,
     stat,
     listdir
 )
@@ -27,6 +37,10 @@ from parse import (
 from requests import get
 from urllib3 import disable_warnings
 from tqdm import tqdm
+
+from bitmath import TiB, Byte
+
+from typing import Generator
 
 _KB = 1024
 _MB = _KB * _KB
@@ -156,19 +170,20 @@ class HCPHandler:
         else:
             raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` paramter for `test_connection`")
         try:
-            response =  dict(self.s3_client.head_bucket(Bucket = bucket_name))
+            response = dict(self.s3_client.head_bucket(Bucket = bucket_name))
         except EndpointConnectionError as e: # pragma: no cover
             print(e)
             raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
         except ClientError as e:
-            print(e)
-            raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+            status_code = e.response["ResponseMetadata"].get("HTTPStatusCode", -1)
+            match status_code:
+                case 404:
+                    raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+                case 403:
+                    raise BucketForbidden("Bucket \"" + bucket_name + "\" could not be accessed due to lack of permissions")
         except Exception as e: # pragma: no cover
             raise Exception(e)
             
-        if response["ResponseMetadata"].get("HTTPStatusCode", -1) != 200: # pragma: no cover
-            error_msg = "The response code from the request made at " + self.endpoint + " returned status code " + response["ResponseMetadata"]["HTTPStatusCode"]
-            raise Exception(error_msg)
         return response
         
     def mount_bucket(self, bucket_name : str) -> None:
@@ -185,6 +200,18 @@ class HCPHandler:
         self.test_connection(bucket_name = bucket_name)
         self.bucket_name = bucket_name
 
+    def create_bucket(self, bucket_name : str) -> None:
+        """
+        Create a bucket. The user in the given credentials will be the owner 
+        of the bucket
+
+        :param bucket_name: Name of the new bucket
+        :type bucket_name: str
+        """
+        self.s3_client.create_bucket(
+            Bucket = bucket_name
+        )
+
     def list_buckets(self) -> list[str]:
         """
         List all available buckets at endpoint.
@@ -198,27 +225,26 @@ class HCPHandler:
         return list_of_buckets
     
     @check_mounted
-    def list_objects(self, name_only : bool = False) -> list:
+    def list_objects(self, path_key : str = "", name_only : bool = False) -> Generator:
         """
-        List all objects in the mounted bucket
+        List all objects in the mounted bucket as a generator. If one wishes to 
+        get the result as a list, use :py:function:`list` to type cast the generator
 
-        :param name_only: If True, return only a list of the object names. If False, return the full metadata about each object. Defaults to False.
+        :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders.
+        :type path_key: str, optional
+        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
-
-        :return: A list of of either strings or a list of object metadata (the form of a dictionary)
-        :rtype: list
+        :yield: A generator of all objects in a bucket
+        :rtype: Generator
         """
-        response_list_objects = dict(self.s3_client.list_objects_v2(
-            Bucket = self.bucket_name
-        ))
-        if "Contents" not in response_list_objects.keys(): # pragma: no cover
-            return []
-        list_of_objects : list[dict] = response_list_objects["Contents"]
-        if name_only:
-            return [object["Key"] for object in list_of_objects]
-        else:
-            return list_of_objects
-    
+        paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
+        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
+        for object in pages.search("Contents[?starts_with(Key, '" + path_key + "')][]"):
+            if name_only:
+                yield str(object["Key"])
+            else:
+                yield object
+                    
     @check_mounted
     def get_object(self, key : str) -> dict:
         """
@@ -264,9 +290,13 @@ class HCPHandler:
         :param key: Name of the object
         :type key: str
 
-        :param local_file_path: Path to a file on your local system where the contents of the object file can be put.
+        :param local_file_path: Path to a file on your local system where the contents of the object file can be put
         :type local_file_path: str
         """
+        try:
+            self.get_object(key)
+        except:
+            raise ObjectDoesNotExist("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
         try:
             file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
             with tqdm(
@@ -284,9 +314,47 @@ class HCPHandler:
                 )
         except ClientError as e0: 
             print(str(e0))
-            raise Exception("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+            raise e0
         except Exception as e: # pragma: no cover
             raise Exception(e)
+
+    @check_mounted
+    def download_folder(self, folder_key : str, local_folder_path : str, use_download_limit : bool = False, download_limit_in_bytes : Byte = TiB(1).to_Byte()) -> None:
+        """
+        Download multiple objects from a folder in the mounted bucket
+
+        :param folder_key: Name of the folder
+        :type folder_key: str
+
+        :param local_folder_path: Path to a folder on your local system where the contents of the objects can be put
+        :type local_folder_path: str
+
+        :param use_download_limit: Boolean choice for using a download limit. Defaults to False
+        :type use_download_limit: bool, optional
+
+        :param download_limit_in_bytes: The optional download limit in Byte (from the package `bitmath`). Defaults to 1 TB (`TiB(1).to_Byte()`)
+        :type download_limit_in_bytes: Byte, optional
+
+        :raises DownloadLimitReached: If download limit was reached while downloading files
+        :raises NotADirectory: If local_folder_path is not a directory
+        """
+        try:
+            self.get_object(folder_key)
+        except:
+            raise ObjectDoesNotExist("Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+        if Path(local_folder_path).is_dir():
+            current_download_size_in_bytes = Byte(0) # For tracking download limit
+            for object in self.list_objects(folder_key): # Build the tree with directories or add files
+                p = Path(local_folder_path) / Path(object["Key"])
+                if object["Key"][-1] == "/": # If the object is a "folder"
+                    p.mkdir()
+                else: # If the object is a file
+                    current_download_size_in_bytes += Byte(object["Size"])
+                    if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
+                        raise DownloadLimitReached("The download limit was reached when downloading files")
+                    self.download_file(object["Key"], p.as_posix())
+        else:
+            raise NotADirectory(local_folder_path + " is not a directory")
 
     @check_mounted
     def upload_file(self, local_file_path : str, key : str = "") -> None:
@@ -302,23 +370,26 @@ class HCPHandler:
         raise_path_error(local_file_path)
 
         if not key:
-            file_name = path.basename(local_file_path)
+            file_name = Path(local_file_path).name
             key = file_name
 
-        file_size : int = stat(local_file_path).st_size
-        with tqdm(
-            total = file_size, 
-            unit = "B", 
-            unit_scale = True, 
-            desc = local_file_path
-        ) as pbar:
-            self.s3_client.upload_file(
-                Filename = local_file_path, 
-                Bucket = self.bucket_name, 
-                Key = key,
-                Config = self.transfer_config,
-                Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
-            )
+        if self.object_exists(key):
+            raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
+        else:
+            file_size : int = stat(local_file_path).st_size
+            with tqdm(
+                total = file_size, 
+                unit = "B", 
+                unit_scale = True, 
+                desc = local_file_path
+            ) as pbar:
+                self.s3_client.upload_file(
+                    Filename = local_file_path, 
+                    Bucket = self.bucket_name, 
+                    Key = key,
+                    Config = self.transfer_config,
+                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                )
 
     @check_mounted
     def upload_folder(self, local_folder_path : str, key : str = "") -> None:
@@ -355,19 +426,19 @@ class HCPHandler:
 
         deletion_dict = {"Objects": object_list}
 
-        list_of_objects_before = self.list_objects(True)
-
         response : dict = self.s3_client.delete_objects(
             Bucket = self.bucket_name,
             Delete = deletion_dict
         )
         if verbose:
             print(dumps(response, indent=4))
-        diff : set[str] = set(keys) - set(list_of_objects_before)
-        if diff:
-            does_not_exist = []
-            for key in diff:
+        
+        deleted_dict_list : list[dict] = response["Deleted"]
+        does_not_exist = []
+        for deleted_dict in deleted_dict_list:
+            if not "VersionId" in deleted_dict:
                 does_not_exist.append("- " + key + "\n")
+        if does_not_exist:
             print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
     
     @check_mounted
@@ -409,7 +480,7 @@ class HCPHandler:
     @check_mounted
     def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> list[str]:
         """
-        Simple search method using substrings in order to find certain objects. Case insensitive by default.
+        Simple search method using substrings in order to find certain objects. Case insensitive by default. Does not utilise the HCI
 
         :param search_string: Substring to be used in the search
         :type search_string: str
@@ -421,7 +492,7 @@ class HCPHandler:
         :rtype: list[str]
         """
         search_result : list[str] = []
-        for key in self.list_objects(True):
+        for key in self.list_objects(name_only = True):
             parse_object = search(
                 search_string, 
                 key, 

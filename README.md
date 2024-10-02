@@ -267,6 +267,19 @@ pytype
 ```shell
 pytest
 ```
+## Generating new documentation 
+With force flag `-f`:
+```shell
+cd docs/
+sphinx-apidoc ../NGPIris/ -o . -F -f 
+```
+
+Without force flag
+```shell
+cd docs/
+sphinx-apidoc ../NGPIris/ -o . -F
+```
+
 ## Compiling the documentation
 ```shell
 cd docs/
