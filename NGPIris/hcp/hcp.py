@@ -228,7 +228,7 @@ class HCPHandler:
     def list_objects(self, path_key : str = "", name_only : bool = False) -> Generator:
         """
         List all objects in the mounted bucket as a generator. If one wishes to 
-        get the result as a list, use :py:function:`list(list_objects())`
+        get the result as a list, use :py:function:`list` to type cast the generator
 
         :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders.
         :type path_key: str, optional
@@ -343,12 +343,12 @@ class HCPHandler:
         except:
             raise ObjectDoesNotExist("Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
         if Path(local_folder_path).is_dir():
-            current_download_size_in_bytes = Byte(0)
-            for object in self.list_objects(folder_key):
+            current_download_size_in_bytes = Byte(0) # For tracking download limit
+            for object in self.list_objects(folder_key): # Build the tree with directories or add files
                 p = Path(local_folder_path) / Path(object["Key"])
-                if object["Key"][-1] == "/":
+                if object["Key"][-1] == "/": # If the object is a "folder"
                     p.mkdir()
-                else:
+                else: # If the object is a file
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
                         raise DownloadLimitReached("The download limit was reached when downloading files")
