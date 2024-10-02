@@ -70,30 +70,30 @@ def cli(context : Context, credentials : str):
 
 @cli.command()
 @click.argument("bucket")
-@click.argument("file-or-folder")
-@click.argument("object_path")
+@click.argument("source")
+@click.argument("destination")
 @click.pass_context
-def upload(context : Context, bucket : str, file_or_folder : str, object_path : str):
+def upload(context : Context, bucket : str, source : str, destination : str):
     """
     Upload files to an HCP bucket/namespace. 
     
     BUCKET is the name of the upload destination bucket.
 
-    FILE-OR-FOLDER is the path to the file or folder of files to be uploaded.
+    SOURCE is the path to the file or folder of files to be uploaded.
     
-    OBJECT-PATH is the destination path on the HCP. 
+    DESTINATION is the destination path on the HCP. 
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    if Path(file_or_folder).is_dir():
-        hcph.upload_folder(file_or_folder, object_path)
+    if Path(source).is_dir():
+        hcph.upload_folder(source, destination)
     else:
-        hcph.upload_file(file_or_folder, object_path)
+        hcph.upload_file(source, destination)
 
 @cli.command()
 @click.argument("bucket")
-@click.argument("object_path")
-@click.argument("local_path")
+@click.argument("source")
+@click.argument("destination")
 @click.option(
     "-f", 
     "--force", 
@@ -107,29 +107,29 @@ def upload(context : Context, bucket : str, file_or_folder : str, object_path : 
     is_flag = True
 )
 @click.pass_context
-def download(context : Context, bucket : str, object_path : str, local_path : str, force : bool, ignore_warning : bool):
+def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool):
     """
     Download a file or folder from an HCP bucket/namespace.
 
     BUCKET is the name of the download source bucket.
 
-    OBJECT_PATH is the path to the object or object folder to be downloaded.
+    SOURCE is the path to the object or object folder to be downloaded.
 
-    LOCAL_PATH is the folder where the downloaded object or object folder is to be stored locally. 
+    DESTINATION is the folder where the downloaded object or object folder is to be stored locally. 
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    if not Path(local_path).exists():
-        Path(local_path).mkdir()
+    if not Path(destination).exists():
+        Path(destination).mkdir()
     
-    if object_is_folder(object_path, hcph):
-        if object_path == "/":
-            object_path = ""
+    if object_is_folder(source, hcph):
+        if source == "/":
+            source = ""
 
         cumulative_download_size = Byte(0)
         if not ignore_warning:
             click.echo("Computing download size...")
-            for object in hcph.list_objects(object_path):
+            for object in hcph.list_objects(source):
                 object : dict
                 cumulative_download_size += Byte(object["Size"])
                 if cumulative_download_size >= TiB(1):
@@ -140,9 +140,9 @@ def download(context : Context, bucket : str, object_path : str, local_path : st
                     else: # inp == "n" or inp == "N" or something else
                         exit("\nAborting download")
     
-        hcph.download_folder(object_path, Path(local_path).as_posix())
+        hcph.download_folder(source, Path(destination).as_posix())
     else: 
-        if Byte(hcph.get_object(object_path)["ContentLength"]) >= TiB(1):
+        if Byte(hcph.get_object(source)["ContentLength"]) >= TiB(1):
             click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
             inp = click.getchar(True)
             if inp == "y" or inp == "Y":
@@ -150,10 +150,10 @@ def download(context : Context, bucket : str, object_path : str, local_path : st
             else: # inp == "n" or inp == "N" or something else
                 exit("\nAborting download")
 
-        downloaded_object_path = Path(local_path) / Path(object_path).name
-        if downloaded_object_path.exists() and not force:
+        downloaded_source = Path(destination) / Path(source).name
+        if downloaded_source.exists() and not force:
             exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
-        hcph.download_file(object_path, downloaded_object_path.as_posix())
+        hcph.download_file(source, downloaded_source.as_posix())
 
 @cli.command()
 @click.argument("bucket")
