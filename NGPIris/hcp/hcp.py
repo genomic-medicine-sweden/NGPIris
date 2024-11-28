@@ -62,10 +62,15 @@ class HCPHandler:
         credentials_handler = CredentialsHandler(credentials_path)
         self.hcp = credentials_handler.hcp
         self.endpoint = "https://" + self.hcp["endpoint"]
-        tenant_parse = parse("https://{}.hcp1.vgregion.se", self.endpoint)
-        if type(tenant_parse) is Result:
-            self.tenant = str(tenant_parse[0])
-        else: # pragma: no cover
+
+        self.tenant = None
+        for endpoint_format_string in ["https://{}.ngp-fs2000.vgregion.se", "https://{}.vgregion.sjunet.org"]:
+            tenant_parse = parse(endpoint_format_string, self.endpoint) 
+            if type(tenant_parse) is Result:
+                self.tenant = str(tenant_parse[0])
+                break
+        
+        if not self.tenant:
             raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file. Hint: The endpoint should *not* contain \"https://\" or port numbers")
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
