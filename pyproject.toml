@@ -1,11 +1,10 @@
 [project]
 name = "NGPIris"
-version = "5.1.1.dev1"
+version = "5.1.1.dev2"
 readme = "README.md"
 dependencies = [
     "requests >= 2.31.0",
     "urllib3 == 1.26.19",
-    "requests >= 2.31.0",
     "boto3 >= 1.26.76",
     "parse >= 1.19.1",
     "tqdm >= 4.66.2",
