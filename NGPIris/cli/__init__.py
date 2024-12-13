@@ -229,6 +229,9 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     """
     Make simple search using substrings in a bucket/namespace on the HCP.
 
+    NOTE: This command does not use the HCI. Instead, it uses a linear search of 
+    all the objects in the HCP. As such, this search might be slow.
+
     BUCKET is the name of the bucket in which to make the search.
 
     SEARCH_STRING is any string that is to be used for the search.
