@@ -505,14 +505,22 @@ class HCPHandler:
         for key in self.list_objects(name_only = True):
             parse_object = search(
     @check_mounted
-    def fuzzy_search_in_bucket(self, search_string : str, name_only : bool = True, case_sensitive : bool = False, threshold : int = 80): #-> Generator[str, None, None]:
+    def fuzzy_search_in_bucket(
+            self, 
+            search_string : str, 
+            name_only : bool = True, 
+            case_sensitive : bool = False, 
+            threshold : int = 80
+        ) -> Generator:
+        
         if case_sensitive:
             processor = None
         else:
-            processor=utils.default_process 
+            processor = utils.default_process 
 
         if not name_only:
             full_list = list(self.list_objects())
+            
         for item, score, index in process.extract_iter(
                 search_string, 
                 self.list_objects(name_only = True), 
