@@ -177,7 +177,7 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` paramter for `test_connection`")
+            raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`")
         try:
             response = dict(self.s3_client.head_bucket(Bucket = bucket_name))
         except EndpointConnectionError as e: # pragma: no cover
@@ -465,18 +465,18 @@ class HCPHandler:
     @check_mounted
     def delete_folder(self, key : str, verbose : bool = True) -> None:
         """
-        Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raisesd
+        Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raised
 
         :param key: The folder of objects to be deleted
         :type key: str
         :param verbose: Print the result of the deletion. defaults to True
         :type verbose: bool, optional
-        :raises RuntimeError: If there are subfolders, a RuntimeError is raisesd
+        :raises RuntimeError: If there are subfolders, a RuntimeError is raised
         """
         if key[-1] != "/":
             key += "/"
         object_path_in_folder = []
-        for s in self.search_objects_in_bucket(key):
+        for s in self.search_in_bucket(key):
             parse_object = parse(key + "{}", s)
             if type(parse_object) is Result:
                 object_path_in_folder.append(s)
@@ -487,32 +487,57 @@ class HCPHandler:
         self.delete_objects(object_path_in_folder + [key], verbose = verbose)
 
     @check_mounted
-    def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> Generator[dict, None, None]:
+    def search_in_bucket(
+        self, 
+        search_string : str, 
+        name_only : bool = True, 
+        case_sensitive : bool = False
+    ) -> Generator:
         """
-        Simple search method using substrings in order to find certain objects. Case insensitive by default. Does not utilise the HCI
+        Simple search method using exact substrings in order to find certain 
+        objects. Case insensitive by default. Does not utilise the HCI
 
         :param search_string: Substring to be used in the search
         :type search_string: str
 
+        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
+        :type name_only: bool, optional
+
         :param case_sensitive: Case sensitivity. Defaults to False
         :type case_sensitive: bool, optional
 
-        :return: List of object names that match the in some way to the object names
-        :rtype: list[str]
+        :return: A generator of objects based on the search string
+        :rtype: Generator
         """
-        paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
-        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
-        for object in pages.search("Contents[?contains(Key, '" + search_string + "')][]"):
-            yield object
+        return self.fuzzy_search_in_bucket(search_string, name_only, case_sensitive, 100)
+        
 
     @check_mounted
     def fuzzy_search_in_bucket(
-            self, 
-            search_string : str, 
-            name_only : bool = True, 
-            case_sensitive : bool = False, 
-            threshold : int = 80
-        ) -> Generator:
+        self, 
+        search_string : str, 
+        name_only : bool = True, 
+        case_sensitive : bool = False, 
+        threshold : int = 80
+    ) -> Generator:
+        """
+        Fuzzy search implementation based on the `RapidFuzz` library.
+
+        :param search_string: Substring to be used in the search
+        :type search_string: str
+
+        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
+        :type name_only: bool, optional
+
+        :param case_sensitive: Case sensitivity. Defaults to False
+        :type case_sensitive: bool, optional
+
+        :param threshold: The fuzzy search similarity score. Defaults to 80
+        :type threshold: int, optional
+        
+        :return: A generator of objects based on the search string
+        :rtype: Generator
+        """
         
         if case_sensitive:
             processor = None
@@ -521,7 +546,7 @@ class HCPHandler:
 
         if not name_only:
             full_list = list(self.list_objects())
-            
+
         for item, score, index in process.extract_iter(
                 search_string, 
                 self.list_objects(name_only = True), 
