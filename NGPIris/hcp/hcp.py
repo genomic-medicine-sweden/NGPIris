@@ -34,6 +34,11 @@ from parse import (
     search,
     Result
 )
+from rapidfuzz import (
+    fuzz,
+    process, 
+    utils
+)
 from requests import get
 from urllib3 import disable_warnings
 from tqdm import tqdm
@@ -499,13 +504,26 @@ class HCPHandler:
         search_result : list[str] = []
         for key in self.list_objects(name_only = True):
             parse_object = search(
+    @check_mounted
+    def fuzzy_search_in_bucket(self, search_string : str, name_only : bool = True, case_sensitive : bool = False, threshold : int = 80): #-> Generator[str, None, None]:
+        if case_sensitive:
+            processor = None
+        else:
+            processor=utils.default_process 
+
+        if not name_only:
+            full_list = list(self.list_objects())
+        for item, score, index in process.extract_iter(
                 search_string, 
-                key, 
-                case_sensitive = case_sensitive
-            )
-            if type(parse_object) is Result:
-                search_result.append(key)
-        return search_result
+                self.list_objects(name_only = True), 
+                scorer = fuzz.partial_ratio,
+                processor = processor
+            ):
+            if score >= threshold:
+                if name_only:
+                    yield item
+                else:
+                    yield full_list[index]
 
     @check_mounted
     def get_object_acl(self, key : str) -> dict:
