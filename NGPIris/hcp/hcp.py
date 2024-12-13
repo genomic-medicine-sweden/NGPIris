@@ -31,7 +31,6 @@ from os import (
 from json import dumps
 from parse import (
     parse,
-    search,
     Result
 )
 from rapidfuzz import (
@@ -488,7 +487,7 @@ class HCPHandler:
         self.delete_objects(object_path_in_folder + [key], verbose = verbose)
 
     @check_mounted
-    def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> list[str]:
+    def search_objects_in_bucket(self, search_string : str, case_sensitive : bool = False) -> Generator[dict, None, None]:
         """
         Simple search method using substrings in order to find certain objects. Case insensitive by default. Does not utilise the HCI
 
@@ -501,9 +500,11 @@ class HCPHandler:
         :return: List of object names that match the in some way to the object names
         :rtype: list[str]
         """
-        search_result : list[str] = []
-        for key in self.list_objects(name_only = True):
-            parse_object = search(
+        paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
+        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
+        for object in pages.search("Contents[?contains(Key, '" + search_string + "')][]"):
+            yield object
+
     @check_mounted
     def fuzzy_search_in_bucket(
             self, 
