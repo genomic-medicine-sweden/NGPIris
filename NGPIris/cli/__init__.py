@@ -238,7 +238,7 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    list_of_results = hcph.search_objects_in_bucket(search_string, case_sensitive)
+    list_of_results = hcph.search_in_bucket(search_string, case_sensitive)
     click.echo("Search results:")
     for result in list_of_results:
         click.echo("- " + result)
