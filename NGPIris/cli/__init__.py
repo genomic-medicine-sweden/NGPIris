@@ -222,10 +222,18 @@ def list_objects(context : Context, bucket : str, name_only : bool):
     "-cs", 
     "--case_sensitive", 
     help = "Use case sensitivity? Default value is False", 
-    default = False
+    default = False,
+    is_flag = True
+)
+@click.option(
+    "-v", 
+    "--verbose", 
+    help = "Get a verbose output of files. Default value is False, since it might be slower", 
+    default = False,
+    is_flag = True
 )
 @click.pass_context
-def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool):
+def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, verbose : bool):
     """
     Make simple search using substrings in a bucket/namespace on the HCP.
 
@@ -238,10 +246,62 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    list_of_results = hcph.search_in_bucket(search_string, case_sensitive)
+    list_of_results = hcph.search_in_bucket(
+        search_string, 
+        name_only = (not verbose), 
+        case_sensitive = case_sensitive
+    )
     click.echo("Search results:")
     for result in list_of_results:
-        click.echo("- " + result)
+        click.echo(result)
+
+@cli.command()
+@click.argument("bucket")
+@click.argument("search_string")
+@click.option(
+    "-cs", 
+    "--case_sensitive", 
+    help = "Use case sensitivity? Default value is False", 
+    default = False,
+    is_flag = True
+)
+@click.option(
+    "-v", 
+    "--verbose", 
+    help = "Get a verbose output of files. Default value is False, since it might be slower", 
+    default = False,
+    is_flag = True
+)
+@click.option(
+    "-t", 
+    "--threshold", 
+    help = "Set the threshold for the fuzzy search score. Default value is 80", 
+    default = 80
+)
+@click.pass_context
+def fuzzy_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, verbose : bool, threshold : int):
+    """
+    Make a fuzzy search using a search string in a bucket/namespace on the HCP.
+
+    NOTE: This command does not use the HCI. Instead, it uses the RapidFuzz 
+    library in order to find objects in the HCP. As such, this search might 
+    be slow.
+
+    BUCKET is the name of the bucket in which to make the search.
+
+    SEARCH_STRING is any string that is to be used for the search.
+    """
+    hcph : HCPHandler = get_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    list_of_results = hcph.fuzzy_search_in_bucket(
+        search_string, 
+        name_only = (not verbose), 
+        case_sensitive = case_sensitive,
+        threshold = threshold
+    ) 
+    click.echo("Search results:")
+    for result in list_of_results:
+        click.echo(result) 
 
 @cli.command()
 @click.argument("bucket")
