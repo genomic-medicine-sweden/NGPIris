@@ -430,25 +430,24 @@ class HCPHandler:
         :type verbose: bool, optional
         """
         object_list = []
-        for key in keys:
-            object_list.append({"Key" : key})
-
-        deletion_dict = {"Objects": object_list}
-
-        response : dict = self.s3_client.delete_objects(
-            Bucket = self.bucket_name,
-            Delete = deletion_dict
-        )
-        if verbose:
-            print(dumps(response, indent=4))
-        
-        deleted_dict_list : list[dict] = response["Deleted"]
         does_not_exist = []
-        for deleted_dict in deleted_dict_list:
-            if not "VersionId" in deleted_dict:
-                does_not_exist.append("- " + key + "\n")
-        if does_not_exist:
-            print("The following could not be deleted because they didn't exist: \n" + "".join(does_not_exist))
+        for key in keys:
+            if self.object_exists(key):
+                object_list.append({"Key" : key})
+            else:
+                does_not_exist.append(key)
+
+        if object_list:
+            deletion_dict = {"Objects": object_list}
+            response : dict = self.s3_client.delete_objects(
+                Bucket = self.bucket_name,
+                Delete = deletion_dict
+            )
+            if verbose:
+                print(dumps(response, indent=4))
+            
+        if verbose and does_not_exist:
+            print("The following could not be deleted because they didn't exist: \n" + "\n".join(does_not_exist))
     
     @check_mounted
     def delete_object(self, key : str, verbose : bool = True) -> None:
@@ -475,16 +474,16 @@ class HCPHandler:
         """
         if key[-1] != "/":
             key += "/"
-        object_path_in_folder = []
-        for s in self.search_in_bucket(key):
-            parse_object = parse(key + "{}", s)
-            if type(parse_object) is Result:
-                object_path_in_folder.append(s)
 
-        for object_path in object_path_in_folder:
-            if object_path[-1] == "/":
+        objects : list[str] = list(self.list_objects(key, name_only = True))
+
+        if not objects:
+            raise RuntimeError("\"" + key + "\"" + " is not a valid path") #TODO: change this error
+
+        for object_path in objects:
+            if (object_path[-1] == "/") and (not object_path == key): # `objects` might contain key, in which case everything is fine
                 raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
-        self.delete_objects(object_path_in_folder + [key], verbose = verbose)
+        self.delete_objects(objects, verbose = verbose)
 
     @check_mounted
     def search_in_bucket(
