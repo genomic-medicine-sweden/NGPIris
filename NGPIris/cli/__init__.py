@@ -19,7 +19,7 @@ def format_list(list_of_things : list) -> str:
     list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
     return "".join(list_of_buckets).strip("\n")
 
-def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool) -> Generator[str, Any, None]:
+def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, files_only : bool) -> Generator[str, Any, None]:
     """
     Handle object list as a paginator that `click` can handle. It works slightly 
     different from `list_objects` in `hcp.py` in order to make the output 
@@ -36,7 +36,11 @@ def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool) -> 
             tablefmt = "plain",
             stralign = "center"
         ) + "\n" + "-"*nb_of_cols + "\n"
-    for object in pages.search("Contents[?!ends_with(Key, '/')][]"): # filter objects that does not end with "/"
+    if files_only:
+        filter_string = "Contents[?!ends_with(Key, '/')][]" # filter objects that does not end with "/"
+    else:
+        filter_string = "Contents[*][]"
+    for object in pages.search(filter_string): 
         if name_only:
             yield str(object["Key"]) + "\n"
         else:
@@ -218,9 +222,15 @@ def list_buckets(context : Context):
     default = False,
     is_flag = True
 )
+@click.option(
+    "-fo", 
+    "--files-only", 
+    help = "Output only file objects", 
+    default = False,
+    is_flag = True
 )
 @click.pass_context
-def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool):
+def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool, files_only : bool):
     """
     List the objects in a certain bucket/namespace on the HCP.
 
@@ -230,15 +240,18 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    path_with_slash = add_trailing_slash(path)
+    if path:
+        path_with_slash = add_trailing_slash(path)
 
-    if not hcph.object_exists(path_with_slash):
-        raise RuntimeError("Path does not exist")
+        if not hcph.object_exists(path_with_slash):
+            raise RuntimeError("Path does not exist")
+    else:
+        path_with_slash = ""
 
     if pagination:
-        click.echo_via_pager(_list_objects_generator(hcph, path_with_slash, name_only))
+        click.echo_via_pager(_list_objects_generator(hcph, path_with_slash, name_only, files_only))
     else:
-        for obj in hcph.list_objects(path_with_slash, name_only):
+        for obj in hcph.list_objects(path_with_slash, name_only, files_only):
             click.echo(obj)
 
 @cli.command()
