@@ -178,6 +178,8 @@ class HCPHandler:
             pass
         else:
             raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`")
+        
+        response = {}
         try:
             response = dict(self.s3_client.head_bucket(Bucket = bucket_name))
         except EndpointConnectionError as e: # pragma: no cover
@@ -574,7 +576,7 @@ class HCPHandler:
                 if name_only:
                     yield item
                 else:
-                    yield full_list[index]
+                    yield full_list[index] # type: ignore
 
     @check_mounted
     def get_object_acl(self, key : str) -> dict:
