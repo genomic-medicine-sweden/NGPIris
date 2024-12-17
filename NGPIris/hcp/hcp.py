@@ -510,7 +510,6 @@ class HCPHandler:
         """
         return self.fuzzy_search_in_bucket(search_string, name_only, case_sensitive, 100)
         
-
     @check_mounted
     def fuzzy_search_in_bucket(
         self, 
