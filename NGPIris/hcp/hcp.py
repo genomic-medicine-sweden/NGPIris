@@ -245,6 +245,8 @@ class HCPHandler:
         :type path_key: str, optional
         :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
+        :param files_only: If true, only yield file objects. Defaults to False
+        :type files_only: bool, optional
         :yield: A generator of all objects in a bucket
         :rtype: Generator
         """
@@ -260,8 +262,14 @@ class HCPHandler:
 
         pages_filtered = pages.search(filter_string)
         for object in pages_filtered:
+            # Split the object key by "/"
             split_object = object["Key"].split("/")
+            # Check if the object is within the specified path_key depth
             if len(split_object) <= split_path_key:
+                # Skip objects that are not at the desired depth
+                if (len(split_object) == split_path_key) and split_object[-1]:
+                    continue
+                
                 if name_only:
                     yield str(object["Key"])
                 else:
