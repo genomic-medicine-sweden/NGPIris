@@ -46,6 +46,8 @@ from bitmath import TiB, Byte
 
 from typing import Generator
 
+from icecream import ic
+
 _KB = 1024
 _MB = _KB * _KB
 
@@ -234,7 +236,7 @@ class HCPHandler:
         return list_of_buckets
     
     @check_mounted
-    def list_objects(self, path_key : str = "", name_only : bool = False) -> Generator:
+    def list_objects(self, path_key : str = "", name_only : bool = False, files_only : bool = False) -> Generator:
         """
         List all objects in the mounted bucket as a generator. If one wishes to 
         get the result as a list, use :py:function:`list` to type cast the generator
@@ -247,12 +249,23 @@ class HCPHandler:
         :rtype: Generator
         """
         paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
-        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
-        for object in pages.search("Contents[?starts_with(Key, '" + path_key + "')][]"):
-            if name_only:
-                yield str(object["Key"])
-            else:
-                yield object
+        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name, Prefix = path_key)
+
+        if files_only:
+            filter_string = "Contents[?!ends_with(Key, '/')][]"
+        else:
+            filter_string = "Contents[*][]"
+
+        split_path_key = len(path_key.split("/")) + 1
+
+        pages_filtered = pages.search(filter_string)
+        for object in pages_filtered:
+            split_object = object["Key"].split("/")
+            if len(split_object) <= split_path_key:
+                if name_only:
+                    yield str(object["Key"])
+                else:
+                    yield object
                     
     @check_mounted
     def get_object(self, key : str) -> dict:
