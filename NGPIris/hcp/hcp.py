@@ -46,8 +46,6 @@ from bitmath import TiB, Byte
 
 from typing import Generator
 
-from icecream import ic
-
 _KB = 1024
 _MB = _KB * _KB
 
