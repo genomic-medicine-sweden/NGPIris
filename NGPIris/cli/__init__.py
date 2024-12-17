@@ -19,14 +19,14 @@ def format_list(list_of_things : list) -> str:
     list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
     return "".join(list_of_buckets).strip("\n")
 
-def _list_objects_generator(hcph : HCPHandler, name_only : bool) -> Generator[str, Any, None]:
+def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool) -> Generator[str, Any, None]:
     """
     Handle object list as a paginator that `click` can handle. It works slightly 
     different from `list_objects` in `hcp.py` in order to make the output 
     printable in a terminal
     """
     paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
-    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name)
+    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name, Prefix = path)
     (nb_of_cols, _) = get_terminal_size()
     max_width = floor(nb_of_cols / 5)
     if (not name_only):
@@ -54,6 +54,11 @@ def _list_objects_generator(hcph : HCPHandler, name_only : bool) -> Generator[st
 
 def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
     return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
+
+def add_trailing_slash(path : str) -> str:
+    if not path[-1] == "/":
+        path += "/"
+    return path
 
 @click.group()
 @click.argument("credentials")
@@ -198,22 +203,43 @@ def list_buckets(context : Context):
 
 @cli.command()
 @click.argument("bucket")
+@click.argument("path", required = False)
 @click.option(
     "-no", 
     "--name-only", 
     help = "Output only the name of the objects instead of all the associated metadata", 
-    default = False
+    default = False,
+    is_flag = True
+)
+@click.option(
+    "-p",
+    "--pagination",
+    help = "Output as a paginator",
+    default = False,
+    is_flag = True
+)
 )
 @click.pass_context
-def list_objects(context : Context, bucket : str, name_only : bool):
+def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool):
     """
     List the objects in a certain bucket/namespace on the HCP.
 
     BUCKET is the name of the bucket in which to list its objects.
+
+    PATH is an optional argument for where to list the objects
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    click.echo_via_pager(_list_objects_generator(hcph, name_only))
+    path_with_slash = add_trailing_slash(path)
+
+    if not hcph.object_exists(path_with_slash):
+        raise RuntimeError("Path does not exist")
+
+    if pagination:
+        click.echo_via_pager(_list_objects_generator(hcph, path_with_slash, name_only))
+    else:
+        for obj in hcph.list_objects(path_with_slash, name_only):
+            click.echo(obj)
 
 @cli.command()
 @click.argument("bucket")
