@@ -403,6 +403,9 @@ class HCPHandler:
             file_name = Path(local_file_path).name
             key = file_name
 
+        if "\\" in local_file_path:
+            raise RuntimeError("The \\ character is not allowed in the file path")
+
         if self.object_exists(key):
             raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
         else:
