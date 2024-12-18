@@ -94,6 +94,8 @@ def upload(context : Context, bucket : str, source : str, destination : str):
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
+    source = add_trailing_slash(source)
+    destination = add_trailing_slash(destination)
     if Path(source).is_dir():
         hcph.upload_folder(source, destination)
     else:
