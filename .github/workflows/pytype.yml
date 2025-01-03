@@ -1,9 +1,9 @@
 
-name: PyType and PyTest
+name: PyType
 
 on:
   push:
-    branches: [ "dev", "master" ]
+    branches: [ "dev" ]
   pull_request:
     branches: [ "dev", "master" ]
 
@@ -11,12 +11,13 @@ permissions:
   contents: read
 
 jobs:
-  pytype_and_pytest:
-
+  pytype:
+    name: Run PyType
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
