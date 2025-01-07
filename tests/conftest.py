@@ -2,7 +2,6 @@
 from pytest import FixtureRequest, fixture, UsageError, Config
 from configparser import ConfigParser
 from NGPIris.hcp import HCPHandler
-from icecream import ic
 
 def set_section(config : Config, parser : ConfigParser, section : str):
     parse_dict = dict(parser.items(section))
@@ -28,12 +27,7 @@ def pytest_configure(config : Config):
 
         setattr(config, "hcp_h", HCPHandler(parser.get("General", "credentials_path")))
         set_section(config, parser, "HCP_tests")
-
-        #config.hcp_h = HCPHandler(parser.get("General", "credentials_path")) # type: ignore
-        #config.hcp_h = parser.get("General", "credentials_path") # type: ignore
         
-
-
 @fixture(scope = "session")
 def get_ini_config(request : FixtureRequest):
     config_path = request.config.getoption("--config")
