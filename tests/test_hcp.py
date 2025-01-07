@@ -1,6 +1,7 @@
 
 from typing import Callable
-from NGPIris.hcp import HCPHandler
+
+from pytest import Config
 from configparser import ConfigParser
 from pathlib import Path
 from shutil import rmtree
@@ -28,48 +29,31 @@ def _without_mounting(test : Callable) -> None:
     else: # pragma: no cover
         assert False
 
-# --------------------------- Global variables ---------------------------------
-
-#hcp_h = None
-#
-#test_bucket = None
-#
-#test_file = None
-#
-#test_file_path = None
-#
-#result_path = None
-
 # --------------------------- Test suite ---------------------------------------
 
-def test_blank(pytestconfig) -> None:
-    hcp_h = pytestconfig.hcp_h
-    print(hcp_h)
+def test_list_buckets(pytestconfig : Config) -> None:
+    assert pytestconfig.hcp_h.list_buckets() # type: ignore
 
-def test_list_buckets(pytestconfig) -> None:
-    hcp_h = pytestconfig.hcp_h
-    assert hcp_h.list_buckets()
+def test_mount_bucket(pytestconfig : Config) -> None:
+    pytestconfig.hcp_h.mount_bucket(pytestconfig.test_bucket) # type: ignore
 
-def test_mount_bucket() -> None:
-    hcp_h.mount_bucket(test_bucket)
-
-def test_mount_nonexisting_bucket() -> None:
+def test_mount_nonexisting_bucket(pytestconfig : Config) -> None:
     try:
-        hcp_h.mount_bucket("aBucketThatDoesNotExist")
+        pytestconfig.hcp_h.mount_bucket("aBucketThatDoesNotExist") # type: ignore
     except:
         assert True
     else: # pragma: no cover
         assert False
 
-def test_test_connection() -> None:
-    test_mount_bucket()
-    hcp_h.test_connection()
+def test_test_connection(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.test_connection() # type: ignore
 
-def test_test_connection_with_bucket_name() -> None:
-    hcp_h.test_connection(bucket_name = test_bucket)
+def test_test_connection_with_bucket_name(pytestconfig : Config) -> None:
+    pytestconfig.hcp_h.test_connection(bucket_name = pytestconfig.test_bucket) # type: ignore
 
-def test_test_connection_without_mounting_bucket() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_test_connection_without_mounting_bucket(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     try:
         _hcp_h.test_connection()
     except:
@@ -77,161 +61,166 @@ def test_test_connection_without_mounting_bucket() -> None:
     else: # pragma: no cover
         assert False
 
-def test_list_objects() -> None:
-    test_mount_bucket()
-    assert type(list(hcp_h.list_objects())) == list
+def test_list_objects(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    assert type(list(pytestconfig.hcp_h.list_objects())) == list # type: ignore
 
-def test_list_objects_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_list_objects_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.list_objects)
 
-def test_upload_file() -> None:
-    test_mount_bucket()
-    hcp_h.upload_file(test_file_path)
+def test_upload_file(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.upload_file(pytestconfig.test_file_path) # type: ignore
 
-def test_upload_file_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_upload_file_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.upload_file)
 
-def test_upload_file_in_sub_directory() -> None:
-    test_mount_bucket()
-    hcp_h.upload_file(test_file_path, "a_sub_directory/a_file")
+def test_upload_file_in_sub_directory(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.upload_file(pytestconfig.test_file_path, "a_sub_directory/a_file") # type: ignore
 
-def test_upload_nonexistent_file() -> None:
-    test_mount_bucket()
+def test_upload_nonexistent_file(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
     try: 
-        hcp_h.upload_file("tests/data/aTestFileThatDoesNotExist")
+        pytestconfig.hcp_h.upload_file("tests/data/aTestFileThatDoesNotExist") # type: ignore
     except:
         assert True
     else: # pragma: no cover
         assert False
 
-def test_upload_folder() -> None:
-    test_mount_bucket()
-    hcp_h.upload_folder("tests/data/a folder of data/", "a folder of data/")
+def test_upload_folder(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.upload_folder("tests/data/a folder of data/", "a folder of data/") # type: ignore
 
-def test_upload_folder_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_upload_folder_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.upload_folder)
 
-def test_upload_nonexisting_folder() -> None:
-    test_mount_bucket()
+def test_upload_nonexisting_folder(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
     try: 
-        hcp_h.upload_folder("tests/data/aFolderOfFilesThatDoesNotExist")
+        pytestconfig.hcp_h.upload_folder("tests/data/aFolderOfFilesThatDoesNotExist") # type: ignore
     except:
         assert True
     else: # pragma: no cover
         assert False
 
-def test_get_file() -> None:
-    test_mount_bucket()
-    assert hcp_h.object_exists("a_sub_directory/a_file")
-    assert hcp_h.get_object("a_sub_directory/a_file")
+def test_get_file(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    assert pytestconfig.hcp_h.object_exists("a_sub_directory/a_file") # type: ignore
+    assert pytestconfig.hcp_h.get_object("a_sub_directory/a_file") # type: ignore
 
-def test_get_folder_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_get_folder_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.object_exists)
     _without_mounting(_hcp_h.get_object)
 
-def test_get_file_in_sub_directory() -> None:
-    test_mount_bucket()
-    assert hcp_h.object_exists(test_file)
-    assert hcp_h.get_object(test_file)
+def test_get_file_in_sub_directory(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    test_file = Path(pytestconfig.test_file_path).name # type: ignore
+    assert pytestconfig.hcp_h.object_exists(test_file) # type: ignore
+    assert pytestconfig.hcp_h.get_object(test_file) # type: ignore
 
-def test_download_file() -> None:
-    test_mount_bucket()
-    Path(result_path).mkdir()
-    hcp_h.download_file(test_file, result_path + test_file)
-    assert cmp(result_path + test_file, test_file_path)
+def test_download_file(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    Path(pytestconfig.result_path).mkdir() # type: ignore
+    test_file = Path(pytestconfig.test_file_path).name # type: ignore
+    pytestconfig.hcp_h.download_file(test_file, pytestconfig.result_path + test_file) # type: ignore
+    assert cmp(pytestconfig.result_path + test_file, pytestconfig.test_file_path) # type: ignore
 
-def test_download_file_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_download_file_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.download_file)
 
-def test_download_nonexistent_file() -> None:
-    test_mount_bucket()
+def test_download_nonexistent_file(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
     try:
-        hcp_h.download_file("aFileThatDoesNotExist", result_path + "aFileThatDoesNotExist")
+        pytestconfig.hcp_h.download_file("aFileThatDoesNotExist", pytestconfig.result_path + "aFileThatDoesNotExist") # type: ignore
     except:
         assert True
     else: # pragma: no cover
         assert False
 
-def test_download_folder() -> None:
-    test_mount_bucket()
-    hcp_h.download_folder("a folder of data/", result_path)
+def test_download_folder(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.download_folder("a folder of data/", pytestconfig.result_path) # type: ignore
 
-def test_search_objects_in_bucket() -> None:
-    test_mount_bucket()
-    hcp_h.search_objects_in_bucket(test_file)
+def test_search_objects_in_bucket(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    test_file = Path(pytestconfig.test_file_path).name # type: ignore
+    pytestconfig.hcp_h.search_objects_in_bucket(test_file) # type: ignore
 
-def test_search_objects_in_bucket_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_search_objects_in_bucket_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.search_objects_in_bucket)
 
-def test_get_object_acl() -> None:
-    test_mount_bucket()
-    hcp_h.get_object_acl(test_file)
+def test_get_object_acl(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    test_file = Path(pytestconfig.test_file_path).name # type: ignore
+    pytestconfig.hcp_h.get_object_acl(test_file) # type: ignore
 
-def test_get_object_acl_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_get_object_acl_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.get_object_acl)
 
-def test_get_bucket_acl() -> None:
-    test_mount_bucket()
-    hcp_h.get_bucket_acl()
+def test_get_bucket_acl(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.get_bucket_acl() # type: ignore
 
-def test_get_bucket_acl_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_get_bucket_acl_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.get_bucket_acl)
 
-#def test_modify_single_object_acl() -> None:
-#    test_mount_bucket()
-#    hcp_h.modify_single_object_acl()
+#def test_modify_single_object_acl(pytestconfig : Config) -> None:
+#    test_mount_bucket(pytestconfig)
+#    pytestconfig.hcp_h.modify_single_object_acl()
 #
-#def test_modify_single_bucket_acl() -> None:
-#    test_mount_bucket()
-#    hcp_h.modify_single_bucket_acl()
+#def test_modify_single_bucket_acl(pytestconfig : Config) -> None:
+#    test_mount_bucket(pytestconfig)
+#    pytestconfig.hcp_h.modify_single_bucket_acl()
 #
-#def test_modify_object_acl() -> None:
-#    test_mount_bucket()
-#    hcp_h.modify_object_acl()
+#def test_modify_object_acl(pytestconfig : Config) -> None:
+#    test_mount_bucket(pytestconfig)
+#    pytestconfig.hcp_h.modify_object_acl()
 #
-#def test_modify_bucket_acl() -> None:
-#    test_mount_bucket()
-#    hcp_h.modify_bucket_acl()
+#def test_modify_bucket_acl(pytestconfig : Config) -> None:
+#    test_mount_bucket(pytestconfig)
+#    pytestconfig.hcp_h.modify_bucket_acl()
 
-def test_delete_file() -> None:
-    test_mount_bucket()
-    hcp_h.delete_object(test_file)
-    hcp_h.delete_object("a_sub_directory/a_file")
-    hcp_h.delete_object("a_sub_directory")
+def test_delete_file(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    test_file = Path(pytestconfig.test_file_path).name # type: ignore
+    pytestconfig.hcp_h.delete_object(test_file) # type: ignore
+    pytestconfig.hcp_h.delete_object("a_sub_directory/a_file") # type: ignore
+    pytestconfig.hcp_h.delete_object("a_sub_directory") # type: ignore
 
-def test_delete_file_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_delete_file_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.delete_object)
 
-def test_delete_folder_with_sub_directory() -> None:
-    test_mount_bucket()
-    hcp_h.upload_file(test_file_path, "a folder of data/a sub dir/a file")
+def test_delete_folder_with_sub_directory(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.upload_file(pytestconfig.test_file_path, "a folder of data/a sub dir/a file") # type: ignore
     try:
-        hcp_h.delete_folder("a folder of data/")
+        pytestconfig.hcp_h.delete_folder("a folder of data/") # type: ignore
     except: 
         assert True
     else: # pragma: no cover 
         assert False
-    hcp_h.delete_folder("a folder of data/a sub dir/")
+    pytestconfig.hcp_h.delete_folder("a folder of data/a sub dir/") # type: ignore
 
-def test_delete_folder() -> None:
-    test_mount_bucket()
-    hcp_h.delete_folder("a folder of data/")
+def test_delete_folder(pytestconfig : Config) -> None:
+    test_mount_bucket(pytestconfig)
+    pytestconfig.hcp_h.delete_folder("a folder of data/") # type: ignore
 
-def test_delete_folder_without_mounting() -> None:
-    _hcp_h = HCPHandler("credentials/testCredentials.json")
+def test_delete_folder_without_mounting(pytestconfig : Config) -> None:
+    _hcp_h = pytestconfig.hcp_h # type: ignore
     _without_mounting(_hcp_h.delete_folder)
 
-def test_delete_nonexistent_files() -> None:
-    hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"])
+def test_delete_nonexistent_files(pytestconfig : Config) -> None:
+    pytestconfig.hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"]) # type: ignore
 
-def test_clean_up() -> None:
-    rmtree(result_path)
+def test_clean_up(pytestconfig : Config) -> None:
+    rmtree(pytestconfig.result_path) # type: ignore
