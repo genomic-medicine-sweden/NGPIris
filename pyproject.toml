@@ -31,6 +31,10 @@ inputs = ["NGPIris"]
 pythonpath = [
   "."
 ]
+testpaths = [
+  "tests"
+]
+addopts = "--strict-markers"  # Adds command-line options
 filterwarnings = "ignore::urllib3.connectionpool.InsecureRequestWarning"
 
 [project.scripts]

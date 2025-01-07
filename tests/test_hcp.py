@@ -6,17 +6,19 @@ from pathlib import Path
 from shutil import rmtree
 from filecmp import cmp
 
-hcp_h = HCPHandler("credentials/testCredentials.json")
+# --------------------------- Helper fucntions ---------------------------------
 
-ini_config = ConfigParser()
-ini_config.read("tests/test_conf.ini")
+#def _get_hcp_handler(config_parser : ConfigParser) -> HCPHandler:
+#    return HCPHandler(config_parser.get("General", "credentials_path"))
 
-test_bucket = ini_config.get("hcp_tests", "bucket")
+def _get_all_config(config_parser : ConfigParser) -> dict:
+    return dict(config_parser.items("HCP_tests"))
 
-test_file = ini_config.get("hcp_tests","data_test_file")
-test_file_path = "tests/data/" + test_file
-
-result_path = "tests/data/results/"
+#def _get_test_bucket(config_parser : ConfigParser) -> str:
+#    return config_parser.get("hcp_tests", "bucket")
+#
+#def _get_test_file_path(config_parser : ConfigParser) -> str:
+#    return config_parser.get("hcp_tests","data_test_file")
 
 def _without_mounting(test : Callable) -> None:
     try:
@@ -26,7 +28,26 @@ def _without_mounting(test : Callable) -> None:
     else: # pragma: no cover
         assert False
 
-def test_list_buckets() -> None:
+# --------------------------- Global variables ---------------------------------
+
+#hcp_h = None
+#
+#test_bucket = None
+#
+#test_file = None
+#
+#test_file_path = None
+#
+#result_path = None
+
+# --------------------------- Test suite ---------------------------------------
+
+def test_blank(pytestconfig) -> None:
+    hcp_h = pytestconfig.hcp_h
+    print(hcp_h)
+
+def test_list_buckets(pytestconfig) -> None:
+    hcp_h = pytestconfig.hcp_h
     assert hcp_h.list_buckets()
 
 def test_mount_bucket() -> None:
