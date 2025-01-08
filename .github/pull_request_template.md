@@ -23,7 +23,7 @@ pip install NGPIris
 ```
 
 ### Tests
-Tests can as of right now, only be performed using `pytest` on a local instance of Iris. CI/CD for this is currently possible.
+Tests can as of right now, only be performed using `pytest` on a local instance of Iris. CI/CD for this is currently not possible.
 
 ### Expected outcome:
 PyTest resolves without crashes
