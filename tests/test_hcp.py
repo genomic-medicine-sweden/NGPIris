@@ -1,17 +1,20 @@
 
-from typing import Callable
 
 from pathlib import Path
 from shutil import rmtree
 from filecmp import cmp
+from typing import Any, Callable
 
 from conftest import CustomConfig
 
+from NGPIris.hcp import HCPHandler
+
 # --------------------------- Helper fucntions ---------------------------------
 
-def _without_mounting(test : Callable) -> None:
+def _without_mounting(hcp_h : HCPHandler, hcp_h_method : Callable[..., Any]) -> None:
+    hcp_h.bucket_name = None
     try:
-        test()
+        hcp_h_method(hcp_h)
     except:
         assert True
     else: # pragma: no cover
@@ -42,7 +45,7 @@ def test_test_connection_with_bucket_name(custom_config : CustomConfig) -> None:
 
 def test_test_connection_without_mounting_bucket(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.test_connection)
+    _without_mounting(_hcp_h, HCPHandler.test_connection)
 
 def test_list_objects(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -50,7 +53,7 @@ def test_list_objects(custom_config : CustomConfig) -> None:
 
 def test_list_objects_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.list_objects)
+    _without_mounting(_hcp_h, HCPHandler.list_objects)
 
 def test_upload_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -58,7 +61,7 @@ def test_upload_file(custom_config : CustomConfig) -> None:
 
 def test_upload_file_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.upload_file)
+    _without_mounting(_hcp_h, HCPHandler.upload_file)
 
 def test_upload_file_in_sub_directory(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -79,7 +82,7 @@ def test_upload_folder(custom_config : CustomConfig) -> None:
 
 def test_upload_folder_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.upload_folder)
+    _without_mounting(_hcp_h, HCPHandler.upload_folder)
 
 def test_upload_nonexisting_folder(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -97,8 +100,8 @@ def test_get_file(custom_config : CustomConfig) -> None:
 
 def test_get_folder_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.object_exists)
-    _without_mounting(_hcp_h.get_object)
+    _without_mounting(_hcp_h, HCPHandler.object_exists)
+    _without_mounting(_hcp_h, HCPHandler.get_object)
 
 def test_get_file_in_sub_directory(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -115,7 +118,7 @@ def test_download_file(custom_config : CustomConfig) -> None:
 
 def test_download_file_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.download_file)
+    _without_mounting(_hcp_h, HCPHandler.download_file)
 
 def test_download_nonexistent_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -137,7 +140,7 @@ def test_search_objects_in_bucket(custom_config : CustomConfig) -> None:
 
 def test_search_objects_in_bucket_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.search_objects_in_bucket)
+    _without_mounting(_hcp_h, HCPHandler.search_objects_in_bucket)
 
 def test_get_object_acl(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -146,7 +149,7 @@ def test_get_object_acl(custom_config : CustomConfig) -> None:
 
 def test_get_object_acl_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.get_object_acl)
+    _without_mounting(_hcp_h, HCPHandler.get_object_acl)
 
 def test_get_bucket_acl(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -154,7 +157,7 @@ def test_get_bucket_acl(custom_config : CustomConfig) -> None:
 
 def test_get_bucket_acl_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.get_bucket_acl)
+    _without_mounting(_hcp_h, HCPHandler.get_bucket_acl)
 
 #def test_modify_single_object_acl(custom_config : CustomConfig) -> None:
 #    test_mount_bucket(custom_config)
@@ -181,7 +184,7 @@ def test_delete_file(custom_config : CustomConfig) -> None:
 
 def test_delete_file_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.delete_object)
+    _without_mounting(_hcp_h, HCPHandler.delete_object)
 
 def test_delete_folder_with_sub_directory(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -200,9 +203,10 @@ def test_delete_folder(custom_config : CustomConfig) -> None:
 
 def test_delete_folder_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h.delete_folder)
+    _without_mounting(_hcp_h, HCPHandler.delete_folder)
 
 def test_delete_nonexistent_files(custom_config : CustomConfig) -> None:
+    test_mount_bucket(custom_config)
     custom_config.hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"]) 
 
 def test_clean_up(custom_config : CustomConfig) -> None:
