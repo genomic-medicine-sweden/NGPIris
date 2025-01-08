@@ -42,12 +42,7 @@ def test_test_connection_with_bucket_name(custom_config : CustomConfig) -> None:
 
 def test_test_connection_without_mounting_bucket(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    try:
-        _hcp_h.test_connection()
-    except:
-        assert True
-    else: # pragma: no cover
-        assert False
+    _without_mounting(_hcp_h.test_connection)
 
 def test_list_objects(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
