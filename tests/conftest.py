@@ -1,6 +1,8 @@
+
 from pytest import Config, fixture, UsageError
 from configparser import ConfigParser
 from typing import Any
+
 from NGPIris.hcp import HCPHandler
 
 class CustomConfig:
@@ -17,12 +19,10 @@ class CustomConfig:
         """Dynamically get attributes set during pytest configuration."""
         return getattr(self._config, name)
 
-
 def set_section(config : Config, parser : ConfigParser, section : str) -> None:
     parse_dict = dict(parser.items(section))
     for k, v in parse_dict.items():
         setattr(config, k, v)  # Adds attributes dynamically to pytest.Config
-
 
 def pytest_addoption(parser) -> None:
     parser.addoption(
@@ -31,7 +31,6 @@ def pytest_addoption(parser) -> None:
         default=None,
         help="Path to the configuration file (e.g., path/to/config.ini)",
     )
-
 
 def pytest_configure(config : Config) -> None:
     config_path = config.getoption("--config")
