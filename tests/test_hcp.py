@@ -1,8 +1,6 @@
 
 from typing import Callable
 
-from pytest import Config
-from configparser import ConfigParser
 from pathlib import Path
 from shutil import rmtree
 from filecmp import cmp
@@ -10,18 +8,6 @@ from filecmp import cmp
 from conftest import CustomConfig
 
 # --------------------------- Helper fucntions ---------------------------------
-
-#def _get_hcp_handler(config_parser : ConfigParser) -> HCPHandler:
-#    return HCPHandler(config_parser.get("General", "credentials_path"))
-
-def _get_all_config(config_parser : ConfigParser) -> dict:
-    return dict(config_parser.items("HCP_tests"))
-
-#def _get_test_bucket(config_parser : ConfigParser) -> str:
-#    return config_parser.get("hcp_tests", "bucket")
-#
-#def _get_test_file_path(config_parser : ConfigParser) -> str:
-#    return config_parser.get("hcp_tests","data_test_file")
 
 def _without_mounting(test : Callable) -> None:
     try:
