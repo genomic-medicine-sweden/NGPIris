@@ -1,7 +1,8 @@
 
 from pytest import Config, fixture, UsageError
 from configparser import ConfigParser
-from typing import Any
+from typing import Any, Generator
+from shutil import rmtree
 
 from NGPIris.hcp import HCPHandler
 
@@ -40,12 +41,25 @@ def pytest_configure(config : Config) -> None:
         parser = ConfigParser()
         parser.read(str(config_path))
 
+        # Add the INI parser to config
+        setattr(config, "parser", parser)
+
         # Dynamically add an HCPHandler instance to config
         setattr(config, "hcp_h", HCPHandler(parser.get("General", "credentials_path")))
 
         # Dynamically add all key-value pairs from "HCP_tests" section
         set_section(config, parser, "HCP_tests")
 
+@fixture(scope = "session")
+def hcp_result_path(pytestconfig : Config) -> str:
+    return pytestconfig.parser.get("HCP_tests", "result_path") # type: ignore
+
+@fixture(scope = "session", autouse = True)
+def clean_up_after_tests(hcp_result_path : str) -> Generator[None, Any, None]:
+    # Setup code can go here if needed
+    yield
+    # Teardown code
+    rmtree(hcp_result_path)
 
 @fixture
 def custom_config(pytestconfig : Config) -> CustomConfig:

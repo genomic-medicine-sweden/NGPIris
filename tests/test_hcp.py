@@ -1,7 +1,6 @@
 
 
 from pathlib import Path
-from shutil import rmtree
 from filecmp import cmp
 from typing import Any, Callable
 
@@ -212,6 +211,3 @@ def test_delete_folder_without_mounting(custom_config : CustomConfig) -> None:
 def test_delete_nonexistent_files(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.delete_objects(["some", "files", "that", "does", "not", "exist"]) 
-
-def test_clean_up(custom_config : CustomConfig) -> None:
-    rmtree(custom_config.result_path) 
