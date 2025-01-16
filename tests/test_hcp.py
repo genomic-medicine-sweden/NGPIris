@@ -159,6 +159,8 @@ def test_get_bucket_acl_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
     _without_mounting(_hcp_h, HCPHandler.get_bucket_acl)
 
+# ------------------ Possibly future ACL tests ---------------------------------
+
 #def test_modify_single_object_acl(custom_config : CustomConfig) -> None:
 #    test_mount_bucket(custom_config)
 #    custom_config.hcp_h.modify_single_object_acl()
@@ -174,6 +176,8 @@ def test_get_bucket_acl_without_mounting(custom_config : CustomConfig) -> None:
 #def test_modify_bucket_acl(custom_config : CustomConfig) -> None:
 #    test_mount_bucket(custom_config)
 #    custom_config.hcp_h.modify_bucket_acl()
+
+# ------------------------------------------------------------------------------
 
 def test_delete_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
