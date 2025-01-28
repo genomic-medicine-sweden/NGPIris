@@ -67,13 +67,30 @@ class HCPHandler:
         self.hcp = credentials_handler.hcp
         self.endpoint = "https://" + self.hcp["endpoint"]
 
+        gmc_tenant_map = {
+            "gmc-joint" : "vgtn0008",
+            "gmc-west" : "vgtn0012",
+            "gmc-southeast" : "vgtn0014",
+            "gmc-south" : "vgtn0015",
+            "gmc-orebro" : "vgtn0016",
+            "gmc-karolinska" : "vgtn0017",
+            "gmc-north" : "vgtn0018",
+            "gmc-uppsala" : "vgtn0019"
+        }
+
         self.tenant = None
         for endpoint_format_string in ["https://{}.ngp-fs1000.vgregion.se", "https://{}.ngp-fs2000.vgregion.se", "https://{}.ngp-fs3000.vgregion.se", "https://{}.vgregion.sjunet.org"]:
             tenant_parse = parse(endpoint_format_string, self.endpoint) 
             if type(tenant_parse) is Result:
-                self.tenant = str(tenant_parse[0])
+                tenant = str(tenant_parse[0])
+                if endpoint_format_string == "https://{}.vgregion.sjunet.org": # Check if endpoint is Sjunet
+                    self.tenant = gmc_tenant_map[tenant]
+                else:
+                    self.tenant = tenant
+                
                 break
         
+
         if not self.tenant:
             raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file. Hint: The endpoint should *not* contain \"https://\" or port numbers")
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
