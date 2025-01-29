@@ -132,14 +132,23 @@ def test_download_folder(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.download_folder("a folder of data/", custom_config.result_path) 
 
-def test_search_objects_in_bucket(custom_config : CustomConfig) -> None:
+def test_search_in_bucket(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
     test_file = Path(custom_config.test_file_path).name 
-    custom_config.hcp_h.search_objects_in_bucket(test_file) 
+    custom_config.hcp_h.search_in_bucket(test_file) 
 
-def test_search_objects_in_bucket_without_mounting(custom_config : CustomConfig) -> None:
+def test_search_in_bucket_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
-    _without_mounting(_hcp_h, HCPHandler.search_objects_in_bucket)
+    _without_mounting(_hcp_h, HCPHandler.search_in_bucket)
+
+def test_fuzzy_search_in_bucket(custom_config : CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    test_file = Path(custom_config.test_file_path).name 
+    custom_config.hcp_h.fuzzy_search_in_bucket(test_file) 
+
+def test_fuzzy_search_in_bucket_without_mounting(custom_config : CustomConfig) -> None:
+    _hcp_h = custom_config.hcp_h 
+    _without_mounting(_hcp_h, HCPHandler.fuzzy_search_in_bucket)
 
 def test_get_object_acl(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
