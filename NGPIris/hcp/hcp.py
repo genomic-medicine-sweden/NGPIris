@@ -67,6 +67,7 @@ class HCPHandler:
         self.hcp = credentials_handler.hcp
         self.endpoint = "https://" + self.hcp["endpoint"]
 
+        # A lookup table for GMC names to HCP tenant names
         gmc_tenant_map = {
             "gmc-joint" : "vgtn0008",
             "gmc-west" : "vgtn0012",
