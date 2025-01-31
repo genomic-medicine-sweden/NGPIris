@@ -1,5 +1,5 @@
 
-from os import path as p
+from pathlib import Path
 from typing import Callable, TypeVar, ParamSpec
 
 from NGPIris.hcp.exceptions import NoBucketMounted
@@ -23,7 +23,7 @@ def create_access_control_policy(user_ID_permissions : dict[str, str]) -> dict:
     return access_control_policy
 
 def raise_path_error(path : str):
-    if not p.exists(path):
+    if not Path(path).exists():
         raise FileNotFoundError("\"" + path + "\"" + " does not exist")
 
 # Decorator for checking if a bucket is mounted. This is meant to be used by 
