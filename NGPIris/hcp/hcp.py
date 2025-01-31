@@ -67,15 +67,37 @@ class HCPHandler:
         self.hcp = credentials_handler.hcp
         self.endpoint = "https://" + self.hcp["endpoint"]
 
+        # A lookup table for GMC names to HCP tenant names
+        gmc_tenant_map = {
+            "gmc-joint" : "vgtn0008",
+            "gmc-west" : "vgtn0012",
+            "gmc-southeast" : "vgtn0014",
+            "gmc-south" : "vgtn0015",
+            "gmc-orebro" : "vgtn0016",
+            "gmc-karolinska" : "vgtn0017",
+            "gmc-north" : "vgtn0018",
+            "gmc-uppsala" : "vgtn0019"
+        }
+
         self.tenant = None
         for endpoint_format_string in ["https://{}.ngp-fs1000.vgregion.se", "https://{}.ngp-fs2000.vgregion.se", "https://{}.ngp-fs3000.vgregion.se", "https://{}.vgregion.sjunet.org"]:
             tenant_parse = parse(endpoint_format_string, self.endpoint) 
             if type(tenant_parse) is Result:
-                self.tenant = str(tenant_parse[0])
+                tenant = str(tenant_parse[0])
+                if endpoint_format_string == "https://{}.vgregion.sjunet.org": # Check if endpoint is Sjunet
+                    mapped_tenant = gmc_tenant_map.get(tenant)
+                    if mapped_tenant:
+                        self.tenant = mapped_tenant
+                    else:
+                        raise RuntimeError("The provided tenant name, \"" + tenant + "\", could is not a valid tenant name. Hint: did you spell it correctly?")
+                else:
+                    self.tenant = tenant
+                
                 break
         
+
         if not self.tenant:
-            raise RuntimeError("Unable to parse endpoint. Make sure that you have entered the correct endpoint in your credentials JSON file. Hint: The endpoint should *not* contain \"https://\" or port numbers")
+            raise RuntimeError("Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?")
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
         self.aws_access_key_id = self.hcp["aws_access_key_id"]
         self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
