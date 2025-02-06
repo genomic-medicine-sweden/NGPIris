@@ -284,6 +284,11 @@ class HCPHandler:
 
         pages_filtered = pages.search(filter_string)
         for object in pages_filtered:
+            # If there are no objects in the bucket, then `object` will be None,
+            # which means that we should break out of the for loop
+            if not object:
+                break
+
             # Split the object key by "/"
             split_object = object["Key"].split("/")
             # Check if the object is within the specified path_key depth
