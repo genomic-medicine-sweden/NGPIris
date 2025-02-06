@@ -80,7 +80,7 @@ class HCPHandler:
         }
 
         self.tenant = None
-        for endpoint_format_string in ["https://{}.ngp-fs1000.vgregion.se", "https://{}.ngp-fs2000.vgregion.se", "https://{}.ngp-fs3000.vgregion.se", "https://{}.vgregion.sjunet.org"]:
+        for endpoint_format_string in ["https://{}.ngp-fs1000.vgregion.se", "https://{}.ngp-fs2000.vgregion.se", "https://{}.ngp-fs3000.vgregion.se", "https://{}.hcp1.vgregion.se", "https://{}.vgregion.sjunet.org"]:
             tenant_parse = parse(endpoint_format_string, self.endpoint) 
             if type(tenant_parse) is Result:
                 tenant = str(tenant_parse[0])
