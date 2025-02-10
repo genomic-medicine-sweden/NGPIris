@@ -148,7 +148,7 @@ queries/*.json
 !queries/query_template.json
 proxies/*.json
 !proxies/proxy_template.json
-tests/*.ini
+tests/*/*.ini
 !tests/test_conf_template.ini
 
 .DS_Store
