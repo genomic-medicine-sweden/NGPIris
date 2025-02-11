@@ -81,8 +81,14 @@ def cli(context : Context, credentials : str):
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
+@click.option(
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
+)
 @click.pass_context
-def upload(context : Context, bucket : str, source : str, destination : str):
+def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool):
     """
     Upload files to an HCP bucket/namespace. 
     
@@ -97,11 +103,17 @@ def upload(context : Context, bucket : str, source : str, destination : str):
     destination = add_trailing_slash(destination)
     if Path(source).is_dir():
         source = add_trailing_slash(source)
-        hcph.upload_folder(source, destination)
+        if dry_run:
+            click.echo("This command would have uploaded the folder \"" + source + "\" to \"" + destination + "\"")
+        else:
+            hcph.upload_folder(source, destination)
     else:
         file_name = Path(source).name
         destination += file_name
-        hcph.upload_file(source, destination)
+        if dry_run:
+            click.echo("This command would have uploaded the file \"" + source + "\" to \"" + destination + "\"")
+        else:
+            hcph.upload_file(source, destination)
 
 @cli.command()
 @click.argument("bucket")
