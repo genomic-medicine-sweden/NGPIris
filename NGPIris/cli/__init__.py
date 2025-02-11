@@ -171,8 +171,14 @@ def download(context : Context, bucket : str, source : str, destination : str, f
 @cli.command()
 @click.argument("bucket")
 @click.argument("object")
+@click.option(
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
+)
 @click.pass_context
-def delete_object(context : Context, bucket : str, object : str):
+def delete_object(context : Context, bucket : str, object : str, dry_run : bool):
     """
     Delete an object from an HCP bucket/namespace. 
 
@@ -182,7 +188,12 @@ def delete_object(context : Context, bucket : str, object : str):
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    hcph.delete_object(object)
+    if not dry_run:
+        hcph.delete_object(object)
+    else: 
+        click.echo("This command would delete:")
+        click.echo(list(hcph.list_objects(object))[0])
+
 
 @cli.command()
 @click.argument("bucket")
