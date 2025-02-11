@@ -119,8 +119,14 @@ def upload(context : Context, bucket : str, source : str, destination : str):
     help = "Ignore the download limit", 
     is_flag = True
 )
+@click.option(
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
+)
 @click.pass_context
-def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool):
+def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool, dry_run : bool):
     """
     Download a file or folder from an HCP bucket/namespace.
 
@@ -134,39 +140,46 @@ def download(context : Context, bucket : str, source : str, destination : str, f
     hcph.mount_bucket(bucket)
     if not Path(destination).exists():
         Path(destination).mkdir()
-    
-    if object_is_folder(source, hcph):
-        if source == "/":
-            source = ""
 
-        cumulative_download_size = Byte(0)
-        if not ignore_warning:
-            click.echo("Computing download size...")
-            for object in hcph.list_objects(source):
-                object : dict
-                cumulative_download_size += Byte(object["Size"])
-                if cumulative_download_size >= TiB(1):
-                    click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
-                    inp = click.getchar(True)
-                    if inp == "y" or inp == "Y":
-                        break
-                    else: # inp == "n" or inp == "N" or something else
-                        exit("\nAborting download")
-    
-        hcph.download_folder(source, Path(destination).as_posix())
+    if not dry_run:
+        if object_is_folder(source, hcph):
+            if source == "/":
+                source = ""
+
+            cumulative_download_size = Byte(0)
+            if not ignore_warning:
+                click.echo("Computing download size...")
+                for object in hcph.list_objects(source):
+                    object : dict
+                    cumulative_download_size += Byte(object["Size"])
+                    if cumulative_download_size >= TiB(1):
+                        click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
+                        inp = click.getchar(True)
+                        if inp == "y" or inp == "Y":
+                            break
+                        else: # inp == "n" or inp == "N" or something else
+                            exit("\nAborting download")
+        
+            hcph.download_folder(source, Path(destination).as_posix())
+        else: 
+            if Byte(hcph.get_object(source)["ContentLength"]) >= TiB(1):
+                click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
+                inp = click.getchar(True)
+                if inp == "y" or inp == "Y":
+                    pass
+                else: # inp == "n" or inp == "N" or something else
+                    exit("\nAborting download")
+
+            downloaded_source = Path(destination) / Path(source).name
+            if downloaded_source.exists() and not force:
+                exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
+            hcph.download_file(source, downloaded_source.as_posix())
     else: 
-        if Byte(hcph.get_object(source)["ContentLength"]) >= TiB(1):
-            click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
-            inp = click.getchar(True)
-            if inp == "y" or inp == "Y":
-                pass
-            else: # inp == "n" or inp == "N" or something else
-                exit("\nAborting download")
-
-        downloaded_source = Path(destination) / Path(source).name
-        if downloaded_source.exists() and not force:
-            exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
-        hcph.download_file(source, downloaded_source.as_posix())
+        if object_is_folder(source, hcph):
+            click.echo("This command would have downloaded the folder \"" + source + "\". If you wish to know the contents of this folder, use the 'list-objects' command")
+        else:
+            click.echo("This command would have downloaded the object \"" + source + "\":")
+            click.echo(list(hcph.list_objects(source))[0])
 
 @cli.command()
 @click.argument("bucket")
