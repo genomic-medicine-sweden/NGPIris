@@ -187,8 +187,14 @@ def delete_object(context : Context, bucket : str, object : str):
 @cli.command()
 @click.argument("bucket")
 @click.argument("folder")
+@click.option(
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
+)
 @click.pass_context
-def delete_folder(context : Context, bucket : str, folder : str):
+def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool):
     """
     Delete a folder from an HCP bucket/namespace. 
 
@@ -198,7 +204,12 @@ def delete_folder(context : Context, bucket : str, folder : str):
     """
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
-    hcph.delete_folder(folder)
+    if not dry_run:
+        hcph.delete_folder(folder)
+    else:
+        click.echo("By deleting \"" + folder + "\", the following objects would have been deleted (not including objects in sub-folders):")
+        for obj in hcph.list_objects(folder):
+            click.echo(obj)
 
 @cli.command()
 @click.pass_context
