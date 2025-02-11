@@ -3,6 +3,7 @@ import click
 from click.core import Context
 from json import dump
 from pathlib import Path
+from boto3 import set_stream_logger
 from botocore.paginate import PageIterator, Paginator
 from typing import Any, Generator
 from os import get_terminal_size
@@ -66,14 +67,22 @@ def add_trailing_slash(path : str) -> str:
 
 @click.group()
 @click.argument("credentials")
+@click.option(
+    "--debug",
+    help = "Get the debug log for running a command",
+    is_flag = True
+)
 @click.version_option(package_name = "NGPIris")
 @click.pass_context
-def cli(context : Context, credentials : str):
+def cli(context : Context, credentials : str, debug : bool):
     """
     NGP Intelligence and Repository Interface Software, IRIS. 
     
     CREDENTIALS refers to the path to the JSON credentials file.
     """
+    if debug:
+        set_stream_logger(name="")
+        
     context.ensure_object(dict)
     context.obj["hcph"] = HCPHandler(credentials)
 
