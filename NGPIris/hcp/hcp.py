@@ -349,6 +349,11 @@ class HCPHandler:
 
         :param local_file_path: Path to a file on your local system where the contents of the object file can be put
         :type local_file_path: str
+
+        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :type show_progress_bar: bool, optional
+
+        :raises ObjectDoesNotExist: If the object does not exist in the bucket
         """
         try:
             self.get_object(key)
@@ -391,7 +396,7 @@ class HCPHandler:
             use_download_limit : bool = False, 
             download_limit_in_bytes : Byte = TiB(1).to_Byte(), 
             show_progress_bar : bool = True
-        ) -> None:
+        ) -> None:  
         """
         Download multiple objects from a folder in the mounted bucket
 
@@ -407,7 +412,13 @@ class HCPHandler:
         :param download_limit_in_bytes: The optional download limit in Byte (from the package `bitmath`). Defaults to 1 TB (`TiB(1).to_Byte()`)
         :type download_limit_in_bytes: Byte, optional
 
+        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :type show_progress_bar: bool, optional
+        
+        :raises ObjectDoesNotExist: If the object does not exist in the bucket
+        
         :raises DownloadLimitReached: If download limit was reached while downloading files
+        
         :raises NotADirectory: If local_folder_path is not a directory
         """
         try:
@@ -438,6 +449,13 @@ class HCPHandler:
 
         :param key: An optional new name for the file object on the bucket. Defaults to the same name as the file
         :type key: str, optional
+
+        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :type show_progress_bar: bool, optional
+
+        :raises RuntimeError: If the \"\\\" is used in the file path 
+        
+        :raises ObjectAlreadyExist: If the object already exist on the mounted bucket
         """
         raise_path_error(local_file_path)
 
@@ -482,8 +500,12 @@ class HCPHandler:
 
         :param local_folder_path: Path to the folder to be uploaded
         :type local_folder_path: str
+
         :param key: An optional new name for the folder path on the bucket. Defaults to the same name as the local folder path
         :type key: str, optional
+
+        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :type show_progress_bar: bool, optional
         """
         raise_path_error(local_folder_path)
 
