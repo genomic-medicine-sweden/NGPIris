@@ -56,7 +56,19 @@ def test_list_objects_without_mounting(custom_config : CustomConfig) -> None:
 
 def test_upload_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    custom_config.hcp_h.upload_file(custom_config.test_file_path) 
+    
+    # With progress bar
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path, 
+        custom_config.test_file_path
+    )
+    
+    # Without progress bar
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path, 
+        custom_config.test_file_path + "_no_progress_bar", 
+        show_progress_bar = False
+    )
 
 def test_upload_file_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
@@ -104,16 +116,29 @@ def test_get_folder_without_mounting(custom_config : CustomConfig) -> None:
 
 def test_get_file_in_sub_directory(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    test_file = Path(custom_config.test_file_path).name 
-    assert custom_config.hcp_h.object_exists(test_file) 
-    assert custom_config.hcp_h.get_object(test_file) 
+    assert custom_config.hcp_h.object_exists(custom_config.test_file_path) 
+    assert custom_config.hcp_h.get_object(custom_config.test_file_path) 
+
+from icecream import ic
 
 def test_download_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    Path(custom_config.result_path).mkdir() 
-    test_file = Path(custom_config.test_file_path).name 
-    custom_config.hcp_h.download_file(test_file, custom_config.result_path + test_file) 
-    assert cmp(custom_config.result_path + test_file, custom_config.test_file_path) 
+    Path(custom_config.result_path).mkdir()
+    
+    test_folder_path = str(custom_config.test_file_path).rsplit("/", maxsplit = 1)[0] + "/"
+    Path(custom_config.result_path + test_folder_path).mkdir(parents = True, exist_ok = True)
+
+    # With progress bar
+    custom_config.hcp_h.download_file(custom_config.test_file_path, custom_config.result_path + custom_config.test_file_path)
+    assert cmp(custom_config.result_path + custom_config.test_file_path, custom_config.test_file_path) 
+
+    # Without progress bar
+    custom_config.hcp_h.download_file(
+        custom_config.test_file_path + "_no_progress_bar", 
+        custom_config.result_path + custom_config.test_file_path + "_no_progress_bar",
+        show_progress_bar = False
+    )
+    assert cmp(custom_config.result_path + custom_config.test_file_path, custom_config.test_file_path) 
 
 def test_download_file_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
@@ -152,8 +177,7 @@ def test_fuzzy_search_in_bucket_without_mounting(custom_config : CustomConfig) -
 
 def test_get_object_acl(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    test_file = Path(custom_config.test_file_path).name 
-    custom_config.hcp_h.get_object_acl(test_file) 
+    custom_config.hcp_h.get_object_acl(custom_config.test_file_path) 
 
 def test_get_object_acl_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
@@ -189,8 +213,8 @@ def test_get_bucket_acl_without_mounting(custom_config : CustomConfig) -> None:
 
 def test_delete_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    test_file = Path(custom_config.test_file_path).name 
-    custom_config.hcp_h.delete_object(test_file) 
+    custom_config.hcp_h.delete_object(custom_config.test_file_path) 
+    custom_config.hcp_h.delete_object(custom_config.test_file_path + "_no_progress_bar")
     custom_config.hcp_h.delete_object("a_sub_directory/a_file") 
     custom_config.hcp_h.delete_object("a_sub_directory") 
 
