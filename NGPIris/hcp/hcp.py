@@ -340,7 +340,7 @@ class HCPHandler:
             return False
 
     @check_mounted
-    def download_file(self, key : str, local_file_path : str) -> None:
+    def download_file(self, key : str, local_file_path : str, show_progress_bar : bool = True) -> None:
         """
         Download one object file from the mounted bucket
 
@@ -355,19 +355,27 @@ class HCPHandler:
         except:
             raise ObjectDoesNotExist("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
         try:
-            file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
-            with tqdm(
-                total = file_size, 
-                unit = "B", 
-                unit_scale = True, 
-                desc = key
-            ) as pbar:
+            if show_progress_bar:
+                file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
+                with tqdm(
+                    total = file_size, 
+                    unit = "B", 
+                    unit_scale = True, 
+                    desc = key
+                ) as pbar:
+                    self.s3_client.download_file(
+                        Bucket = self.bucket_name, 
+                        Key = key, 
+                        Filename = local_file_path, 
+                        Config = self.transfer_config,
+                        Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                    )
+            else:
                 self.s3_client.download_file(
                     Bucket = self.bucket_name, 
                     Key = key, 
                     Filename = local_file_path, 
                     Config = self.transfer_config,
-                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                 )
         except ClientError as e0: 
             print(str(e0))
@@ -376,7 +384,14 @@ class HCPHandler:
             raise Exception(e)
 
     @check_mounted
-    def download_folder(self, folder_key : str, local_folder_path : str, use_download_limit : bool = False, download_limit_in_bytes : Byte = TiB(1).to_Byte()) -> None:
+    def download_folder(
+            self, 
+            folder_key : str, 
+            local_folder_path : str, 
+            use_download_limit : bool = False, 
+            download_limit_in_bytes : Byte = TiB(1).to_Byte(), 
+            show_progress_bar : bool = True
+        ) -> None:
         """
         Download multiple objects from a folder in the mounted bucket
 
@@ -409,12 +424,12 @@ class HCPHandler:
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
                         raise DownloadLimitReached("The download limit was reached when downloading files")
-                    self.download_file(object["Key"], p.as_posix())
+                    self.download_file(object["Key"], p.as_posix(), show_progress_bar = show_progress_bar)
         else:
             raise NotADirectory(local_folder_path + " is not a directory")
 
     @check_mounted
-    def upload_file(self, local_file_path : str, key : str = "") -> None:
+    def upload_file(self, local_file_path : str, key : str = "", show_progress_bar : bool = True) -> None:
         """
         Upload one file to the mounted bucket
 
@@ -436,23 +451,32 @@ class HCPHandler:
         if self.object_exists(key):
             raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
         else:
-            file_size : int = stat(local_file_path).st_size
-            with tqdm(
-                total = file_size, 
-                unit = "B", 
-                unit_scale = True, 
-                desc = local_file_path
-            ) as pbar:
+            if show_progress_bar:
+                file_size : int = stat(local_file_path).st_size
+                with tqdm(
+                    total = file_size, 
+                    unit = "B", 
+                    unit_scale = True, 
+                    desc = local_file_path
+                ) as pbar:
+                    self.s3_client.upload_file(
+                        Filename = local_file_path, 
+                        Bucket = self.bucket_name, 
+                        Key = key,
+                        Config = self.transfer_config,
+                        Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                    )
+            else:
                 self.s3_client.upload_file(
                     Filename = local_file_path, 
                     Bucket = self.bucket_name, 
                     Key = key,
                     Config = self.transfer_config,
-                    Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                 )
 
+
     @check_mounted
-    def upload_folder(self, local_folder_path : str, key : str = "") -> None:
+    def upload_folder(self, local_folder_path : str, key : str = "", show_progress_bar : bool = True) -> None:
         """
         Upload the contents of a folder to the mounted bucket
 
@@ -468,7 +492,7 @@ class HCPHandler:
         filenames = listdir(local_folder_path)
 
         for filename in filenames:
-            self.upload_file(local_folder_path + filename, key + filename)
+            self.upload_file(local_folder_path + filename, key + filename, show_progress_bar = show_progress_bar)
 
     @check_mounted
     def delete_objects(self, keys : list[str], verbose : bool = True) -> None:
