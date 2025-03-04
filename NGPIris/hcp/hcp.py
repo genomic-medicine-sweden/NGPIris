@@ -286,24 +286,33 @@ class HCPHandler:
                     file_object : dict
                     if file_object["Key"] != path_key:
                         file_object["IsFile"] = True
-                        yield file_object
+                        if name_only:
+                            yield file_object["Key"]
+                        else:
+                            yield file_object
             else:
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object : dict
                     folder_object_metadata = self.get_object(folder_object["Prefix"])
                     
-                    yield {
-                        "Key" : folder_object["Prefix"],
-                        "LastModified" : folder_object_metadata["LastModified"],
-                        "ETag" : folder_object_metadata["ETag"],
-                        "IsFile" : False,
-                    }
+                    if name_only: 
+                        yield folder_object["Prefix"]
+                    else:
+                        yield {
+                            "Key" : folder_object["Prefix"],
+                            "LastModified" : folder_object_metadata["LastModified"],
+                            "ETag" : folder_object_metadata["ETag"],
+                            "IsFile" : False,
+                        }
 
                 for file_object in page.get("Contents", []):
                     file_object : dict
                     if file_object["Key"] != path_key:
                         file_object["IsFile"] = True
-                        yield file_object
+                        if name_only:
+                            yield file_object["Key"]
+                        else:
+                            yield file_object
 
             # Split the object key by "/"
             #split_object = object["Key"].split("/")
