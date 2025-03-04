@@ -263,13 +263,13 @@ class HCPHandler:
         List all objects in the mounted bucket as a generator. If one wishes to 
         get the result as a list, use :py:function:`list` to type cast the generator
 
-        :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders.
+        :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
         :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
         :param files_only: If true, only yield file objects. Defaults to False
         :type files_only: bool, optional
-        :yield: A generator of all objects in a bucket
+        :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """
         paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
@@ -313,19 +313,6 @@ class HCPHandler:
                             yield file_object["Key"]
                         else:
                             yield file_object
-
-            # Split the object key by "/"
-            #split_object = object["Key"].split("/")
-            ## Check if the object is within the specified path_key depth
-            #if len(split_object) <= split_path_key:
-            #    # Skip objects that are not at the desired depth
-            #    if (len(split_object) == split_path_key) and split_object[-1]:
-            #        continue
-            #    
-            #    if name_only:
-            #        yield str(object["Key"])
-            #    else:
-            #        yield object
         
                     
     @check_mounted
