@@ -256,7 +256,7 @@ class HCPHandler:
         response = self.get_response("/namespaces")
         list_of_buckets : list[str] = response["name"]
         return list_of_buckets
-    
+
     @check_mounted
     def list_objects(self, path_key : str = "", name_only : bool = False, files_only : bool = False) -> Generator:
         """
@@ -273,34 +273,48 @@ class HCPHandler:
         :rtype: Generator
         """
         paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
-        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name, Prefix = path_key)
+        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name, Prefix = path_key, Delimiter = "/")
 
-        if files_only:
-            filter_string = "Contents[?!ends_with(Key, '/')][]"
-        else:
-            filter_string = "Contents[*][]"
-
-        split_path_key = len(path_key.split("/")) + 1
-
-        pages_filtered = pages.search(filter_string)
-        for object in pages_filtered:
-            # If there are no objects in the bucket, then `object` will be None,
-            # which means that we should break out of the for loop
-            if not object:
+        for page in pages:
+            page : dict | None
+            # Check if `page` is None
+            if not page:
                 break
+            
+            for file_object in page.get("Contents", []):
+                file_object : dict
+                if file_object["Key"] != path_key:
+                    file_object["IsFile"] = True
+                    yield file_object
+
+            for folder_object in page.get("CommonPrefixes", []):
+                folder_object : dict
+                folder_object_metadata = self.get_object(folder_object["Prefix"])
+                
+                yield {
+                    "Key" : folder_object["Prefix"],
+                    "LastModified" : folder_object_metadata["LastModified"],
+                    "ETag" : folder_object_metadata["ETag"],
+                    "IsFile" : False,
+                }
+                #ic(folder_object)
+
+            #ic(page_nb, page.get("Contents"), page.get("CommonPrefixes"))
+            #page_nb += 1
 
             # Split the object key by "/"
-            split_object = object["Key"].split("/")
-            # Check if the object is within the specified path_key depth
-            if len(split_object) <= split_path_key:
-                # Skip objects that are not at the desired depth
-                if (len(split_object) == split_path_key) and split_object[-1]:
-                    continue
-                
-                if name_only:
-                    yield str(object["Key"])
-                else:
-                    yield object
+            #split_object = object["Key"].split("/")
+            ## Check if the object is within the specified path_key depth
+            #if len(split_object) <= split_path_key:
+            #    # Skip objects that are not at the desired depth
+            #    if (len(split_object) == split_path_key) and split_object[-1]:
+            #        continue
+            #    
+            #    if name_only:
+            #        yield str(object["Key"])
+            #    else:
+            #        yield object
+        
                     
     @check_mounted
     def get_object(self, key : str) -> dict:
