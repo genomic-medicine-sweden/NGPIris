@@ -4,11 +4,7 @@ from click.core import Context
 from json import dump
 from pathlib import Path
 from boto3 import set_stream_logger
-from botocore.paginate import PageIterator, Paginator
 from typing import Any, Generator
-from os import get_terminal_size
-from math import floor
-from tabulate import tabulate
 from bitmath import Byte, TiB
 
 from NGPIris.hcp import HCPHandler
@@ -26,36 +22,9 @@ def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, fil
     different from `list_objects` in `hcp.py` in order to make the output 
     printable in a terminal
     """
-    paginator : Paginator = hcph.s3_client.get_paginator("list_objects_v2")
-    pages : PageIterator = paginator.paginate(Bucket = hcph.bucket_name, Prefix = path)
-    (nb_of_cols, _) = get_terminal_size()
-    max_width = floor(nb_of_cols / 5)
-    if (not name_only):
-        yield tabulate(
-            [],
-            headers = ["Key", "LastModified", "ETag", "Size", "StorageClass"],
-            tablefmt = "plain",
-            stralign = "center"
-        ) + "\n" + "-"*nb_of_cols + "\n"
-    if files_only:
-        filter_string = "Contents[?!ends_with(Key, '/')][]" # filter objects that does not end with "/"
-    else:
-        filter_string = "Contents[*][]"
-    for object in pages.search(filter_string): 
-        if name_only:
-            yield str(object["Key"]) + "\n"
-        else:
-            yield tabulate(
-                [
-                    [str(object["Key"]), 
-                        str(object["LastModified"]), 
-                        str(object["ETag"]), 
-                        str(object["Size"]), 
-                        str(object["StorageClass"])]
-                ],
-                maxcolwidths = max_width,
-                tablefmt = "plain"
-            ) + "\n" + "-"*nb_of_cols + "\n"
+    objects = hcph.list_objects(path, name_only, files_only)
+    for obj in objects:
+        yield str(obj) + "\n"
 
 def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
     return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
