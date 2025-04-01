@@ -163,7 +163,8 @@ def download(context : Context, bucket : str, source : str, destination : str, f
                 click.echo("Computing download size...")
                 for object in hcph.list_objects(source):
                     object : dict
-                    cumulative_download_size += Byte(object["Size"])
+                    if 'Size' in object:
+                        cumulative_download_size += Byte(object["Size"])
                     if cumulative_download_size >= TiB(1):
                         click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
                         inp = click.getchar(True)
