@@ -443,7 +443,7 @@ class HCPHandler:
             for object in self.list_objects(folder_key): # Build the tree with directories or add files
                 p = Path(local_folder_path) / Path(object["Key"])
                 if object["Key"][-1] == "/": # If the object is a "folder"
-                    p.mkdir()
+                    p.mkdir(parents=True)
                 else: # If the object is a file
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:

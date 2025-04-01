@@ -449,7 +449,7 @@ def iris_generate_credentials_file(path : str, name : str):
             file_path = path + name
     
         if not Path(path).is_dir():
-            Path(path).mkdir()
+            Path(path).mkdir(parents=True)
     else:
         file_path = name
         
