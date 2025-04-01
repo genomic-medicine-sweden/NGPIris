@@ -423,6 +423,27 @@ def iris_generate_credentials_file(path : str, name : str):
 
     WARNING: This file will store sensitive information (such as passwords) in plaintext.
     """
+
+    gen_template(path,name)
+
+
+@debug.command()
+@click.option(
+    "--path",
+    help = "Path for where to put the new credentials file.",
+    default = ""
+)
+@click.option(
+    "--name",
+    help = "Custom name for the credentials file. Will filter out everything after a \".\" character, if any exist.",
+    default = "credentials"
+)
+def gen_template(path : str, name : str):
+    """
+    Generate blank credentials file for the HCI and HCP. 
+
+    WARNING: This file will store sensitive information (such as passwords) in plaintext.
+    """
     credentials_dict = {
         "hcp" : {
             "endpoint" : "",
@@ -444,16 +465,14 @@ def iris_generate_credentials_file(path : str, name : str):
             path += "/"
 
         if path == ".":
-            file_path = name    
+            file_path = name
         else:
             file_path = path + name
-    
+
         if not Path(path).is_dir():
             Path(path).mkdir(parents=True)
     else:
         file_path = name
-        
-    with open(file_path, "w") as f:
-        dump(credentials_dict, f, indent = 4)
 
-    
+    with open(file_path, "w") as f:
+        dump(credentials_dict, f, indent = 4) 
