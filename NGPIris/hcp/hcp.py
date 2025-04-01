@@ -1,4 +1,3 @@
-
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.hcp.helpers import (
     raise_path_error,
@@ -26,7 +25,8 @@ from pathlib import Path
 
 from os import (
     stat,
-    listdir
+    listdir,
+    walk
 )
 from json import dumps
 from parse import (
@@ -440,10 +440,14 @@ class HCPHandler:
             raise ObjectDoesNotExist("Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(0) # For tracking download limit
+
             for object in self.list_objects(folder_key): # Build the tree with directories or add files
                 p = Path(local_folder_path) / Path(object["Key"])
-                if object["Key"][-1] == "/": # If the object is a "folder"
+                if not object["IsFile"]: # If the object is a "folder"
                     p.mkdir(parents=True)
+                    self.download_folder(folder_key=str(object['Key']), local_folder_path=str(local_folder_path), \
+                            use_download_limit=use_download_limit, show_progress_bar=show_progress_bar, \
+                            download_limit_in_bytes=download_limit_in_bytes - current_download_size_in_bytes)
                 else: # If the object is a file
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
