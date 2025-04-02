@@ -597,6 +597,7 @@ class HCPHandler:
             key += "/"
 
         objects : list[str] = list(self.list_objects(key, name_only = True))
+        objects.append(key)
 
         if not objects:
             raise RuntimeError("\"" + key + "\"" + " is not a valid path") #TODO: change this error
