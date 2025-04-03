@@ -456,7 +456,7 @@ class HCPHandler:
                 if not object["IsFile"]: # If the object is a "folder"
                     p.mkdir(parents=True)
                     self.download_folder(
-                        folder_key = str(object['Key']), 
+                        folder_key = str(object["Key"]), 
                         local_folder_path = local_folder_path,
                         use_download_limit = use_download_limit, 
                         show_progress_bar = show_progress_bar,
