@@ -455,9 +455,13 @@ class HCPHandler:
                 p = Path(local_folder_path) / Path(object["Key"])
                 if not object["IsFile"]: # If the object is a "folder"
                     p.mkdir(parents=True)
-                    self.download_folder(folder_key=str(object['Key']), local_folder_path=str(local_folder_path), \
-                            use_download_limit=use_download_limit, show_progress_bar=show_progress_bar, \
-                            download_limit_in_bytes=download_limit_in_bytes - current_download_size_in_bytes)
+                    self.download_folder(
+                        folder_key = str(object['Key']), 
+                        local_folder_path = local_folder_path,
+                        use_download_limit = use_download_limit, 
+                        show_progress_bar = show_progress_bar,
+                        download_limit_in_bytes = download_limit_in_bytes - current_download_size_in_bytes
+                    )
                 else: # If the object is a file
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
