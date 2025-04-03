@@ -597,7 +597,7 @@ class HCPHandler:
             key += "/"
 
         objects : list[str] = list(self.list_objects(key, name_only = True))
-        objects.append(key)
+        objects.append(key) # Include the object "folder" path to be deleted
 
         if not objects:
             raise RuntimeError("\"" + key + "\"" + " is not a valid path") #TODO: change this error
