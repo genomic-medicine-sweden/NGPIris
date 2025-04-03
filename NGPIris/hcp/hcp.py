@@ -25,8 +25,7 @@ from pathlib import Path
 
 from os import (
     stat,
-    listdir,
-    walk
+    listdir
 )
 from json import dumps
 from parse import (
