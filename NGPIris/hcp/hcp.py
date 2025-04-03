@@ -40,7 +40,6 @@ from rapidfuzz import (
 from requests import get
 from urllib3 import disable_warnings
 from tqdm import tqdm
-
 from bitmath import TiB, Byte
 
 from typing import Generator
@@ -450,11 +449,11 @@ class HCPHandler:
             raise ObjectDoesNotExist("Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(0) # For tracking download limit
-
-            for object in self.list_objects(folder_key): # Build the tree with directories or add files
+            (Path(local_folder_path) / Path(folder_key)).mkdir(parents = True) # Create "base folder"
+            for object in self.list_objects(folder_key): # Build the tree with directories or add files:
                 p = Path(local_folder_path) / Path(object["Key"])
                 if not object["IsFile"]: # If the object is a "folder"
-                    p.mkdir(parents=True)
+                    p.mkdir(parents = True)
                     self.download_folder(
                         folder_key = str(object["Key"]), 
                         local_folder_path = local_folder_path,
