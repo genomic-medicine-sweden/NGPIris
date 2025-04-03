@@ -258,22 +258,33 @@ class HCPHandler:
         return list_of_buckets
 
     @check_mounted
-    def list_objects(self, path_key : str = "", name_only : bool = False, files_only : bool = False) -> Generator:
+    def list_objects(
+        self, 
+        path_key : str = "", 
+        list_all_bucket_objects : bool = False,
+        name_only : bool = False, 
+        files_only : bool = False
+    ) -> Generator:
         """
         List all objects in the mounted bucket as a generator. If one wishes to 
         get the result as a list, use :py:function:`list` to type cast the generator
 
         :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
+        :param list_all_bucket_objects: If True, the value of `path_key` will be ignored and instead will list all objects in the bucket. Defaults to False
+        :type list_all_bucket_objects: bool, optional
         :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
         :type name_only: bool, optional
-        :param files_only: If true, only yield file objects. Defaults to False
+        :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """
         paginator : Paginator = self.s3_client.get_paginator("list_objects_v2")
-        pages : PageIterator = paginator.paginate(Bucket = self.bucket_name, Prefix = path_key, Delimiter = "/")
+        if list_all_bucket_objects:
+            pages : PageIterator = paginator.paginate(Bucket = self.bucket_name)
+        else:
+            pages : PageIterator = paginator.paginate(Bucket = self.bucket_name, Prefix = path_key, Delimiter = "/")
 
         for page in pages:
             page : dict | None
@@ -586,6 +597,7 @@ class HCPHandler:
             key += "/"
 
         objects : list[str] = list(self.list_objects(key, name_only = True))
+        objects.append(key) # Include the object "folder" path to be deleted
 
         if not objects:
             raise RuntimeError("\"" + key + "\"" + " is not a valid path") #TODO: change this error
@@ -653,11 +665,11 @@ class HCPHandler:
             processor = utils.default_process 
 
         if not name_only:
-            full_list = list(self.list_objects())
+            full_list = list(self.list_objects(list_all_bucket_objects = True))
 
         for item, score, index in process.extract_iter(
                 search_string, 
-                self.list_objects(name_only = True), 
+                self.list_objects(list_all_bucket_objects = True, name_only = True), 
                 scorer = fuzz.partial_ratio,
                 processor = processor
             ):
