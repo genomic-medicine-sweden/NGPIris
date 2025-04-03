@@ -18,19 +18,15 @@
 ## Test Procedure
 
 ### Installation and initiation
-* `git clone git@github.com:genomic-medicine-sweden/NGPIris.git`
-* `cd NGPIris && git checkout <BRANCH>`
-* `bash setup.sh`
-* `source activate hpcenv`
+```
+pip install NGPIris
+```
 
 ### Tests
-* `pytest tests/`
-* Potential additional tests
+Tests can as of right now, only be performed using `pytest` on a local instance of Iris. CI/CD for this is currently not possible.
 
 ### Expected outcome:
-* Pytest resolves without crashes
-* Potential additional results
+PyTest resolves without crashes
 
 ## Confirmations:
-- [ ] Code reviewed by @octocat
-- [ ] Code tested by @octocat
+- [ ] Code tested by @

@@ -55,6 +55,28 @@ def cli(context : Context, credentials : str, debug : bool):
     context.ensure_object(dict)
     context.obj["hcph"] = HCPHandler(credentials)
 
+@click.group()
+@click.pass_context
+def search(ctx):
+    """Search buckets via fuzzy,simple or list searching"""
+    pass
+
+@click.group()
+@click.pass_context
+def delete(ctx):
+    """Delete files or folders"""
+    pass
+
+@click.group()
+@click.pass_context
+def debug(ctx):
+    """Advanced commands for specific purposes"""
+    pass
+
+cli.add_command(search)
+cli.add_command(delete)
+cli.add_command(debug)
+
 @cli.command()
 @click.argument("bucket")
 @click.argument("source")
@@ -68,7 +90,7 @@ def cli(context : Context, credentials : str, debug : bool):
 @click.pass_context
 def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool):
     """
-    Upload files to an HCP bucket/namespace. 
+    Upload files to a HCP bucket. 
     
     BUCKET is the name of the upload destination bucket.
 
@@ -118,7 +140,7 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
 @click.pass_context
 def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool, dry_run : bool):
     """
-    Download a file or folder from an HCP bucket/namespace.
+    Download a file or folder from a HCP bucket.
 
     BUCKET is the name of the download source bucket.
 
@@ -141,7 +163,8 @@ def download(context : Context, bucket : str, source : str, destination : str, f
                 click.echo("Computing download size...")
                 for object in hcph.list_objects(source):
                     object : dict
-                    cumulative_download_size += Byte(object["Size"])
+                    if 'Size' in object:
+                        cumulative_download_size += Byte(object["Size"])
                     if cumulative_download_size >= TiB(1):
                         click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
                         inp = click.getchar(True)
@@ -171,7 +194,7 @@ def download(context : Context, bucket : str, source : str, destination : str, f
             click.echo("This command would have downloaded the object \"" + source + "\":")
             click.echo(list(hcph.list_objects(source))[0])
 
-@cli.command()
+@delete.command()
 @click.argument("bucket")
 @click.argument("object")
 @click.option(
@@ -183,7 +206,7 @@ def download(context : Context, bucket : str, source : str, destination : str, f
 @click.pass_context
 def delete_object(context : Context, bucket : str, object : str, dry_run : bool):
     """
-    Delete an object from an HCP bucket/namespace. 
+    Delete an object from a HCP bucket. 
 
     BUCKET is the name of the bucket where the object to be deleted exist.
 
@@ -198,7 +221,7 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
         click.echo(list(hcph.list_objects(object))[0])
 
 
-@cli.command()
+@delete.command()
 @click.argument("bucket")
 @click.argument("folder")
 @click.option(
@@ -210,7 +233,7 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
 @click.pass_context
 def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool):
     """
-    Delete a folder from an HCP bucket/namespace. 
+    Delete a folder from a HCP bucket. 
 
     BUCKET is the name of the bucket where the folder to be deleted exist.
 
@@ -225,16 +248,16 @@ def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool)
         for obj in hcph.list_objects(folder):
             click.echo(obj)
 
-@cli.command()
+@search.command()
 @click.pass_context
 def list_buckets(context : Context):
     """
-    List the available buckets/namespaces on the HCP.
+    List the available buckets on the HCP.
     """
     hcph : HCPHandler = get_HCPHandler(context)
     click.echo(format_list(hcph.list_buckets()))
 
-@cli.command()
+@search.command()
 @click.argument("bucket")
 @click.argument("path", required = False)
 @click.option(
@@ -261,7 +284,7 @@ def list_buckets(context : Context):
 @click.pass_context
 def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool, files_only : bool):
     """
-    List the objects in a certain bucket/namespace on the HCP.
+    List the objects in a certain bucket on the HCP.
 
     BUCKET is the name of the bucket in which to list its objects.
 
@@ -283,7 +306,7 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
         for obj in hcph.list_objects(path_with_slash, name_only, files_only):
             click.echo(obj)
 
-@cli.command()
+@search.command()
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
@@ -303,7 +326,7 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
 @click.pass_context
 def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, verbose : bool):
     """
-    Make simple search using substrings in a bucket/namespace on the HCP.
+    Simple-search using a sub-string in a bucket on the HCP.
 
     NOTE: This command does not use the HCI. Instead, it uses a linear search of 
     all the objects in the HCP. As such, this search might be slow.
@@ -323,7 +346,7 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     for result in list_of_results:
         click.echo(result)
 
-@cli.command()
+@search.command()
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
@@ -349,7 +372,7 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
 @click.pass_context
 def fuzzy_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, verbose : bool, threshold : int):
     """
-    Make a fuzzy search using a search string in a bucket/namespace on the HCP.
+    Fuzzy-search using a search string in a bucket on the HCP.
 
     NOTE: This command does not use the HCI. Instead, it uses the RapidFuzz 
     library in order to find objects in the HCP. As such, this search might 
@@ -371,12 +394,12 @@ def fuzzy_search(context : Context, bucket : str, search_string : str, case_sens
     for result in list_of_results:
         click.echo(result) 
 
-@cli.command()
+@debug.command()
 @click.argument("bucket")
 @click.pass_context
 def test_connection(context : Context, bucket : str):
     """
-    Test the connection to a bucket/namespace.
+    Test the connection to a bucket.
 
     BUCKET is the name of the bucket for which a connection test should be made.
     """
@@ -395,6 +418,27 @@ def test_connection(context : Context, bucket : str):
     default = "credentials"
 )
 def iris_generate_credentials_file(path : str, name : str):
+    """
+    Generate blank credentials file for the HCI and HCP. 
+
+    WARNING: This file will store sensitive information (such as passwords) in plaintext.
+    """
+
+    gen_template(path,name)
+
+
+@debug.command()
+@click.option(
+    "--path",
+    help = "Path for where to put the new credentials file.",
+    default = ""
+)
+@click.option(
+    "--name",
+    help = "Custom name for the credentials file. Will filter out everything after a \".\" character, if any exist.",
+    default = "credentials"
+)
+def gen_template(path : str, name : str):
     """
     Generate blank credentials file for the HCI and HCP. 
 
@@ -421,16 +465,14 @@ def iris_generate_credentials_file(path : str, name : str):
             path += "/"
 
         if path == ".":
-            file_path = name    
+            file_path = name
         else:
             file_path = path + name
-    
+
         if not Path(path).is_dir():
-            Path(path).mkdir()
+            Path(path).mkdir(parents=True)
     else:
         file_path = name
-        
-    with open(file_path, "w") as f:
-        dump(credentials_dict, f, indent = 4)
 
-    
+    with open(file_path, "w") as f:
+        dump(credentials_dict, f, indent = 4) 
