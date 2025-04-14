@@ -1,6 +1,6 @@
 [project]
 name = "NGPIris"
-version = "5.4.1"
+version = "5.4.2.dev1"
 readme = "README.md"
 dependencies = [
     "requests >= 2.31.0",
