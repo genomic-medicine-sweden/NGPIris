@@ -41,19 +41,32 @@ def add_trailing_slash(path : str) -> str:
     help = "Get the debug log for running a command",
     is_flag = True
 )
+@click.option(
+    "-tc", 
+    "--transfer_config", 
+    help = "Use a custom transfer config for uploads or downloads", 
+)
 @click.version_option(package_name = "NGPIris")
 @click.pass_context
-def cli(context : Context, credentials : str, debug : bool):
+def cli(context : Context, credentials : str, debug : bool, transfer_config : str):
     """
     NGP Intelligence and Repository Interface Software, IRIS. 
     
     CREDENTIALS refers to the path to the JSON credentials file.
     """
+
+    if transfer_config:
+        context.ensure_object(dict)
+        context.obj["hcph"] = HCPHandler(credentials, custom_config_path = transfer_config)
+    else:    
+        context.ensure_object(dict)
+        context.obj["hcph"] = HCPHandler(credentials)
+
     if debug:
         set_stream_logger(name="")
-        
-    context.ensure_object(dict)
-    context.obj["hcph"] = HCPHandler(credentials)
+        click.echo(
+            context.obj["hcph"].transfer_config.__dict__
+        )
 
 @cli.command()
 @click.argument("bucket")
