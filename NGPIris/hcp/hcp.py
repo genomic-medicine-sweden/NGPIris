@@ -507,26 +507,20 @@ class HCPHandler:
                     unit_scale = True, 
                     desc = local_file_path
                 ) as pbar:
-                    try:
-                        self.s3_client.upload_file(
-                            Filename = local_file_path, 
-                            Bucket = self.bucket_name, 
-                            Key = key,
-                            Config = self.transfer_config,
-                            Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
-                        )
-                    except Exception as e:
-                        print("Upload failed:", e)
-            else:
-                try:
                     self.s3_client.upload_file(
                         Filename = local_file_path, 
                         Bucket = self.bucket_name, 
                         Key = key,
                         Config = self.transfer_config,
+                        Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                     )
-                except Exception as e:
-                    print("Upload failed:", e)
+            else:
+                self.s3_client.upload_file(
+                    Filename = local_file_path, 
+                    Bucket = self.bucket_name, 
+                    Key = key,
+                    Config = self.transfer_config,
+                )
 
 
     @check_mounted
