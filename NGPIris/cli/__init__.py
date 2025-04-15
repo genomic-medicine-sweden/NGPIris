@@ -78,8 +78,14 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
     is_flag = True
 )
+@click.option(
+    "-su", 
+    "--simple_upload", 
+    help = "Use an upload method that does not use mulitpart. Usefull for times when multipart upload misbehaves", 
+    is_flag = True
+)
 @click.pass_context
-def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool):
+def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool, simple_upload : bool):
     """
     Upload files to an HCP bucket/namespace. 
     
@@ -97,14 +103,14 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
         if dry_run:
             click.echo("This command would have uploaded the folder \"" + source + "\" to \"" + destination + "\"")
         else:
-            hcph.upload_folder(source, destination)
+            hcph.upload_folder(source, destination, use_simple_upload = simple_upload)
     else:
         file_name = Path(source).name
         destination += file_name
         if dry_run:
             click.echo("This command would have uploaded the file \"" + source + "\" to \"" + destination + "\"")
         else:
-            hcph.upload_file(source, destination)
+            hcph.upload_file(source, destination, use_simple_upload = simple_upload)
 
 @cli.command()
 @click.argument("bucket")

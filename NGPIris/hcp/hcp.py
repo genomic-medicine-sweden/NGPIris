@@ -470,7 +470,7 @@ class HCPHandler:
             raise NotADirectory(local_folder_path + " is not a directory")
 
     @check_mounted
-    def upload_file(self, local_file_path : str, key : str = "", show_progress_bar : bool = True) -> None:
+    def upload_file(self, local_file_path : str, key : str = "", show_progress_bar : bool = True, use_simple_upload : bool = False) -> None:
         """
         Upload one file to the mounted bucket
 
@@ -507,24 +507,39 @@ class HCPHandler:
                     unit_scale = True, 
                     desc = local_file_path
                 ) as pbar:
+                    if use_simple_upload:
+                        self.s3_client.upload_file(
+                            Filename = local_file_path, 
+                            Bucket = self.bucket_name, 
+                            Key = key,
+                            Config = TransferConfig(multipart_chunksize = file_size),
+                            Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                        )
+                    else:
+                        self.s3_client.upload_file(
+                            Filename = local_file_path, 
+                            Bucket = self.bucket_name, 
+                            Key = key,
+                            Config = self.transfer_config,
+                            Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                        )
+            else:
+                if use_simple_upload:
+                    self.s3_client.upload_file(
+                        Filename = local_file_path, 
+                        Bucket = self.bucket_name, 
+                        Key = key,
+                    )
+                else:
                     self.s3_client.upload_file(
                         Filename = local_file_path, 
                         Bucket = self.bucket_name, 
                         Key = key,
                         Config = self.transfer_config,
-                        Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                     )
-            else:
-                self.s3_client.upload_file(
-                    Filename = local_file_path, 
-                    Bucket = self.bucket_name, 
-                    Key = key,
-                    Config = self.transfer_config,
-                )
-
 
     @check_mounted
-    def upload_folder(self, local_folder_path : str, key : str = "", show_progress_bar : bool = True) -> None:
+    def upload_folder(self, local_folder_path : str, key : str = "", show_progress_bar : bool = True, use_simple_upload : bool = False) -> None:
         """
         Upload the contents of a folder to the mounted bucket
 
@@ -544,7 +559,12 @@ class HCPHandler:
         filenames = listdir(local_folder_path)
 
         for filename in filenames:
-            self.upload_file(local_folder_path + filename, key + filename, show_progress_bar = show_progress_bar)
+            self.upload_file(
+                local_folder_path + filename, 
+                key + filename, 
+                show_progress_bar = show_progress_bar, 
+                use_simple_upload = use_simple_upload
+            )
 
     @check_mounted
     def delete_objects(self, keys : list[str], verbose : bool = True) -> None:
