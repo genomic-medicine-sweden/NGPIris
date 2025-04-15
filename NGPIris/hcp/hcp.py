@@ -496,10 +496,8 @@ class HCPHandler:
         if "\\" in local_file_path:
             raise RuntimeError("The \"\\\" character is not allowed in the file path")
 
-        #if self.object_exists(key):
-        #    raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
-        if False:
-            pass
+        if self.object_exists(key):
+            raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
         else:
             if show_progress_bar:
                 file_size : int = stat(local_file_path).st_size
