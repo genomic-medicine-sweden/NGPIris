@@ -512,7 +512,7 @@ class HCPHandler:
                             Filename = local_file_path, 
                             Bucket = self.bucket_name, 
                             Key = key,
-                            Config = TransferConfig(multipart_chunksize = file_size),
+                            Config = TransferConfig(multipart_chunksize = round(file_size / 5)),
                             Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
                         )
                     else:
