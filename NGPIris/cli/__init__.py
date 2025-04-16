@@ -79,13 +79,24 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     is_flag = True
 )
 @click.option(
-    "-su", 
-    "--simple_upload", 
-    help = "Use an upload method that does not use mulitpart. Usefull for times when multipart upload misbehaves", 
-    is_flag = True
+    "-um", 
+    "--upload_mode", 
+    help = "Choose an upload method. Default upload mode is STANDARD which uses a basic multipart upload. Use another mode than STANDARD if that mode misbehaves",
+    type = click.Choice(
+        ["STANDARD", "SIMPLE", "EQUAL_PARTS"],
+        case_sensitive = False
+    ),
+    default = "STANDARD"
+)
+@click.option(
+    "-ep", 
+    "--equal_parts", 
+    help = "Supplementary option when using the EQUAL_PARTS upload mode. Splits each file into a given number of parts. Must be a positive integer", 
+    type = int,
+    default = 5
 )
 @click.pass_context
-def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool, simple_upload : bool):
+def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool, upload_mode : str, equal_parts : int):
     """
     Upload files to an HCP bucket/namespace. 
     
@@ -95,6 +106,12 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
     
     DESTINATION is the destination path on the HCP. 
     """
+
+    if equal_parts <= 0:
+        exit("Error: --equal_parts value must be a positive integer")
+    
+    upload_mode_choice = HCPHandler.UploadMode(upload_mode.lower())
+
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     destination = add_trailing_slash(destination)
@@ -103,14 +120,14 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
         if dry_run:
             click.echo("This command would have uploaded the folder \"" + source + "\" to \"" + destination + "\"")
         else:
-            hcph.upload_folder(source, destination, use_simple_upload = simple_upload)
+            hcph.upload_folder(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
     else:
         file_name = Path(source).name
         destination += file_name
         if dry_run:
             click.echo("This command would have uploaded the file \"" + source + "\" to \"" + destination + "\"")
         else:
-            hcph.upload_file(source, destination, use_simple_upload = simple_upload)
+            hcph.upload_file(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
 
 @cli.command()
 @click.argument("bucket")
