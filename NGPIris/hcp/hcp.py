@@ -489,6 +489,16 @@ class HCPHandler:
         :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
 
+        :param upload_mode: 
+            The upload mode of the transfer is any of the following:
+                HCPHandler.UploadMode.STANDARD,
+                HCPHandler.UploadMode.SIMPLE,
+                HCPHandler.UploadMode.EQUAL_PARTS\n
+        :type upload_mode: UploadMode, optional
+
+        :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
+        :type equal_parts: int, optional
+
         :raises RuntimeError: If the \"\\\" is used in the file path 
         
         :raises ObjectAlreadyExist: If the object already exist on the mounted bucket
@@ -538,7 +548,7 @@ class HCPHandler:
                 )
 
     @check_mounted
-    def upload_folder(self, local_folder_path : str, key : str = "", show_progress_bar : bool = True, use_simple_upload : bool = False) -> None:
+    def upload_folder(self, local_folder_path : str, key : str = "", show_progress_bar : bool = True, upload_mode : UploadMode = UploadMode.STANDARD, equal_parts : int = 5) -> None:
         """
         Upload the contents of a folder to the mounted bucket
 
@@ -550,6 +560,16 @@ class HCPHandler:
 
         :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
+
+        :param upload_mode: 
+            The upload mode of the transfer is any of the following:
+                HCPHandler.UploadMode.STANDARD,
+                HCPHandler.UploadMode.SIMPLE,
+                HCPHandler.UploadMode.EQUAL_PARTS\n
+        :type upload_mode: UploadMode, optional
+
+        :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
+        :type equal_parts: int, optional
         """
         raise_path_error(local_folder_path)
 
@@ -562,7 +582,8 @@ class HCPHandler:
                 local_folder_path + filename, 
                 key + filename, 
                 show_progress_bar = show_progress_bar, 
-                #use_simple_upload = use_simple_upload
+                upload_mode = upload_mode,
+                equal_parts = equal_parts
             )
 
     @check_mounted
