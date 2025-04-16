@@ -1,12 +1,10 @@
 
-
 from pathlib import Path
 from filecmp import cmp
 from typing import Any, Callable
-
 from conftest import CustomConfig
-
 from NGPIris.hcp import HCPHandler
+from icecream import ic
 
 # --------------------------- Helper fucntions ---------------------------------
 
@@ -70,6 +68,15 @@ def test_upload_file(custom_config : CustomConfig) -> None:
         show_progress_bar = False
     )
 
+    # Test every upload mode
+    for mode in HCPHandler.UploadMode:
+        ic(mode, custom_config.test_file_path + "_" + str(mode).replace(".", "_"))
+        custom_config.hcp_h.upload_file(
+            custom_config.test_file_path, 
+            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
+            upload_mode = mode
+        )
+
 def test_upload_file_without_mounting(custom_config : CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h 
     _without_mounting(_hcp_h, HCPHandler.upload_file)
@@ -118,8 +125,6 @@ def test_get_file_in_sub_directory(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
     assert custom_config.hcp_h.object_exists(custom_config.test_file_path) 
     assert custom_config.hcp_h.get_object(custom_config.test_file_path) 
-
-from icecream import ic
 
 def test_download_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
@@ -215,6 +220,8 @@ def test_delete_file(custom_config : CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.delete_object(custom_config.test_file_path) 
     custom_config.hcp_h.delete_object(custom_config.test_file_path + "_no_progress_bar")
+    for mode in HCPHandler.UploadMode:
+        custom_config.hcp_h.delete_object(custom_config.test_file_path + "_" + str(mode).replace(".", "_"))
     custom_config.hcp_h.delete_object("a_sub_directory/a_file") 
     custom_config.hcp_h.delete_object("a_sub_directory") 
 

@@ -42,6 +42,7 @@ from urllib3 import disable_warnings
 from tqdm import tqdm
 from bitmath import TiB, Byte
 
+from enum import Enum
 from typing import Generator
 
 _KB = 1024
@@ -468,9 +469,14 @@ class HCPHandler:
                     self.download_file(object["Key"], p.as_posix(), show_progress_bar = show_progress_bar)
         else:
             raise NotADirectory(local_folder_path + " is not a directory")
+    
+    class UploadMode(Enum):
+        STANDARD = "standard"
+        SIMPLE = "simple"
+        EQUAL_PARTS = "equal_parts"
 
     @check_mounted
-    def upload_file(self, local_file_path : str, key : str = "", show_progress_bar : bool = True, use_simple_upload : bool = False) -> None:
+    def upload_file(self, local_file_path : str, key : str = "", show_progress_bar : bool = True, upload_mode : UploadMode = UploadMode.STANDARD, equal_parts : int = 5) -> None:
         """
         Upload one file to the mounted bucket
 
@@ -482,6 +488,16 @@ class HCPHandler:
 
         :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
+
+        :param upload_mode: 
+            The upload mode of the transfer is any of the following:
+                HCPHandler.UploadMode.STANDARD,
+                HCPHandler.UploadMode.SIMPLE,
+                HCPHandler.UploadMode.EQUAL_PARTS\n
+        :type upload_mode: UploadMode, optional
+
+        :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
+        :type equal_parts: int, optional
 
         :raises RuntimeError: If the \"\\\" is used in the file path 
         
@@ -499,47 +515,40 @@ class HCPHandler:
         if self.object_exists(key):
             raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
         else:
+            file_size : int = stat(local_file_path).st_size
+
+            match upload_mode:
+                case HCPHandler.UploadMode.STANDARD:
+                    config = self.transfer_config
+                case HCPHandler.UploadMode.SIMPLE:
+                    config = TransferConfig(multipart_chunksize = file_size)
+                case HCPHandler.UploadMode.EQUAL_PARTS:
+                    config = TransferConfig(multipart_chunksize = round(file_size / equal_parts))
+
             if show_progress_bar:
-                file_size : int = stat(local_file_path).st_size
                 with tqdm(
                     total = file_size, 
                     unit = "B", 
                     unit_scale = True, 
                     desc = local_file_path
                 ) as pbar:
-                    if use_simple_upload:
-                        self.s3_client.upload_file(
-                            Filename = local_file_path, 
-                            Bucket = self.bucket_name, 
-                            Key = key,
-                            Config = TransferConfig(multipart_chunksize = file_size),
-                            Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
-                        )
-                    else:
-                        self.s3_client.upload_file(
-                            Filename = local_file_path, 
-                            Bucket = self.bucket_name, 
-                            Key = key,
-                            Config = self.transfer_config,
-                            Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
-                        )
+                    self.s3_client.upload_file(
+                        Filename = local_file_path, 
+                        Bucket = self.bucket_name, 
+                        Key = key,
+                        Config = config,
+                        Callback = lambda bytes_transferred : pbar.update(bytes_transferred)
+                    )
             else:
-                if use_simple_upload:
-                    self.s3_client.upload_file(
-                        Filename = local_file_path, 
-                        Bucket = self.bucket_name, 
-                        Key = key,
-                    )
-                else:
-                    self.s3_client.upload_file(
-                        Filename = local_file_path, 
-                        Bucket = self.bucket_name, 
-                        Key = key,
-                        Config = self.transfer_config,
-                    )
+                self.s3_client.upload_file(
+                    Filename = local_file_path, 
+                    Bucket = self.bucket_name, 
+                    Key = key,
+                    Config = config,
+                )
 
     @check_mounted
-    def upload_folder(self, local_folder_path : str, key : str = "", show_progress_bar : bool = True, use_simple_upload : bool = False) -> None:
+    def upload_folder(self, local_folder_path : str, key : str = "", show_progress_bar : bool = True, upload_mode : UploadMode = UploadMode.STANDARD, equal_parts : int = 5) -> None:
         """
         Upload the contents of a folder to the mounted bucket
 
@@ -551,6 +560,16 @@ class HCPHandler:
 
         :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
+
+        :param upload_mode: 
+            The upload mode of the transfer is any of the following:
+                HCPHandler.UploadMode.STANDARD,
+                HCPHandler.UploadMode.SIMPLE,
+                HCPHandler.UploadMode.EQUAL_PARTS\n
+        :type upload_mode: UploadMode, optional
+
+        :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
+        :type equal_parts: int, optional
         """
         raise_path_error(local_folder_path)
 
@@ -563,7 +582,8 @@ class HCPHandler:
                 local_folder_path + filename, 
                 key + filename, 
                 show_progress_bar = show_progress_bar, 
-                use_simple_upload = use_simple_upload
+                upload_mode = upload_mode,
+                equal_parts = equal_parts
             )
 
     @check_mounted
