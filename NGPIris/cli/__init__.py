@@ -6,6 +6,7 @@ from pathlib import Path
 from boto3 import set_stream_logger
 from typing import Any, Generator
 from bitmath import Byte, TiB
+import sys
 
 from NGPIris.hcp import HCPHandler
 
@@ -41,19 +42,32 @@ def add_trailing_slash(path : str) -> str:
     help = "Get the debug log for running a command",
     is_flag = True
 )
+@click.option(
+    "-tc", 
+    "--transfer_config", 
+    help = "Use a custom transfer config for uploads or downloads", 
+)
 @click.version_option(package_name = "NGPIris")
 @click.pass_context
-def cli(context : Context, credentials : str, debug : bool):
+def cli(context : Context, credentials : str, debug : bool, transfer_config : str):
     """
     NGP Intelligence and Repository Interface Software, IRIS. 
     
     CREDENTIALS refers to the path to the JSON credentials file.
     """
+
+    if transfer_config:
+        context.ensure_object(dict)
+        context.obj["hcph"] = HCPHandler(credentials, custom_config_path = transfer_config)
+    else:    
+        context.ensure_object(dict)
+        context.obj["hcph"] = HCPHandler(credentials)
+
     if debug:
         set_stream_logger(name="")
-        
-    context.ensure_object(dict)
-    context.obj["hcph"] = HCPHandler(credentials)
+        click.echo(
+            context.obj["hcph"].transfer_config.__dict__
+        )
 
 @cli.command()
 @click.argument("bucket")
@@ -65,8 +79,25 @@ def cli(context : Context, credentials : str, debug : bool):
     help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
     is_flag = True
 )
+@click.option(
+    "-um", 
+    "--upload_mode", 
+    help = "Choose an upload method. Default upload mode is STANDARD which uses a basic multipart upload. Use another mode than STANDARD if that mode misbehaves",
+    type = click.Choice(
+        ["STANDARD", "SIMPLE", "EQUAL_PARTS"],
+        case_sensitive = False
+    ),
+    default = "STANDARD"
+)
+@click.option(
+    "-ep", 
+    "--equal_parts", 
+    help = "Supplementary option when using the EQUAL_PARTS upload mode. Splits each file into a given number of parts. Must be a positive integer", 
+    type = int,
+    default = 5
+)
 @click.pass_context
-def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool):
+def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool, upload_mode : str, equal_parts : int):
     """
     Upload files to an HCP bucket/namespace. 
     
@@ -76,6 +107,13 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
     
     DESTINATION is the destination path on the HCP. 
     """
+
+    if equal_parts <= 0:
+        click.echo("Error: --equal_parts value must be a positive integer", err=True)
+        sys.exit(1)
+    
+    upload_mode_choice = HCPHandler.UploadMode(upload_mode.lower())
+
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     destination = add_trailing_slash(destination)
@@ -84,14 +122,14 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
         if dry_run:
             click.echo("This command would have uploaded the folder \"" + source + "\" to \"" + destination + "\"")
         else:
-            hcph.upload_folder(source, destination)
+            hcph.upload_folder(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
     else:
         file_name = Path(source).name
         destination += file_name
         if dry_run:
             click.echo("This command would have uploaded the file \"" + source + "\" to \"" + destination + "\"")
         else:
-            hcph.upload_file(source, destination)
+            hcph.upload_file(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
 
 @cli.command()
 @click.argument("bucket")
