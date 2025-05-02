@@ -108,7 +108,8 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
     """
 
     if equal_parts <= 0:
-        exit("Error: --equal_parts value must be a positive integer")
+        click.echo("Error: --equal_parts value must be a positive integer", err=True)
+        sys.exit(1)
     
     upload_mode_choice = HCPHandler.UploadMode(upload_mode.lower())
 
