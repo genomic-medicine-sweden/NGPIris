@@ -6,6 +6,7 @@ from pathlib import Path
 from boto3 import set_stream_logger
 from typing import Any, Generator
 from bitmath import Byte, TiB
+import sys
 
 from NGPIris.hcp import HCPHandler
 
