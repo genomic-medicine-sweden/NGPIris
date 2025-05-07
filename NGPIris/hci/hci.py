@@ -99,7 +99,7 @@ class HCIHandler:
         Make query to an HCI index, with a dictionary
 
         :param query_dict: Dictionary consisting of the query
-        :type query_dict: dict[str, str]
+        :type query_dict: dict[str, str | list | dict]
 
         :return: Dictionary containing the raw query
         :rtype: dict
