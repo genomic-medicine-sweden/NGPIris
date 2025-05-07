@@ -94,7 +94,7 @@ class HCIHandler:
         
         return {}
 
-    def raw_query(self, query_dict : dict[str, str]) -> dict:
+    def raw_query(self, query_dict : dict[str, str | list | dict]) -> dict:
         """
         Make query to an HCI index, with a dictionary
 
