@@ -132,3 +132,28 @@ class HCIHandler:
             self.token, 
             self.use_ssl
         ).json())
+
+    def query(self, index_name : str, query_string : str = "", facets : list[str] = []) -> dict:
+        """
+        Make a query to the HCI based on the parameters of this method
+
+        :param index_name: Name of the index
+        :type index_name: str
+
+        :param query_string: The Solr query string. Defaults to the empty string
+        :type query_string: str, optional
+
+        :param facets: List of facets that should be returned included in the response. Defaults to []
+        :type facets: list[str], optional
+        
+        :return: The response in the form of a dictionary 
+        :rtype: dict
+        """
+        facetRequests = [{"fieldName" : facet } for facet in facets]
+        return self.raw_query(
+            {
+                "indexName" : index_name,
+                "queryString" : query_string,
+                "facetRequests" : facetRequests
+            }
+        )
