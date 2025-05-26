@@ -26,11 +26,13 @@ class HCIHandler:
         """
         credentials_handler = CredentialsHandler(credentials_path)
         self.hci = credentials_handler.hci
+        
         self.username = self.hci["username"]
         self.password = self.hci["password"]
         self.address = self.hci["address"]
         self.auth_port = self.hci["auth_port"]
         self.api_port = self.hci["api_port"]
+
         self.token = ""
 
         self.use_ssl = use_ssl
@@ -94,12 +96,12 @@ class HCIHandler:
         
         return {}
 
-    def raw_query(self, query_dict : dict[str, str]) -> dict:
+    def raw_query(self, query_dict : dict[str, str | list | dict]) -> dict:
         """
         Make query to an HCI index, with a dictionary
 
         :param query_dict: Dictionary consisting of the query
-        :type query_dict: dict[str, str]
+        :type query_dict: dict[str, str | list | dict]
 
         :return: Dictionary containing the raw query
         :rtype: dict
@@ -130,3 +132,28 @@ class HCIHandler:
             self.token, 
             self.use_ssl
         ).json())
+
+    def query(self, index_name : str, query_string : str = "", facets : list[str] = []) -> dict:
+        """
+        Make a query to the HCI based on the parameters of this method
+
+        :param index_name: Name of the index
+        :type index_name: str
+
+        :param query_string: The Solr query string. Defaults to the empty string
+        :type query_string: str, optional
+
+        :param facets: List of facets that should be returned included in the response. Defaults to []
+        :type facets: list[str], optional
+        
+        :return: The response in the form of a dictionary 
+        :rtype: dict
+        """
+        facetRequests = [{"fieldName" : facet } for facet in facets]
+        return self.raw_query(
+            {
+                "indexName" : index_name,
+                "queryString" : query_string,
+                "facetRequests" : facetRequests
+            }
+        )
