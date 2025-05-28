@@ -44,7 +44,7 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
     return response
 
 def get_query_response(
-        query_dict : dict[str, str], 
+        query_dict : dict[str, str | list | dict], 
         address : str, 
         api_port : str, 
         token : str, 
@@ -55,7 +55,7 @@ def get_query_response(
     Retrieve the query response given the address, API port and token.
 
     :param query_dict: The query dictionary
-    :type query_dict: dict[str, str]
+    :type query_dict: dict[str, str | list | dict]
 
     :param address: The address where request is to be made
     :type address: str
@@ -79,7 +79,7 @@ def get_query_response(
         raise RuntimeError("Field indexName is missing in the query dictionary")
 
     url     : str            = "https://" + address + ":" + api_port + "/api/search/query/" + path_extension
-    query   : dict[str, str] = query_dict
+    query   : dict[str, str | list | dict] = query_dict
     headers : dict[str, str] = {
         "Content-Type": "application/json",
         "Accept": "application/json",

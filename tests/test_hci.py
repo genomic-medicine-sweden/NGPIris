@@ -26,10 +26,11 @@ def test_fail_index_look_up() -> None:
 def test_make_simple_raw_query() -> None:
     list_of_indexes = hci_h.list_index_names()
     arbitrary_index = list_of_indexes[randint(0, len(list_of_indexes) - 1)]
-    query = {
-        "indexName" : arbitrary_index
-    }
-    result = hci_h.raw_query(query)
+    result = hci_h.raw_query(
+        {
+            "indexName" : arbitrary_index
+        }
+    )
     assert result["indexName"] == arbitrary_index
 
 def test_raw_query_with_results() -> None:
