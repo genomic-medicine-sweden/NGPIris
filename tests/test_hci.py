@@ -38,20 +38,20 @@ def test_fail_raw_query(custom_config : CustomConfig) -> None:
     else: # pragma: no cover
         assert False
 
-def test_make_query(custom_config : CustomConfig):
+def test_make_query(custom_config : CustomConfig) -> None:
     custom_config.hci_h.request_token()
     custom_config.hci_h.query(
         custom_config.test_index
     )
 
-def test_make_query_with_query_string(custom_config : CustomConfig):
+def test_make_query_with_query_string(custom_config : CustomConfig) -> None:
     custom_config.hci_h.request_token()
     custom_config.hci_h.query(
         custom_config.test_index,
         custom_config.query_string
     )
 
-def test_make_query_with_query_string_and_facet(custom_config : CustomConfig):
+def test_make_query_with_query_string_and_facet(custom_config : CustomConfig) -> None:
     custom_config.hci_h.request_token()
     if custom_config.test_facet:
         custom_config.hci_h.query(
@@ -66,7 +66,7 @@ def test_make_query_with_query_string_and_facet(custom_config : CustomConfig):
             []
         )
 
-def test_make_query_with_facet(custom_config : CustomConfig):
+def test_make_query_with_facet(custom_config : CustomConfig) -> None:
     custom_config.hci_h.request_token()
     if custom_config.test_facet:
         custom_config.hci_h.query(
