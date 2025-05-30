@@ -1,6 +1,7 @@
 
 from conftest import CustomConfig
 from random import randint
+from icecream import ic
 
 def test_list_index_names_type(custom_config : CustomConfig) -> None:
     custom_config.hci_h.request_token()
@@ -43,3 +44,38 @@ def test_make_query(custom_config : CustomConfig):
     custom_config.hci_h.query(
         custom_config.test_index
     )
+
+def test_make_query_with_query_string(custom_config : CustomConfig):
+    custom_config.hci_h.request_token()
+    custom_config.hci_h.query(
+        custom_config.test_index,
+        custom_config.query_string
+    )
+
+def test_make_query_with_query_string_and_facet(custom_config : CustomConfig):
+    custom_config.hci_h.request_token()
+    if custom_config.test_facet:
+        custom_config.hci_h.query(
+            custom_config.test_index,
+            custom_config.query_string,
+            [custom_config.test_facet]
+        )
+    else: 
+        custom_config.hci_h.query(
+            custom_config.test_index,
+            custom_config.query_string,
+            []
+        )
+
+def test_make_query_with_facet(custom_config : CustomConfig):
+    custom_config.hci_h.request_token()
+    if custom_config.test_facet:
+        custom_config.hci_h.query(
+            custom_config.test_index,
+            facets = [custom_config.test_facet]
+        )
+    else:
+        custom_config.hci_h.query(
+            custom_config.test_index,
+            facets = []
+        )
