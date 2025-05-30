@@ -1,8 +1,6 @@
 
 from conftest import CustomConfig
 from random import randint
-from json import dump
-from os import remove
 
 def test_list_index_names_type(custom_config : CustomConfig) -> None:
     custom_config.hci_h.request_token()
