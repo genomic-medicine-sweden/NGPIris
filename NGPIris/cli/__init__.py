@@ -45,7 +45,7 @@ def add_trailing_slash(path : str) -> str:
 @click.option(
     "-tc", 
     "--transfer_config", 
-    help = "Use a custom transfer config for uploads or downloads", 
+    help = "Path for custom transfer config for uploads or downloads", 
 )
 @click.version_option(package_name = "NGPIris")
 @click.pass_context
@@ -271,7 +271,7 @@ def list_buckets(context : Context):
     hcph : HCPHandler = get_HCPHandler(context)
     click.echo(format_list(hcph.list_buckets()))
 
-@cli.command()
+@cli.command(short_help = "List the objects in a certain bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("path", required = False)
 @click.option(
@@ -320,7 +320,7 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
         for obj in hcph.list_objects(path_with_slash, name_only, files_only):
             click.echo(obj)
 
-@cli.command()
+@cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
@@ -360,7 +360,7 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     for result in list_of_results:
         click.echo(result)
 
-@cli.command()
+@cli.command(short_help = "Make a fuzzy search using a search string in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
