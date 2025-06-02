@@ -23,7 +23,7 @@ def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, fil
     different from `list_objects` in `hcp.py` in order to make the output 
     printable in a terminal
     """
-    objects = hcph.list_objects(path, name_only, files_only)
+    objects = hcph.list_objects(path, name_only = name_only, files_only = files_only)
     for obj in objects:
         yield str(obj) + "\n"
 
@@ -59,7 +59,7 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     if transfer_config:
         context.ensure_object(dict)
         context.obj["hcph"] = HCPHandler(credentials, custom_config_path = transfer_config)
-    else:    
+    else:
         context.ensure_object(dict)
         context.obj["hcph"] = HCPHandler(credentials)
 
@@ -317,7 +317,7 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
     if pagination:
         click.echo_via_pager(_list_objects_generator(hcph, path_with_slash, name_only, files_only))
     else:
-        for obj in hcph.list_objects(path_with_slash, name_only, files_only):
+        for obj in hcph.list_objects(path_with_slash, name_only = name_only, files_only = files_only):
             click.echo(obj)
 
 @cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
