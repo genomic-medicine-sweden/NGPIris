@@ -235,7 +235,6 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
         click.echo("This command would delete:")
         click.echo(list(hcph.list_objects(object))[0])
 
-
 @cli.command()
 @click.argument("bucket")
 @click.argument("folder")
