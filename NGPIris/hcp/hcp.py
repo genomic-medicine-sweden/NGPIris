@@ -49,12 +49,12 @@ _KB = 1024
 _MB = _KB * _KB
 
 class HCPHandler:
-    def __init__(self, credentials_path : str, use_ssl : bool = False, proxy_path : str = "", custom_config_path : str = "") -> None:
+    def __init__(self, credentials : str | dict[str, str], use_ssl : bool = False, proxy_path : str = "", custom_config_path : str = "") -> None:       
         """
         Class for handling HCP requests.
 
-        :param credentials_path: Path to the JSON credentials file
-        :type credentials_path: str
+        :param credentials: If `credentials` is a `str`, then it will be interpreted as a path to the JSON credentials file. If `credentials` is a `dict`, then a dictionary with the appropriate HCP credentials is expected: ```{"endpoint" : "", "aws_access_key_id" : "", "aws_secret_access_key" : "" }```
+        :type credentials: str | dict
         
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
@@ -62,9 +62,18 @@ class HCPHandler:
         :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
         :type custom_config_path: str, optional
         """
-        credentials_handler = CredentialsHandler(credentials_path)
-        self.hcp = credentials_handler.hcp
-        self.endpoint = "https://" + self.hcp["endpoint"]
+        if type(credentials) is str:
+            credentials_handler = CredentialsHandler(credentials)
+            self.hcp = credentials_handler.hcp
+            
+            self.endpoint = "https://" + self.hcp["endpoint"]
+            self.aws_access_key_id = self.hcp["aws_access_key_id"]
+            self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
+        elif type(credentials) is dict[str, str]:
+            self.endpoint = "https://" + credentials["endpoint"]
+            self.aws_access_key_id = credentials["aws_access_key_id"]
+            self.aws_secret_access_key = credentials["aws_secret_access_key"]
+
 
         # A lookup table for GMC names to HCP tenant names
         gmc_tenant_map = {
@@ -98,8 +107,6 @@ class HCPHandler:
         if not self.tenant:
             raise RuntimeError("Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?")
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
-        self.aws_access_key_id = self.hcp["aws_access_key_id"]
-        self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
         self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
         self.bucket_name = None
         self.use_ssl = use_ssl
