@@ -7,6 +7,7 @@ from boto3 import set_stream_logger
 from typing import Any, Generator
 from bitmath import Byte, TiB
 import sys
+import os
 
 from NGPIris.hcp import HCPHandler
 
@@ -36,7 +37,11 @@ def add_trailing_slash(path : str) -> str:
     return path
 
 @click.group()
-@click.argument("credentials")
+@click.option(
+    "-c", 
+    "--credentials", 
+    help = "Path for a JSON file with credentials", 
+)
 @click.option(
     "--debug",
     help = "Get the debug log for running a command",
@@ -56,12 +61,39 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     CREDENTIALS refers to the path to the JSON credentials file.
     """
 
+    click.echo(os.environ["NGPIRIS_CREDENTIALS_PATH"])
+    if credentials:
+        hcp_credentials = credentials
+    elif os.environ["NGPIRIS_CREDENTIALS_PATH"]:
+        hcp_credentials = os.environ["NGPIRIS_CREDENTIALS_PATH"] # TODO: add config subcommand for setting this env variable
+    else: 
+        endpoint : str = click.prompt(
+            "Please enter your tenant endpoint"
+        )
+
+        aws_access_key_id : str = click.prompt(
+            "Please enter your base64 hashed aws_access_key_id"
+        )
+
+        aws_secret_access_key : str = click.prompt(
+            "Please enter your md5 hashed aws_secret_access_key",
+            hide_input = True,
+            confirmation_prompt = True
+        )
+
+        hcp_credentials = {
+            "endpoint" : endpoint,
+            "aws_access_key_id" : aws_access_key_id,
+            "aws_secret_access_key" : aws_secret_access_key
+        }
+
+
     if transfer_config:
         context.ensure_object(dict)
-        context.obj["hcph"] = HCPHandler(credentials, custom_config_path = transfer_config)
+        context.obj["hcph"] = HCPHandler(hcp_credentials, custom_config_path = transfer_config)
     else:    
         context.ensure_object(dict)
-        context.obj["hcph"] = HCPHandler(credentials)
+        context.obj["hcph"] = HCPHandler(hcp_credentials)
 
     if debug:
         set_stream_logger(name="")
