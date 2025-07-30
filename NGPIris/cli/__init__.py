@@ -45,7 +45,7 @@ def add_trailing_slash(path : str) -> str:
 @click.option(
     "-tc", 
     "--transfer_config", 
-    help = "Use a custom transfer config for uploads or downloads", 
+    help = "Path for using a custom transfer config for uploads or downloads", 
 )
 @click.version_option(package_name = "NGPIris")
 @click.pass_context
