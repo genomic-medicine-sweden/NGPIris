@@ -69,7 +69,7 @@ class HCPHandler:
             self.endpoint = "https://" + self.hcp["endpoint"]
             self.aws_access_key_id = self.hcp["aws_access_key_id"]
             self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
-        elif type(credentials) is dict[str, str]:
+        elif type(credentials) is dict:
             self.endpoint = "https://" + credentials["endpoint"]
             self.aws_access_key_id = credentials["aws_access_key_id"]
             self.aws_secret_access_key = credentials["aws_secret_access_key"]
