@@ -11,9 +11,6 @@ import os
 
 from NGPIris.hcp import HCPHandler
 
-def get_HCPHandler(context : Context) -> HCPHandler:
-    return context.obj["hcph"]
-
 def format_list(list_of_things : list) -> str:
     list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
     return "".join(list_of_buckets).strip("\n")
@@ -36,35 +33,21 @@ def add_trailing_slash(path : str) -> str:
         path += "/"
     return path
 
-@click.group()
-@click.option(
-    "-c", 
-    "--credentials", 
-    help = "Path for a JSON file with credentials", 
-)
-@click.option(
-    "--debug",
-    help = "Get the debug log for running a command",
-    is_flag = True
-)
-@click.option(
-    "-tc", 
-    "--transfer_config", 
-    help = "Path for using a custom transfer config for uploads or downloads", 
-)
-@click.version_option(package_name = "NGPIris")
-@click.pass_context
-def cli(context : Context, credentials : str, debug : bool, transfer_config : str):
-    """
-    NGP Intelligence and Repository Interface Software, IRIS. 
-    
-    CREDENTIALS refers to the path to the JSON credentials file.
-    """
+def create_HCPHandler(context : Context) -> HCPHandler:
+    # hcp_credentials : str | dict[str, str], debug : bool, transfer_config : str
 
-    click.echo(os.environ["NGPIRIS_CREDENTIALS_PATH"])
+    if context.parent:
+        parent_context = context.parent
+    else:
+        # Should never happen
+        click.echo("Something went wrong with the subcommand and parent command relation", err = True)
+        sys.exit(1)
+    
+    credentials : str | None = parent_context.params.get("credentials")
+
     if credentials:
         hcp_credentials = credentials
-    elif os.environ["NGPIRIS_CREDENTIALS_PATH"]:
+    elif os.environ.get("NGPIRIS_CREDENTIALS_PATH", None):
         hcp_credentials = os.environ["NGPIRIS_CREDENTIALS_PATH"] # TODO: add config subcommand for setting this env variable
     else: 
         endpoint : str = click.prompt(
@@ -86,20 +69,44 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
             "aws_access_key_id" : aws_access_key_id,
             "aws_secret_access_key" : aws_secret_access_key
         }
-
-
+    
+    debug : bool | None = parent_context.params.get("debug")
+    transfer_config : str | None = parent_context.params.get("transfer_config")
     if transfer_config:
-        context.ensure_object(dict)
-        context.obj["hcph"] = HCPHandler(hcp_credentials, custom_config_path = transfer_config)
+        hcp_h = HCPHandler(hcp_credentials, custom_config_path = transfer_config)
     else:    
-        context.ensure_object(dict)
-        context.obj["hcph"] = HCPHandler(hcp_credentials)
-
+        hcp_h = HCPHandler(hcp_credentials)
+    
     if debug:
         set_stream_logger(name="")
-        click.echo(
-            context.obj["hcph"].transfer_config.__dict__
-        )
+        click.echo(hcp_h.transfer_config.__dict__)
+        
+    return hcp_h
+
+@click.group()
+@click.option(
+    "-c", 
+    "--credentials", 
+    help = "Path to a JSON file with credentials", 
+)
+@click.option(
+    "--debug",
+    help = "Get the debug log for running a command",
+    is_flag = True
+)
+@click.option(
+    "-tc", 
+    "--transfer_config", 
+    help = "Path for using a custom transfer config for uploads or downloads", 
+)
+@click.version_option(package_name = "NGPIris")
+@click.pass_context
+def cli(context : Context, credentials : str, debug : bool, transfer_config : str):
+    """
+    NGP Intelligence and Repository Interface Software, IRIS. 
+    
+    CREDENTIALS refers to the path to the JSON credentials file.
+    """
 
 @cli.command()
 @click.argument("bucket")
@@ -146,7 +153,7 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
     
     upload_mode_choice = HCPHandler.UploadMode(upload_mode.lower())
 
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     destination = add_trailing_slash(destination)
     if Path(source).is_dir():
@@ -196,7 +203,7 @@ def download(context : Context, bucket : str, source : str, destination : str, f
 
     DESTINATION is the folder where the downloaded object or object folder is to be stored locally. 
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not Path(destination).exists():
         Path(destination).mkdir()
@@ -259,7 +266,7 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
 
     OBJECT is the name of the object to be deleted.
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not dry_run:
         hcph.delete_object(object)
@@ -286,7 +293,7 @@ def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool)
 
     FOLDER is the name of the folder to be deleted.
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not dry_run:
         hcph.delete_folder(folder)
@@ -301,7 +308,7 @@ def list_buckets(context : Context):
     """
     List the available buckets/namespaces on the HCP.
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     click.echo(format_list(hcph.list_buckets()))
 
 @cli.command()
@@ -337,7 +344,7 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
 
     PATH is an optional argument for where to list the objects
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if path:
         path_with_slash = add_trailing_slash(path)
@@ -382,7 +389,7 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
 
     SEARCH_STRING is any string that is to be used for the search.
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     list_of_results = hcph.search_in_bucket(
         search_string, 
@@ -429,7 +436,7 @@ def fuzzy_search(context : Context, bucket : str, search_string : str, case_sens
 
     SEARCH_STRING is any string that is to be used for the search.
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     list_of_results = hcph.fuzzy_search_in_bucket(
         search_string, 
@@ -450,7 +457,7 @@ def test_connection(context : Context, bucket : str):
 
     BUCKET is the name of the bucket for which a connection test should be made.
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     click.echo(hcph.test_connection(bucket))
 
 @click.command()
