@@ -129,7 +129,11 @@ def shell_env(context : Context, credentials_path : str, shell : str):
     NGP IRIS will look for an enviroment variable called 
     `NGPIRIS_CREDENTIALS_PATH` when authenicating. This command returns a 
     shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable 
-    depending on your shell.
+    depending on your shell. 
+    
+    NOTE: The enviroment variable will only last for this 
+    shell session, but you could set the value of `NGPIRIS_CREDENTIALS_PATH`
+    permanently via other commands if you wish to do so. 
 
     CREDENTIALS PATH is the either absolute or relative path to your credentials 
     JSON file
@@ -140,11 +144,11 @@ def shell_env(context : Context, credentials_path : str, shell : str):
     click.echo("Copy and paste the following command in order to set your environment variable:")
     match shell:
         case "bash":
-            pass # TODO
+            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
         case "fish":
             click.echo("set -x NGPIRIS_CREDENTIALS_PATH " + credentials_path)
         case "zsh":
-            pass # TODO
+            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
 
 @cli.command()
 @click.argument("bucket")
