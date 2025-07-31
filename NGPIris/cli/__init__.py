@@ -17,16 +17,6 @@ def format_list(list_of_things : list) -> str:
     list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
     return "".join(list_of_buckets).strip("\n")
 
-def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, files_only : bool) -> Generator[str, Any, None]:
-    """
-    Handle object list as a paginator that `click` can handle. It works slightly 
-    different from `list_objects` in `hcp.py` in order to make the output 
-    printable in a terminal
-    """
-    objects = hcph.list_objects(path, name_only, files_only)
-    for obj in objects:
-        yield str(obj) + "\n"
-
 def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
     return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
 
@@ -296,8 +286,15 @@ def list_buckets(context : Context):
     default = False,
     is_flag = True
 )
+@click.option(
+    "-e", 
+    "--extended-information", 
+    help = "Output the fully exteded information for each object", 
+    default = False,
+    is_flag = True
+)
 @click.pass_context
-def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool, files_only : bool):
+def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool, files_only : bool, extended_information : bool):
     """
     List the objects in a certain bucket/namespace on the HCP.
 
@@ -305,6 +302,22 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
 
     PATH is an optional argument for where to list the objects
     """
+    def simple_info(obj : dict[str, str]) -> str:
+        return obj["Key"] + " | Last modified: " + obj["LastModified"] + " | "
+
+    def list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, files_only : bool, extended_information : bool) -> Generator[str, Any, None]:
+        """
+        Handle object list as a paginator that `click` can handle. It works slightly 
+        different from `list_objects` in `hcp.py` in order to make the output 
+        printable in a terminal
+        """
+        objects = hcph.list_objects(path, name_only, files_only)
+        for obj in objects:
+            if extended_information:
+                yield str(obj) + "\n"
+            else:
+                yield simple_info(obj) + "\n"
+
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if path:
@@ -316,10 +329,13 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
         path_with_slash = ""
 
     if pagination:
-        click.echo_via_pager(_list_objects_generator(hcph, path_with_slash, name_only, files_only))
+        click.echo_via_pager(list_objects_generator(hcph, path_with_slash, name_only, files_only, extended_information))
     else:
         for obj in hcph.list_objects(path_with_slash, name_only, files_only):
-            click.echo(obj)
+            if not extended_information:
+                click.echo(simple_info(obj))
+            else:
+                click.echo(obj)
 
 @cli.command()
 @click.argument("bucket")
