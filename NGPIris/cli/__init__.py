@@ -140,11 +140,11 @@ def shell_env(context : Context, credentials_path : str, shell : str):
     click.echo("Copy and paste the following command in order to set your environment variable:")
     match shell:
         case "bash":
-            pass
+            pass # TODO
         case "fish":
             click.echo("set -x NGPIRIS_CREDENTIALS_PATH " + credentials_path)
         case "zsh":
-            pass
+            pass # TODO
 
 @cli.command()
 @click.argument("bucket")
