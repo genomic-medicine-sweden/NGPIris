@@ -6,27 +6,14 @@ from pathlib import Path
 from boto3 import set_stream_logger
 from typing import Any, Generator
 from bitmath import Byte, TiB
+import lazy_table as lt
 import sys
 import os
 
 from NGPIris.hcp import HCPHandler
 
-def format_list(list_of_things : list) -> str:
-    list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
-    return "".join(list_of_buckets).strip("\n")
-
-def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, files_only : bool) -> Generator[str, Any, None]:
-    """
-    Handle object list as a paginator that `click` can handle. It works slightly 
-    different from `list_objects` in `hcp.py` in order to make the output 
-    printable in a terminal
-    """
-    objects = hcph.list_objects(path, name_only = name_only, files_only = files_only)
-    for obj in objects:
-        yield str(obj) + "\n"
-
-def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
-    return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
+def get_HCPHandler(context : Context) -> HCPHandler:
+    return context.obj["hcph"]
 
 def add_trailing_slash(path : str) -> str:
     if not path[-1] == "/":
@@ -245,7 +232,10 @@ def download(context : Context, bucket : str, source : str, destination : str, f
 
     DESTINATION is the folder where the downloaded object or object folder is to be stored locally. 
     """
-    hcph : HCPHandler = create_HCPHandler(context)
+    def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
+        return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
+        
+    hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not Path(destination).exists():
         Path(destination).mkdir()
@@ -349,19 +339,16 @@ def list_buckets(context : Context):
     """
     List the available buckets/namespaces on the HCP.
     """
-    hcph : HCPHandler = create_HCPHandler(context)
-    click.echo(format_list(hcph.list_buckets()))
+    hcph : HCPHandler = get_HCPHandler(context)
+    click.echo(
+        "".join(
+            list(map(lambda s : s + "\n", hcph.list_buckets()))
+        ).strip("\n")
+    )
 
 @cli.command(short_help = "List the objects in a certain bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("path", required = False)
-@click.option(
-    "-no", 
-    "--name-only", 
-    help = "Output only the name of the objects instead of all the associated metadata", 
-    default = False,
-    is_flag = True
-)
 @click.option(
     "-p",
     "--pagination",
@@ -376,8 +363,15 @@ def list_buckets(context : Context):
     default = False,
     is_flag = True
 )
+@click.option(
+    "-e", 
+    "--extended-information", 
+    help = "Output the fully exteded information for each object", 
+    default = False,
+    is_flag = True
+)
 @click.pass_context
-def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool, files_only : bool):
+def list_objects(context : Context, bucket : str, path : str, pagination : bool, files_only : bool, extended_information : bool):
     """
     List the objects in a certain bucket/namespace on the HCP.
 
@@ -385,8 +379,23 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
 
     PATH is an optional argument for where to list the objects
     """
-    hcph : HCPHandler = create_HCPHandler(context)
+    def list_objects_generator(hcph : HCPHandler, path : str, files_only : bool, output_mode : HCPHandler.ListObjectsOutputMode) -> Generator[str, Any, None]:
+        """
+        Handle object list as a paginator that `click` can handle. It works slightly 
+        different from `list_objects` in `hcp.py` in order to make the output 
+        printable in a terminal
+        """
+        objects = hcph.list_objects(path, output_mode = output_mode, files_only = files_only)
+        for obj in objects:
+            yield str(obj) + "\n"
+
+    hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
+    output_mode = (
+        HCPHandler.ListObjectsOutputMode.EXTENDED if extended_information 
+        else HCPHandler.ListObjectsOutputMode.SIMPLE
+    )
+
     if path:
         path_with_slash = add_trailing_slash(path)
 
@@ -396,10 +405,23 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
         path_with_slash = ""
 
     if pagination:
-        click.echo_via_pager(_list_objects_generator(hcph, path_with_slash, name_only, files_only))
+        click.echo_via_pager(
+            list_objects_generator(
+                hcph, 
+                path_with_slash, 
+                files_only, 
+                output_mode
+            )
+        )
     else:
-        for obj in hcph.list_objects(path_with_slash, name_only = name_only, files_only = files_only):
-            click.echo(obj)
+        lt.stream(
+            hcph.list_objects(
+                path_with_slash, 
+                output_mode = output_mode,
+                files_only = files_only
+            ),
+            headers = "keys"
+        )
 
 @cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
@@ -411,15 +433,8 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
     default = False,
     is_flag = True
 )
-@click.option(
-    "-v", 
-    "--verbose", 
-    help = "Get a verbose output of files. Default value is False, since it might be slower", 
-    default = False,
-    is_flag = True
-)
 @click.pass_context
-def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, verbose : bool):
+def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool):
     """
     Make simple search using substrings in a bucket/namespace on the HCP.
 
@@ -433,13 +448,14 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     list_of_results = hcph.search_in_bucket(
-        search_string, 
-        name_only = (not verbose), 
+        search_string,  
         case_sensitive = case_sensitive
     )
     click.echo("Search results:")
-    for result in list_of_results:
-        click.echo(result)
+    lt.stream(
+        list_of_results,
+        headers = "keys"
+    )
 
 @cli.command(short_help = "Make a fuzzy search using a search string in a bucket/namespace on the HCP.")
 @click.argument("bucket")
@@ -452,26 +468,19 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     is_flag = True
 )
 @click.option(
-    "-v", 
-    "--verbose", 
-    help = "Get a verbose output of files. Default value is False, since it might be slower", 
-    default = False,
-    is_flag = True
-)
-@click.option(
     "-t", 
     "--threshold", 
     help = "Set the threshold for the fuzzy search score. Default value is 80", 
     default = 80
 )
 @click.pass_context
-def fuzzy_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, verbose : bool, threshold : int):
+def fuzzy_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, threshold : int):
     """
     Make a fuzzy search using a search string in a bucket/namespace on the HCP.
 
     NOTE: This command does not use the HCI. Instead, it uses the RapidFuzz 
-    library in order to find objects in the HCP. As such, this search might 
-    be slow.
+    library in order to find objects in the HCP. As such, this search might be 
+    slow.
 
     BUCKET is the name of the bucket in which to make the search.
 
@@ -481,14 +490,14 @@ def fuzzy_search(context : Context, bucket : str, search_string : str, case_sens
     hcph.mount_bucket(bucket)
     list_of_results = hcph.fuzzy_search_in_bucket(
         search_string, 
-        name_only = (not verbose), 
         case_sensitive = case_sensitive,
         threshold = threshold
     ) 
     click.echo("Search results:")
-    for result in list_of_results:
-        click.echo(result) 
-
+    lt.stream(
+        list_of_results,
+        headers = "keys"
+    )
 @cli.command()
 @click.argument("bucket")
 @click.pass_context
