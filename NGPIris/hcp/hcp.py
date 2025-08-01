@@ -268,7 +268,7 @@ class HCPHandler:
         output_mode : ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
         files_only : bool = False,
         list_all_bucket_objects : bool = False
-    ) -> Generator[dict, Any, None]:
+    ) -> Generator[dict[str, Any], Any, None]:
         """
         List all objects in the mounted bucket as a generator. If one wishes to 
         get the result as a list, use :py:function:`list` to type cast the generator
@@ -654,7 +654,11 @@ class HCPHandler:
         if key[-1] != "/":
             key += "/"
 
-        objects : list[str] = list(self.list_objects(key, name_only = True))
+        objects : list[str] = list(
+            obj["Key"] for obj in list(
+                self.list_objects(key, output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY)
+            )
+        )
         objects.append(key) # Include the object "folder" path to be deleted
 
         if not objects:
