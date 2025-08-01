@@ -43,7 +43,7 @@ from tqdm import tqdm
 from bitmath import TiB, Byte
 
 from enum import Enum
-from typing import Generator
+from typing import Any, Generator
 
 _KB = 1024
 _MB = _KB * _KB
@@ -256,26 +256,31 @@ class HCPHandler:
         list_of_buckets : list[str] = response["name"]
         return list_of_buckets
 
+    class ListObjectsOutputMode(Enum):
+        SIMPLE = "simple"
+        EXTENDED = "extended"
+        NAME_ONLY = "name_only"
+
     @check_mounted
     def list_objects(
         self, 
         path_key : str = "", 
-        list_all_bucket_objects : bool = False,
-        name_only : bool = False, 
-        files_only : bool = False
-    ) -> Generator:
+        output_mode : ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
+        files_only : bool = False,
+        list_all_bucket_objects : bool = False
+    ) -> Generator[dict, Any, None]:
         """
         List all objects in the mounted bucket as a generator. If one wishes to 
         get the result as a list, use :py:function:`list` to type cast the generator
 
         :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
-        :param list_all_bucket_objects: If True, the value of `path_key` will be ignored and instead will list all objects in the bucket. Defaults to False
-        :type list_all_bucket_objects: bool, optional
-        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
-        :type name_only: bool, optional
+        :param output_mode: _description_, defaults to ListObjectsOutputMode.EXTENDED # TODO: Edit this
+        :type output_mode: ListObjectsOutputMode, optional
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
+        :param list_all_bucket_objects: If True, the value of `path_key` will be ignored and instead will list all objects in the bucket. Defaults to False
+        :type list_all_bucket_objects: bool, optional
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """
@@ -291,38 +296,45 @@ class HCPHandler:
             if not page:
                 break
 
-            if files_only:
-                for file_object in page.get("Contents", []):
-                    file_object : dict
-                    if file_object["Key"] != path_key:
-                        file_object["IsFile"] = True
-                        if name_only:
-                            yield file_object["Key"]
-                        else:
-                            yield file_object
-            else:
+            if not files_only: # Hide folder objects when flag `files_only` is True
+                # Handle folder objects before file objects
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object : dict
                     folder_object_metadata = self.get_object(folder_object["Prefix"])
-                    
-                    if name_only: 
-                        yield folder_object["Prefix"]
-                    else:
-                        yield {
-                            "Key" : folder_object["Prefix"],
-                            "LastModified" : folder_object_metadata["LastModified"],
-                            "ETag" : folder_object_metadata["ETag"],
-                            "IsFile" : False,
-                        }
-
-                for file_object in page.get("Contents", []):
-                    file_object : dict
-                    if file_object["Key"] != path_key:
-                        file_object["IsFile"] = True
-                        if name_only:
-                            yield file_object["Key"]
-                        else:
+                    match output_mode:
+                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
+                            yield {
+                                "Key" : folder_object["Prefix"],
+                                "LastModified" : folder_object_metadata["LastModified"],
+                                "ETag" : folder_object_metadata["ETag"],
+                                "IsFile" : False,
+                            }
+                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
+                            yield {
+                                "Key" : folder_object["Prefix"],
+                                "LastModified" : folder_object_metadata["LastModified"],
+                                "IsFile" : False,
+                            }
+                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
+                            yield {"Key" : folder_object["Prefix"]}   
+            
+            # Handle file objects
+            for file_object in page.get("Contents", []):
+                file_object : dict
+                if file_object["Key"] != path_key:
+                    file_object["IsFile"] = True
+                    match output_mode:
+                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
                             yield file_object
+                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
+                            yield {
+                                "Key" : file_object["Key"],
+                                "LastModified" : file_object["LastModified"],
+                                "Size" : file_object["Size"],
+                                "IsFile" : file_object["IsFile"]
+                            }
+                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
+                            yield {"Key" : file_object["Key"]}
         
                     
     @check_mounted
