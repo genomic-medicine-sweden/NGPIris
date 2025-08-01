@@ -420,6 +420,38 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
             headers = "keys"
         )
 
+@cli.command()
+@click.argument("bucket")
+@click.pass_context
+def list_multipart_uploads(context : Context, bucket : str):
+    """
+    List all ongoing multipart uploads to a specific BUCKET.
+    """
+    def m_u_l_sub_dict(multipart_upload_dict : dict, sub_dict_key : str):
+        sub_dict : dict | None = multipart_upload_dict.get(sub_dict_key)
+        if not sub_dict:
+            click.echo("Something went wrong", err = True)
+            sys.exit(1)
+
+        displayname : str = sub_dict.get("DisplayName", "")
+        id : str = sub_dict.get("ID", "")
+        multipart_upload_dict[sub_dict_key] = displayname + ", " + id if displayname else id
+    
+    hcph : HCPHandler = create_HCPHandler(context)
+    hcph.mount_bucket(bucket)
+    multipart_upload_list = hcph.list_multipart_uploads()
+    for multipart_upload in multipart_upload_list:
+        m_u_l_sub_dict(multipart_upload, "Owner")
+        m_u_l_sub_dict(multipart_upload, "Initiator")
+
+    if multipart_upload_list: 
+        lt.stream(
+                multipart_upload_list,
+                headers = "keys"
+            )
+    else:
+        click.echo("No multipart uploads found")
+
 @cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
