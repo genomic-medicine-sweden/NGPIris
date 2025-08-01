@@ -331,6 +331,22 @@ def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool)
             click.echo(obj)
 
 @cli.command()
+@click.argument("bucket")
+@click.option(
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
+)
+@click.pass_context
+def delete_bucket(context : Context, bucket : str, dry_run : bool):
+    hcph : HCPHandler = create_HCPHandler(context)
+    if not dry_run:
+        hcph.delete_bucket(bucket)
+    else:
+        click.echo("This command would have deleted the bucket called \"" + bucket + "\"")
+
+@cli.command()
 @click.pass_context
 def list_buckets(context : Context):
     """
