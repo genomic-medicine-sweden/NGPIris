@@ -298,7 +298,7 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not dry_run:
-        hcph.delete_object(object)
+        click.echo(hcph.delete_object(object))
     else: 
         click.echo("This command would delete:")
         click.echo(list(hcph.list_objects(object))[0])
@@ -324,7 +324,7 @@ def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool)
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not dry_run:
-        hcph.delete_folder(folder)
+        click.echo(hcph.delete_folder(folder))
     else:
         click.echo("By deleting \"" + folder + "\", the following objects would have been deleted (not including objects in sub-folders):")
         for obj in hcph.list_objects(folder):
@@ -342,7 +342,7 @@ def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool)
 def delete_bucket(context : Context, bucket : str, dry_run : bool):
     hcph : HCPHandler = create_HCPHandler(context)
     if not dry_run:
-        hcph.delete_bucket(bucket)
+        click.echo(hcph.delete_bucket(bucket))
     else:
         click.echo("This command would have deleted the bucket called \"" + bucket + "\"")
 
