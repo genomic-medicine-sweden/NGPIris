@@ -495,6 +495,7 @@ def fuzzy_search(context : Context, bucket : str, search_string : str, case_sens
         list_of_results,
         headers = "keys"
     )
+
 @cli.command()
 @click.argument("bucket")
 @click.pass_context
@@ -556,5 +557,3 @@ def iris_generate_credentials_file(path : str, name : str):
         
     with open(file_path, "w") as f:
         dump(credentials_dict, f, indent = 4)
-
-    
