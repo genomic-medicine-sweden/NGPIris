@@ -348,7 +348,6 @@ class HCPHandler:
                             }
                         case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
                             yield {"Key" : file_object["Key"]}
-        
                     
     @check_mounted
     def get_object(self, key : str) -> dict:
