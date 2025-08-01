@@ -665,6 +665,9 @@ class HCPHandler:
         :type key: str
 
         :raises RuntimeError: If there are subfolders, a RuntimeError is raised
+
+        :return: The result of the deletion 
+        :rtype: str
         """
         if key[-1] != "/":
             key += "/"
@@ -688,6 +691,14 @@ class HCPHandler:
         return self.delete_objects(objects)
 
     def delete_bucket(self, bucket : str) -> str:
+        """
+        Delete a specified bucket
+
+        :param bucket: The bucket to be deleted
+        :type bucket: str
+        :return: The result of the deletion 
+        :rtype: str 
+        """
         response : dict = self.s3_client.delete_bucket(
             Bucket = bucket
         )
