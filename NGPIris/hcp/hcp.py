@@ -283,7 +283,12 @@ class HCPHandler:
 
         :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
-        :param output_mode: _description_, defaults to ListObjectsOutputMode.EXTENDED # TODO: Edit this
+        :param output_mode: 
+            The upload mode of the transfer is any of the following:\n
+                    HCPHandler.ListObjectsOutputMode.SIMPLE,\n
+                    HCPHandler.ListObjectsOutputMode.EXTENDED,\n
+                    HCPHandler.ListObjectsOutputMode.NAME_ONLY\n
+            Default is EXTENDED
         :type output_mode: ListObjectsOutputMode, optional
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
@@ -510,10 +515,11 @@ class HCPHandler:
         :type show_progress_bar: bool, optional
 
         :param upload_mode: 
-            The upload mode of the transfer is any of the following:
-                HCPHandler.UploadMode.STANDARD,
-                HCPHandler.UploadMode.SIMPLE,
+            The upload mode of the transfer is any of the following:\n
+                HCPHandler.UploadMode.STANDARD,\n
+                HCPHandler.UploadMode.SIMPLE,\n
                 HCPHandler.UploadMode.EQUAL_PARTS\n
+            Default is STANDARD
         :type upload_mode: UploadMode, optional
 
         :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
