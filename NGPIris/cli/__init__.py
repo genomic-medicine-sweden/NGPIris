@@ -32,7 +32,7 @@ def create_HCPHandler(context : Context) -> HCPHandler:
     if credentials:
         hcp_credentials = credentials
     elif os.environ.get("NGPIRIS_CREDENTIALS_PATH", None):
-        hcp_credentials = os.environ["NGPIRIS_CREDENTIALS_PATH"] # TODO: add config subcommand for setting this env variable
+        hcp_credentials = os.environ["NGPIRIS_CREDENTIALS_PATH"]
     else: 
         endpoint : str = click.prompt(
             "Please enter your tenant endpoint"
