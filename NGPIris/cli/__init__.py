@@ -303,7 +303,7 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
     PATH is an optional argument for where to list the objects
     """
     def simple_info(obj : dict[str, str]) -> str:
-        return obj["Key"] + " | Last modified: " + obj["LastModified"] + " | "
+        return obj["Key"] + " | Last modified: " + str(obj["LastModified"]) + " | "
 
     def list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, files_only : bool, extended_information : bool) -> Generator[str, Any, None]:
         """
