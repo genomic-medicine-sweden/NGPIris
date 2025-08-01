@@ -92,7 +92,7 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     CREDENTIALS refers to the path to the JSON credentials file.
     """
 
-@cli.command()
+@cli.command(short_help = "This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell")
 @click.argument(
     "credentials_path", 
     required = False
@@ -196,7 +196,7 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
         else:
             hcph.upload_file(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
 
-@cli.command()
+@cli.command(short_help = "Download a file or folder from an HCP bucket/namespace.")
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
@@ -420,7 +420,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
             headers = "keys"
         )
 
-@cli.command()
+@cli.command(short_help = "List all ongoing multipart uploads to a specific bucket.")
 @click.argument("bucket")
 @click.pass_context
 def list_multipart_uploads(context : Context, bucket : str):
