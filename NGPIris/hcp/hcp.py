@@ -636,7 +636,9 @@ class HCPHandler:
                 Bucket = self.bucket_name,
                 Delete = deletion_dict
             )
-            result += dumps(response, indent = 4) + "\n"
+            
+            deleted_files = list(d["Key"] for d in response["Deleted"])
+            result += "The following was successfully deleted: \n" + "\n".join(deleted_files)
         
         if does_not_exist:
             result += "The following could not be deleted because they didn't exist: \n" + "\n".join(does_not_exist)
@@ -699,10 +701,11 @@ class HCPHandler:
         :return: The result of the deletion 
         :rtype: str 
         """
-        response : dict = self.s3_client.delete_bucket(
+        self.s3_client.delete_bucket(
             Bucket = bucket
         )
-        return dumps(response, indent = 4)
+        # If the deletion was not successful, `self.s3_client.delete_bucket` would have thrown an error 
+        return bucket + " was successfully deleted"
 
     @check_mounted
     def search_in_bucket(
