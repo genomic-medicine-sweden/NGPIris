@@ -6,6 +6,7 @@ from pathlib import Path
 from boto3 import set_stream_logger
 from typing import Any, Generator
 from bitmath import Byte, TiB
+import lazy_table as lt
 import sys
 
 from NGPIris.hcp import HCPHandler
@@ -266,13 +267,6 @@ def list_buckets(context : Context):
 @click.argument("bucket")
 @click.argument("path", required = False)
 @click.option(
-    "-no", 
-    "--name-only", 
-    help = "Output only the name of the objects instead of all the associated metadata", 
-    default = False,
-    is_flag = True
-)
-@click.option(
     "-p",
     "--pagination",
     help = "Output as a paginator",
@@ -294,7 +288,7 @@ def list_buckets(context : Context):
     is_flag = True
 )
 @click.pass_context
-def list_objects(context : Context, bucket : str, path : str, name_only : bool, pagination : bool, files_only : bool, extended_information : bool):
+def list_objects(context : Context, bucket : str, path : str, pagination : bool, files_only : bool, extended_information : bool):
     """
     List the objects in a certain bucket/namespace on the HCP.
 
@@ -305,13 +299,13 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
     def simple_info(obj : dict[str, str]) -> str:
         return obj["Key"] + " | Last modified: " + str(obj["LastModified"]) + " | "
 
-    def list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, files_only : bool, extended_information : bool) -> Generator[str, Any, None]:
+    def list_objects_generator(hcph : HCPHandler, path : str, files_only : bool, extended_information : bool) -> Generator[str, Any, None]:
         """
         Handle object list as a paginator that `click` can handle. It works slightly 
         different from `list_objects` in `hcp.py` in order to make the output 
         printable in a terminal
         """
-        objects = hcph.list_objects(path, name_only, files_only)
+        objects = hcph.list_objects(path, files_only = files_only)
         for obj in objects:
             if extended_information:
                 yield str(obj) + "\n"
@@ -320,6 +314,11 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
 
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
+    output_mode = (
+        HCPHandler.ListObjectsOutputMode.EXTENDED if extended_information 
+        else HCPHandler.ListObjectsOutputMode.SIMPLE
+    )
+
     if path:
         path_with_slash = add_trailing_slash(path)
 
@@ -329,13 +328,16 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
         path_with_slash = ""
 
     if pagination:
-        click.echo_via_pager(list_objects_generator(hcph, path_with_slash, name_only, files_only, extended_information))
+        click.echo_via_pager(list_objects_generator(hcph, path_with_slash, files_only, extended_information)) # TODO: fix
     else:
-        for obj in hcph.list_objects(path_with_slash, name_only, files_only):
-            if not extended_information:
-                click.echo(simple_info(obj))
-            else:
-                click.echo(obj)
+        lt.stream(
+            hcph.list_objects(
+                path_with_slash, 
+                output_mode = output_mode,
+                files_only = files_only
+            ),
+            headers = "keys"
+        )
 
 @cli.command()
 @click.argument("bucket")
