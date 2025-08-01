@@ -21,7 +21,7 @@ def _list_objects_generator(hcph : HCPHandler, path : str, name_only : bool, fil
     different from `list_objects` in `hcp.py` in order to make the output 
     printable in a terminal
     """
-    objects = hcph.list_objects(path, name_only, files_only)
+    objects = hcph.list_objects(path, name_only = name_only, files_only = files_only)
     for obj in objects:
         yield str(obj) + "\n"
 
@@ -316,7 +316,6 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
         click.echo("This command would delete:")
         click.echo(list(hcph.list_objects(object))[0])
 
-
 @cli.command()
 @click.argument("bucket")
 @click.argument("folder")
@@ -353,7 +352,7 @@ def list_buckets(context : Context):
     hcph : HCPHandler = create_HCPHandler(context)
     click.echo(format_list(hcph.list_buckets()))
 
-@cli.command()
+@cli.command(short_help = "List the objects in a certain bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("path", required = False)
 @click.option(
@@ -399,10 +398,10 @@ def list_objects(context : Context, bucket : str, path : str, name_only : bool, 
     if pagination:
         click.echo_via_pager(_list_objects_generator(hcph, path_with_slash, name_only, files_only))
     else:
-        for obj in hcph.list_objects(path_with_slash, name_only, files_only):
+        for obj in hcph.list_objects(path_with_slash, name_only = name_only, files_only = files_only):
             click.echo(obj)
 
-@cli.command()
+@cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
@@ -442,7 +441,7 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     for result in list_of_results:
         click.echo(result)
 
-@cli.command()
+@cli.command(short_help = "Make a fuzzy search using a search string in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
