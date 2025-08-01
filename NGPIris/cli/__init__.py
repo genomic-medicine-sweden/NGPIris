@@ -369,8 +369,10 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
         case_sensitive = case_sensitive
     )
     click.echo("Search results:")
-    for result in list_of_results:
-        click.echo(result)
+    lt.stream(
+        list_of_results,
+        headers = "keys"
+    )
 
 @cli.command()
 @click.argument("bucket")
@@ -409,9 +411,10 @@ def fuzzy_search(context : Context, bucket : str, search_string : str, case_sens
         threshold = threshold
     ) 
     click.echo("Search results:")
-    for result in list_of_results:
-        click.echo(result) 
-
+    lt.stream(
+        list_of_results,
+        headers = "keys"
+    )
 @cli.command()
 @click.argument("bucket")
 @click.pass_context
