@@ -14,10 +14,6 @@ from NGPIris.hcp import HCPHandler
 def get_HCPHandler(context : Context) -> HCPHandler:
     return context.obj["hcph"]
 
-def format_list(list_of_things : list) -> str:
-    list_of_buckets = list(map(lambda s : s + "\n", list_of_things))
-    return "".join(list_of_buckets).strip("\n")
-
 def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
     return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
 
@@ -261,7 +257,11 @@ def list_buckets(context : Context):
     List the available buckets/namespaces on the HCP.
     """
     hcph : HCPHandler = get_HCPHandler(context)
-    click.echo(format_list(hcph.list_buckets()))
+    click.echo(
+        "".join(
+            list(map(lambda s : s + "\n", hcph.list_buckets()))
+        ).strip("\n")
+    )
 
 @cli.command()
 @click.argument("bucket")
