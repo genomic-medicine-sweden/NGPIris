@@ -296,21 +296,15 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
 
     PATH is an optional argument for where to list the objects
     """
-    def simple_info(obj : dict[str, str]) -> str:
-        return obj["Key"] + " | Last modified: " + str(obj["LastModified"]) + " | "
-
-    def list_objects_generator(hcph : HCPHandler, path : str, files_only : bool, extended_information : bool) -> Generator[str, Any, None]:
+    def list_objects_generator(hcph : HCPHandler, path : str, files_only : bool, output_mode : HCPHandler.ListObjectsOutputMode) -> Generator[str, Any, None]:
         """
         Handle object list as a paginator that `click` can handle. It works slightly 
         different from `list_objects` in `hcp.py` in order to make the output 
         printable in a terminal
         """
-        objects = hcph.list_objects(path, files_only = files_only)
+        objects = hcph.list_objects(path, output_mode = output_mode, files_only = files_only)
         for obj in objects:
-            if extended_information:
-                yield str(obj) + "\n"
-            else:
-                yield simple_info(obj) + "\n"
+            yield str(obj) + "\n"
 
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
@@ -328,7 +322,14 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
         path_with_slash = ""
 
     if pagination:
-        click.echo_via_pager(list_objects_generator(hcph, path_with_slash, files_only, extended_information)) # TODO: fix
+        click.echo_via_pager(
+            list_objects_generator(
+                hcph, 
+                path_with_slash, 
+                files_only, 
+                output_mode
+            )
+        )
     else:
         lt.stream(
             hcph.list_objects(
