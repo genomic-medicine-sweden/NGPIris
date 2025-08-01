@@ -637,7 +637,7 @@ class HCPHandler:
                 Delete = deletion_dict
             )
             if verbose:
-                print(dumps(response, indent=4))
+                print(dumps(response, indent = 4))
             
         if verbose and does_not_exist:
             print("The following could not be deleted because they didn't exist: \n" + "\n".join(does_not_exist))
@@ -684,6 +684,13 @@ class HCPHandler:
             if (object_path[-1] == "/") and (not object_path == key): # `objects` might contain key, in which case everything is fine
                 raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
         self.delete_objects(objects, verbose = verbose)
+
+    def delete_bucket(self, bucket : str, verbose : bool = True) -> None:
+        response : dict = self.s3_client.delete_bucket(
+            Bucket = bucket
+        )
+        if verbose:
+            print(dumps(response, indent = 4))
 
     @check_mounted
     def search_in_bucket(
