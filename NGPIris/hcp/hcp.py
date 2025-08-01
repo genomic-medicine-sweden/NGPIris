@@ -343,8 +343,25 @@ class HCPHandler:
                             }
                         case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
                             yield {"Key" : file_object["Key"]}
-        
-                    
+
+    @check_mounted
+    def list_multipart_uploads(self) -> list[dict[str, Any]]:
+        """
+        Lists all multipart uploads in progress. If there aren't any, the empty 
+        list is returned
+
+        :return: List of multipart uploads
+        :rtype: list[dict[str, Any]]
+        """
+        response : dict = self.s3_client.list_multipart_uploads(
+            Bucket = self.bucket_name
+        )
+        uploads : list[dict[str, str]] | None = response.get("Uploads", None)
+        if uploads:
+            return uploads
+        else:
+            return []
+
     @check_mounted
     def get_object(self, key : str) -> dict:
         """
