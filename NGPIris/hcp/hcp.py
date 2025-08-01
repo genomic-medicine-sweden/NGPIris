@@ -20,8 +20,9 @@ from botocore.paginate import PageIterator, Paginator
 from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 from configparser import ConfigParser
-
 from pathlib import Path
+from itertools import islice
+from more_itertools import peekable
 
 from os import (
     stat,
@@ -655,8 +656,10 @@ class HCPHandler:
             key += "/"
 
         objects : list[str] = list(
-            obj["Key"] for obj in list(
-                self.list_objects(key, output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY)
+            obj["Key"] for obj in 
+            self.list_objects(
+                key, 
+                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY
             )
         )
         objects.append(key) # Include the object "folder" path to be deleted
@@ -673,7 +676,6 @@ class HCPHandler:
     def search_in_bucket(
         self, 
         search_string : str, 
-        name_only : bool = True, 
         case_sensitive : bool = False
     ) -> Generator:
         """
@@ -683,22 +685,18 @@ class HCPHandler:
         :param search_string: Substring to be used in the search
         :type search_string: str
 
-        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
-        :type name_only: bool, optional
-
         :param case_sensitive: Case sensitivity. Defaults to False
         :type case_sensitive: bool, optional
 
         :return: A generator of objects based on the search string
         :rtype: Generator
         """
-        return self.fuzzy_search_in_bucket(search_string, name_only, case_sensitive, 100)
+        return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
         
     @check_mounted
     def fuzzy_search_in_bucket(
         self, 
         search_string : str, 
-        name_only : bool = True, 
         case_sensitive : bool = False, 
         threshold : int = 80
     ) -> Generator:
@@ -726,20 +724,24 @@ class HCPHandler:
         else:
             processor = utils.default_process 
 
-        if not name_only:
-            full_list = list(self.list_objects(list_all_bucket_objects = True))
+        full_list = peekable(self.list_objects(list_all_bucket_objects = True))
 
-        for item, score, index in process.extract_iter(
+        full_list_names_only = peekable(
+            obj["Key"] for obj in 
+            self.list_objects(
+                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY, 
+                list_all_bucket_objects = True
+            )
+        )
+
+        for _, score, index in process.extract_iter(
                 search_string, 
-                self.list_objects(list_all_bucket_objects = True, name_only = True), 
+                full_list_names_only,
                 scorer = fuzz.partial_ratio,
                 processor = processor
             ):
             if score >= threshold:
-                if name_only:
-                    yield item
-                else:
-                    yield full_list[index] # type: ignore
+                yield full_list[index]
 
     @check_mounted
     def get_object_acl(self, key : str) -> dict:
