@@ -29,7 +29,7 @@ def add_trailing_slash(path : str) -> str:
 @click.option(
     "-tc", 
     "--transfer_config", 
-    help = "Use a custom transfer config for uploads or downloads", 
+    help = "Path for custom transfer config for uploads or downloads", 
 )
 @click.version_option(package_name = "NGPIris")
 @click.pass_context
@@ -43,7 +43,7 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     if transfer_config:
         context.ensure_object(dict)
         context.obj["hcph"] = HCPHandler(credentials, custom_config_path = transfer_config)
-    else:    
+    else:
         context.ensure_object(dict)
         context.obj["hcph"] = HCPHandler(credentials)
 
@@ -222,7 +222,6 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
         click.echo("This command would delete:")
         click.echo(list(hcph.list_objects(object))[0])
 
-
 @cli.command()
 @click.argument("bucket")
 @click.argument("folder")
@@ -263,7 +262,7 @@ def list_buckets(context : Context):
         ).strip("\n")
     )
 
-@cli.command()
+@cli.command(short_help = "List the objects in a certain bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("path", required = False)
 @click.option(
@@ -340,7 +339,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
             headers = "keys"
         )
 
-@cli.command()
+@cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
@@ -374,7 +373,7 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
         headers = "keys"
     )
 
-@cli.command()
+@cli.command(short_help = "Make a fuzzy search using a search string in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
