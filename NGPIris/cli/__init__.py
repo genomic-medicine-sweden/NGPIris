@@ -14,9 +14,6 @@ from NGPIris.hcp import HCPHandler
 def get_HCPHandler(context : Context) -> HCPHandler:
     return context.obj["hcph"]
 
-def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
-    return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
-
 def add_trailing_slash(path : str) -> str:
     if not path[-1] == "/":
         path += "/"
@@ -151,6 +148,9 @@ def download(context : Context, bucket : str, source : str, destination : str, f
 
     DESTINATION is the folder where the downloaded object or object folder is to be stored locally. 
     """
+    def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
+        return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
+        
     hcph : HCPHandler = get_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not Path(destination).exists():
