@@ -20,8 +20,9 @@ from botocore.paginate import PageIterator, Paginator
 from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 from configparser import ConfigParser
-
 from pathlib import Path
+from itertools import islice
+from more_itertools import peekable
 
 from os import (
     stat,
@@ -43,18 +44,18 @@ from tqdm import tqdm
 from bitmath import TiB, Byte
 
 from enum import Enum
-from typing import Generator
+from typing import Any, Generator
 
 _KB = 1024
 _MB = _KB * _KB
 
 class HCPHandler:
-    def __init__(self, credentials_path : str, use_ssl : bool = False, proxy_path : str = "", custom_config_path : str = "") -> None:
+    def __init__(self, credentials : str | dict[str, str], use_ssl : bool = False, proxy_path : str = "", custom_config_path : str = "") -> None:       
         """
         Class for handling HCP requests.
 
-        :param credentials_path: Path to the JSON credentials file
-        :type credentials_path: str
+        :param credentials: If `credentials` is a `str`, then it will be interpreted as a path to the JSON credentials file. If `credentials` is a `dict`, then a dictionary with the appropriate HCP credentials is expected: ```{"endpoint" : "", "aws_access_key_id" : "", "aws_secret_access_key" : "" }```
+        :type credentials: str | dict
         
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
@@ -62,9 +63,18 @@ class HCPHandler:
         :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
         :type custom_config_path: str, optional
         """
-        credentials_handler = CredentialsHandler(credentials_path)
-        self.hcp = credentials_handler.hcp
-        self.endpoint = "https://" + self.hcp["endpoint"]
+        if type(credentials) is str:
+            credentials_handler = CredentialsHandler(credentials)
+            self.hcp = credentials_handler.hcp
+            
+            self.endpoint = "https://" + self.hcp["endpoint"]
+            self.aws_access_key_id = self.hcp["aws_access_key_id"]
+            self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
+        elif type(credentials) is dict:
+            self.endpoint = "https://" + credentials["endpoint"]
+            self.aws_access_key_id = credentials["aws_access_key_id"]
+            self.aws_secret_access_key = credentials["aws_secret_access_key"]
+
 
         # A lookup table for GMC names to HCP tenant names
         gmc_tenant_map = {
@@ -98,8 +108,6 @@ class HCPHandler:
         if not self.tenant:
             raise RuntimeError("Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?")
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
-        self.aws_access_key_id = self.hcp["aws_access_key_id"]
-        self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
         self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
         self.bucket_name = None
         self.use_ssl = use_ssl
@@ -256,26 +264,31 @@ class HCPHandler:
         list_of_buckets : list[str] = response["name"]
         return list_of_buckets
 
+    class ListObjectsOutputMode(Enum):
+        SIMPLE = "simple"
+        EXTENDED = "extended"
+        NAME_ONLY = "name_only"
+
     @check_mounted
     def list_objects(
         self, 
         path_key : str = "", 
-        list_all_bucket_objects : bool = False,
-        name_only : bool = False, 
-        files_only : bool = False
-    ) -> Generator:
+        output_mode : ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
+        files_only : bool = False,
+        list_all_bucket_objects : bool = False
+    ) -> Generator[dict[str, Any], Any, None]:
         """
         List all objects in the mounted bucket as a generator. If one wishes to 
         get the result as a list, use :py:function:`list` to type cast the generator
 
         :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
-        :param list_all_bucket_objects: If True, the value of `path_key` will be ignored and instead will list all objects in the bucket. Defaults to False
-        :type list_all_bucket_objects: bool, optional
-        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
-        :type name_only: bool, optional
+        :param output_mode: _description_, defaults to ListObjectsOutputMode.EXTENDED # TODO: Edit this
+        :type output_mode: ListObjectsOutputMode, optional
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
+        :param list_all_bucket_objects: If True, the value of `path_key` will be ignored and instead will list all objects in the bucket. Defaults to False
+        :type list_all_bucket_objects: bool, optional
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """
@@ -291,38 +304,45 @@ class HCPHandler:
             if not page:
                 break
 
-            if files_only:
-                for file_object in page.get("Contents", []):
-                    file_object : dict
-                    if file_object["Key"] != path_key:
-                        file_object["IsFile"] = True
-                        if name_only:
-                            yield file_object["Key"]
-                        else:
-                            yield file_object
-            else:
+            if not files_only: # Hide folder objects when flag `files_only` is True
+                # Handle folder objects before file objects
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object : dict
                     folder_object_metadata = self.get_object(folder_object["Prefix"])
-                    
-                    if name_only: 
-                        yield folder_object["Prefix"]
-                    else:
-                        yield {
-                            "Key" : folder_object["Prefix"],
-                            "LastModified" : folder_object_metadata["LastModified"],
-                            "ETag" : folder_object_metadata["ETag"],
-                            "IsFile" : False,
-                        }
-
-                for file_object in page.get("Contents", []):
-                    file_object : dict
-                    if file_object["Key"] != path_key:
-                        file_object["IsFile"] = True
-                        if name_only:
-                            yield file_object["Key"]
-                        else:
+                    match output_mode:
+                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
+                            yield {
+                                "Key" : folder_object["Prefix"],
+                                "LastModified" : folder_object_metadata["LastModified"],
+                                "ETag" : folder_object_metadata["ETag"],
+                                "IsFile" : False,
+                            }
+                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
+                            yield {
+                                "Key" : folder_object["Prefix"],
+                                "LastModified" : folder_object_metadata["LastModified"],
+                                "IsFile" : False,
+                            }
+                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
+                            yield {"Key" : folder_object["Prefix"]}   
+            
+            # Handle file objects
+            for file_object in page.get("Contents", []):
+                file_object : dict
+                if file_object["Key"] != path_key:
+                    file_object["IsFile"] = True
+                    match output_mode:
+                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
                             yield file_object
+                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
+                            yield {
+                                "Key" : file_object["Key"],
+                                "LastModified" : file_object["LastModified"],
+                                "Size" : file_object["Size"],
+                                "IsFile" : file_object["IsFile"]
+                            }
+                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
+                            yield {"Key" : file_object["Key"]}
         
                     
     @check_mounted
@@ -642,7 +662,13 @@ class HCPHandler:
         if key[-1] != "/":
             key += "/"
 
-        objects : list[str] = list(self.list_objects(key, name_only = True))
+        objects : list[str] = list(
+            obj["Key"] for obj in 
+            self.list_objects(
+                key, 
+                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY
+            )
+        )
         objects.append(key) # Include the object "folder" path to be deleted
 
         if not objects:
@@ -657,7 +683,6 @@ class HCPHandler:
     def search_in_bucket(
         self, 
         search_string : str, 
-        name_only : bool = True, 
         case_sensitive : bool = False
     ) -> Generator:
         """
@@ -667,22 +692,18 @@ class HCPHandler:
         :param search_string: Substring to be used in the search
         :type search_string: str
 
-        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
-        :type name_only: bool, optional
-
         :param case_sensitive: Case sensitivity. Defaults to False
         :type case_sensitive: bool, optional
 
         :return: A generator of objects based on the search string
         :rtype: Generator
         """
-        return self.fuzzy_search_in_bucket(search_string, name_only, case_sensitive, 100)
+        return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
         
     @check_mounted
     def fuzzy_search_in_bucket(
         self, 
         search_string : str, 
-        name_only : bool = True, 
         case_sensitive : bool = False, 
         threshold : int = 80
     ) -> Generator:
@@ -710,20 +731,24 @@ class HCPHandler:
         else:
             processor = utils.default_process 
 
-        if not name_only:
-            full_list = list(self.list_objects(list_all_bucket_objects = True))
+        full_list = peekable(self.list_objects(list_all_bucket_objects = True))
 
-        for item, score, index in process.extract_iter(
+        full_list_names_only = peekable(
+            obj["Key"] for obj in 
+            self.list_objects(
+                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY, 
+                list_all_bucket_objects = True
+            )
+        )
+
+        for _, score, index in process.extract_iter(
                 search_string, 
-                self.list_objects(list_all_bucket_objects = True, name_only = True), 
+                full_list_names_only,
                 scorer = fuzz.partial_ratio,
                 processor = processor
             ):
             if score >= threshold:
-                if name_only:
-                    yield item
-                else:
-                    yield full_list[index] # type: ignore
+                yield full_list[index]
 
     @check_mounted
     def get_object_acl(self, key : str) -> dict:
