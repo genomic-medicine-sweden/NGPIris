@@ -12,9 +12,6 @@ import os
 
 from NGPIris.hcp import HCPHandler
 
-def get_HCPHandler(context : Context) -> HCPHandler:
-    return context.obj["hcph"]
-
 def add_trailing_slash(path : str) -> str:
     if not path[-1] == "/":
         path += "/"
@@ -235,7 +232,7 @@ def download(context : Context, bucket : str, source : str, destination : str, f
     def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
         return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
         
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not Path(destination).exists():
         Path(destination).mkdir()
@@ -339,7 +336,7 @@ def list_buckets(context : Context):
     """
     List the available buckets/namespaces on the HCP.
     """
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     click.echo(
         "".join(
             list(map(lambda s : s + "\n", hcph.list_buckets()))
@@ -389,7 +386,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
         for obj in objects:
             yield str(obj) + "\n"
 
-    hcph : HCPHandler = get_HCPHandler(context)
+    hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     output_mode = (
         HCPHandler.ListObjectsOutputMode.EXTENDED if extended_information 
