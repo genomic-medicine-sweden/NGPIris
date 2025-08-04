@@ -727,7 +727,8 @@ class HCPHandler:
                 )
         
         return self.delete_objects(
-            list(obj["Key"] for obj in objects) + [key.rstrip("/")] # Include the object "folder" path to be deleted
+            list(obj["Key"] for obj in objects) + 
+            [key.rstrip("/")] # Include the object "folder" path to be deleted without trailing slash
         )
 
     def delete_bucket(self, bucket : str) -> str:
