@@ -266,7 +266,7 @@ class HCPHandler:
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
         EXTENDED = "extended"
-        NAME_ONLY = "name_only"
+        MINIMAL = "minimal"
 
     @check_mounted
     def list_objects(
@@ -286,7 +286,7 @@ class HCPHandler:
             The upload mode of the transfer is any of the following:\n
                     HCPHandler.ListObjectsOutputMode.SIMPLE,\n
                     HCPHandler.ListObjectsOutputMode.EXTENDED,\n
-                    HCPHandler.ListObjectsOutputMode.NAME_ONLY\n
+                    HCPHandler.ListObjectsOutputMode.MINIMAL\n
             Default is EXTENDED
         :type output_mode: ListObjectsOutputMode, optional
         :param files_only: If True, only yield file objects. Defaults to False
@@ -327,8 +327,11 @@ class HCPHandler:
                                 "LastModified" : folder_object_metadata["LastModified"],
                                 "IsFile" : False,
                             }
-                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
-                            yield {"Key" : folder_object["Prefix"]}   
+                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
+                            yield {
+                                "Key" : folder_object["Prefix"],
+                                "IsFile" : False,
+                            }
             
             # Handle file objects
             for file_object in page.get("Contents", []):
@@ -345,8 +348,11 @@ class HCPHandler:
                                 "Size" : file_object["Size"],
                                 "IsFile" : file_object["IsFile"]
                             }
-                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
-                            yield {"Key" : file_object["Key"]}
+                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
+                            yield {
+                                "Key" : file_object["Key"],
+                                "IsFile" : file_object["IsFile"]
+                            }
                     
     @check_mounted
     def get_object(self, key : str) -> dict:
@@ -677,7 +683,7 @@ class HCPHandler:
             obj["Key"] for obj in 
             self.list_objects(
                 key, 
-                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY
+                output_mode = HCPHandler.ListObjectsOutputMode.MINIMAL
             )
         )
         objects.append(key) # Include the object "folder" path to be deleted
@@ -760,7 +766,7 @@ class HCPHandler:
         full_list_names_only = peekable(
             obj["Key"] for obj in 
             self.list_objects(
-                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY, 
+                output_mode = HCPHandler.ListObjectsOutputMode.MINIMAL, 
                 list_all_bucket_objects = True
             )
         )
