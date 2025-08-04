@@ -92,7 +92,7 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     CREDENTIALS refers to the path to the JSON credentials file.
     """
 
-@cli.command(short_help = "This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell")
+@cli.command(short_help = "This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell.")
 @click.argument(
     "credentials_path", 
     required = False
@@ -164,7 +164,7 @@ def shell_env(context : Context, credentials_path : str, shell : str):
 @click.pass_context
 def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool, upload_mode : str, equal_parts : int):
     """
-    Upload files to an HCP bucket/namespace. 
+    Upload files to a bucket/namespace on the HCP. 
     
     BUCKET is the name of the upload destination bucket.
 
@@ -196,7 +196,7 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
         else:
             hcph.upload_file(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
 
-@cli.command(short_help = "Download a file or folder from an HCP bucket/namespace.")
+@cli.command(short_help = "Download a file or folder from a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
@@ -221,7 +221,7 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
 @click.pass_context
 def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool, dry_run : bool):
     """
-    Download a file or folder from an HCP bucket/namespace.
+    Download a file or folder from a bucket/namespace from the HCP.
 
     BUCKET is the name of the download source bucket.
 
@@ -303,7 +303,7 @@ def download(context : Context, bucket : str, source : str, destination : str, f
 @click.pass_context
 def delete(context : Context, bucket : str, object : str, dry_run : bool, mode : str):
     """
-    Delete objects in a HCP bucket/namespace.
+    Delete objects in a bucket/namespace on the HCP.
 
     BUCKET is the name of the bucket where the object to be deleted exist.
 
@@ -352,6 +352,9 @@ def delete(context : Context, bucket : str, object : str, dry_run : bool, mode :
 )
 @click.pass_context
 def delete_bucket(context : Context, bucket : str, dry_run : bool):
+    """
+    Delete a bucket/namespace on the HCP
+    """
     hcph : HCPHandler = create_HCPHandler(context)
     if not dry_run:
         click.echo(hcph.delete_bucket(bucket))
