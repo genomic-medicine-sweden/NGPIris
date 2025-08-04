@@ -511,6 +511,7 @@ def fuzzy_search(context : Context, bucket : str, search_string : str, case_sens
         list_of_results,
         headers = "keys"
     )
+
 @cli.command()
 @click.argument("bucket")
 @click.pass_context
