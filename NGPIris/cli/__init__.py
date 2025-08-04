@@ -293,11 +293,11 @@ def download(context : Context, bucket : str, source : str, destination : str, f
         ["files", "folder"],
         case_sensitive = False
     ),
-    default = "files",
+    default = "folder",
     help = (
         "Allows for selection of between two modes: `files` or `folder`. " + 
         "`files` is for deleting individual files, while `folder` is for " + 
-        "deleting a folder. `files` is default mode"
+        "deleting a folder. `folder` is default mode"
     )
 )
 @click.pass_context
