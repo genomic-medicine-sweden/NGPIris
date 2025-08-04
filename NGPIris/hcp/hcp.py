@@ -98,7 +98,9 @@ class HCPHandler:
                     if mapped_tenant:
                         self.tenant = mapped_tenant
                     else:
-                        raise RuntimeError("The provided tenant name, \"" + tenant + "\", could is not a valid tenant name. Hint: did you spell it correctly?")
+                        raise RuntimeError(
+                            "The provided tenant name, \"" + tenant + "\", is not a valid tenant name. Hint: did you spell it correctly?"
+                        )
                 else:
                     self.tenant = tenant
                 
@@ -106,7 +108,9 @@ class HCPHandler:
         
 
         if not self.tenant:
-            raise RuntimeError("Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?")
+            raise RuntimeError(
+                "Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?"
+            )
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
         self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
         self.bucket_name = None
@@ -206,7 +210,9 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`")
+            raise RuntimeError(
+                "No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`"
+            )
         
         response = {}
         try:
@@ -217,9 +223,13 @@ class HCPHandler:
             status_code = e.response["ResponseMetadata"].get("HTTPStatusCode", -1)
             match status_code:
                 case 404:
-                    raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+                    raise BucketNotFound(
+                        "Bucket \"" + bucket_name + "\" was not found"
+                    )
                 case 403:
-                    raise BucketForbidden("Bucket \"" + bucket_name + "\" could not be accessed due to lack of permissions")
+                    raise BucketForbidden(
+                        "Bucket \"" + bucket_name + "\" could not be accessed due to lack of permissions"
+                    )
         except Exception as e: # pragma: no cover
             raise Exception(e)
             
@@ -410,7 +420,9 @@ class HCPHandler:
         try:
             self.get_object(key)
         except:
-            raise ObjectDoesNotExist("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+            raise ObjectDoesNotExist(
+                "Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\""
+            )
         try:
             if show_progress_bar:
                 file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
@@ -475,7 +487,9 @@ class HCPHandler:
         try:
             self.get_object(folder_key)
         except:
-            raise ObjectDoesNotExist("Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+            raise ObjectDoesNotExist(
+                "Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\""
+            )
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(0) # For tracking download limit
             (Path(local_folder_path) / Path(folder_key)).mkdir(parents = True) # Create "base folder"
@@ -493,10 +507,14 @@ class HCPHandler:
                 else: # If the object is a file
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
-                        raise DownloadLimitReached("The download limit was reached when downloading files")
+                        raise DownloadLimitReached(
+                            "The download limit was reached when downloading files"
+                        )
                     self.download_file(object["Key"], p.as_posix(), show_progress_bar = show_progress_bar)
         else:
-            raise NotADirectory(local_folder_path + " is not a directory")
+            raise NotADirectory(
+                local_folder_path + " is not a directory"
+            )
     
     class UploadMode(Enum):
         STANDARD = "standard"
@@ -539,10 +557,14 @@ class HCPHandler:
             key = file_name
 
         if "\\" in local_file_path:
-            raise RuntimeError("The \"\\\" character is not allowed in the file path")
+            raise RuntimeError(
+                "The \"\\\" character is not allowed in the file path"
+            )
 
         if self.object_exists(key):
-            raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
+            raise ObjectAlreadyExist(
+                "The object \"" + key + "\" already exist in the mounted bucket"
+            )
         else:
             file_size : int = stat(local_file_path).st_size
 
