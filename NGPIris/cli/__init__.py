@@ -573,5 +573,3 @@ def iris_generate_credentials_file(path : str, name : str):
         
     with open(file_path, "w") as f:
         dump(credentials_dict, f, indent = 4)
-
-    
