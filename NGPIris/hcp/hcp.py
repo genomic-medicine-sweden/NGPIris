@@ -740,9 +740,6 @@ class HCPHandler:
         :param search_string: Substring to be used in the search
         :type search_string: str
 
-        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
-        :type name_only: bool, optional
-
         :param case_sensitive: Case sensitivity. Defaults to False
         :type case_sensitive: bool, optional
 
