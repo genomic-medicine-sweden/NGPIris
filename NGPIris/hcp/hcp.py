@@ -5,7 +5,6 @@ from NGPIris.hcp.helpers import (
     check_mounted
 )
 from NGPIris.hcp.exceptions import (
-    VPNConnectionError,
     BucketNotFound,
     BucketForbidden,
     ObjectAlreadyExist,
@@ -21,7 +20,6 @@ from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 from configparser import ConfigParser
 from pathlib import Path
-from itertools import islice
 from more_itertools import peekable
 
 from os import (
@@ -709,7 +707,7 @@ class HCPHandler:
         """
         if key[-1] != "/":
             key += "/"
-
+        
         objects : list[dict[str, Any]] = list(
             self.list_objects(
                 key, 
@@ -717,23 +715,35 @@ class HCPHandler:
             )
         )
 
-        if not objects:
+        if not self.object_exists(key):
             raise RuntimeError(
-                "\"" + key + "\"" + " is not a valid path"
-            ) #TODO: change this error
+                "\"" + key + "\"" + " does not exist"
+            )
 
-        for object in objects:
-            if not object["IsFile"]: 
-                raise RuntimeError(
-                    "There is at least one subfolder in \"" + key + 
-                    "\". Please remove all subfolders before deleting \"" + 
-                    key + "\" itself"
-                )
+        # If the folder object is empty, delete the object itself. Since 
+        # `delete_objects` was only made for file objects in mind then 
+        if not objects:
+            result = "\"" + key + "\"" + " was deleted"
+        else:
+            for object in objects:
+                if not object["IsFile"]: 
+                    raise RuntimeError(
+                        "There is at least one subfolder in \"" + key + 
+                        "\". Please remove all subfolders before deleting \"" + 
+                        key + "\" itself"
+                    )
+            
+            result = self.delete_objects(
+                list(obj["Key"] for obj in objects)
+            )
         
-        return self.delete_objects(
-            list(obj["Key"] for obj in objects) + 
-            [key.rstrip("/")] # Include the object "folder" path to be deleted without trailing slash
+        # Delete the folder object itself separately
+        self.s3_client.delete_object(
+            Bucket = self.bucket_name,
+            Key = key
         )
+
+        return result
 
     def delete_bucket(self, bucket : str) -> str:
         """
