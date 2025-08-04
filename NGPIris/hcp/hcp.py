@@ -652,7 +652,12 @@ class HCPHandler:
         does_not_exist = []
         for key in keys:
             if self.object_exists(key):
-                object_list.append({"Key" : key})
+                if key[-1] == "/":
+                    raise RuntimeError(
+                        "The object \"" + key + "\" is a folder object. Please use the `delete_folder` method for this object"
+                    )
+                else:
+                    object_list.append({"Key" : key})
             else:
                 does_not_exist.append(key)
 
@@ -701,23 +706,29 @@ class HCPHandler:
         if key[-1] != "/":
             key += "/"
 
-        objects : list[str] = list(
-            obj["Key"] for obj in 
+        objects : list[dict[str, Any]] = list(
             self.list_objects(
                 key, 
                 output_mode = HCPHandler.ListObjectsOutputMode.MINIMAL
             )
         )
-        objects.append(key) # Include the object "folder" path to be deleted
 
         if not objects:
-            raise RuntimeError("\"" + key + "\"" + " is not a valid path") #TODO: change this error
+            raise RuntimeError(
+                "\"" + key + "\"" + " is not a valid path"
+            ) #TODO: change this error
 
-        for object_path in objects:
-            if (object_path[-1] == "/") and (not object_path == key): # `objects` might contain key, in which case everything is fine
-                raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
+        for object in objects:
+            if not object["IsFile"]: 
+                raise RuntimeError(
+                    "There is at least one subfolder in \"" + key + 
+                    "\". Please remove all subfolders before deleting \"" + 
+                    key + "\" itself"
+                )
         
-        return self.delete_objects(objects)
+        return self.delete_objects(
+            list(obj["Key"] for obj in objects) + [key.rstrip("/")] # Include the object "folder" path to be deleted
+        )
 
     def delete_bucket(self, bucket : str) -> str:
         """
