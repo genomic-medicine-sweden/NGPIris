@@ -212,8 +212,7 @@ class HCPHandler:
         try:
             response = dict(self.s3_client.head_bucket(Bucket = bucket_name))
         except EndpointConnectionError as e: # pragma: no cover
-            print(e)
-            raise VPNConnectionError("Please check your connection and that you have your VPN enabled")
+            raise e
         except ClientError as e:
             status_code = e.response["ResponseMetadata"].get("HTTPStatusCode", -1)
             match status_code:
@@ -430,7 +429,6 @@ class HCPHandler:
                     Config = self.transfer_config,
                 )
         except ClientError as e0: 
-            print(str(e0))
             raise e0
         except Exception as e: # pragma: no cover
             raise Exception(e)
@@ -612,14 +610,15 @@ class HCPHandler:
             )
 
     @check_mounted
-    def delete_objects(self, keys : list[str], verbose : bool = True) -> None:
-        """Delete a list of objects on the mounted bucket 
+    def delete_objects(self, keys : list[str]) -> str:
+        """
+        Delete a list of objects on the mounted bucket 
 
         :param keys: List of object names to be deleted
         :type keys: list[str]
 
-        :param verbose: Print the result of the deletion. Defaults to True
-        :type verbose: bool, optional
+        :return: The result of the deletion 
+        :rtype: str 
         """
         object_list = []
         does_not_exist = []
@@ -629,40 +628,47 @@ class HCPHandler:
             else:
                 does_not_exist.append(key)
 
+        result = ""
         if object_list:
             deletion_dict = {"Objects": object_list}
             response : dict = self.s3_client.delete_objects(
                 Bucket = self.bucket_name,
                 Delete = deletion_dict
             )
-            if verbose:
-                print(dumps(response, indent=4))
             
-        if verbose and does_not_exist:
-            print("The following could not be deleted because they didn't exist: \n" + "\n".join(does_not_exist))
+            deleted_files = list(d["Key"] for d in response["Deleted"])
+            result += "The following was successfully deleted: \n" + "\n".join(deleted_files)
+        
+        if does_not_exist:
+            result += "The following could not be deleted because they didn't exist: \n" + "\n".join(does_not_exist)
+        
+        return result
     
     @check_mounted
-    def delete_object(self, key : str, verbose : bool = True) -> None:
+    def delete_object(self, key : str) -> str:
         """
         Delete a single object in the mounted bucket
 
         :param key: The object to be deleted
         :type key: str
-        :param verbose: Print the result of the deletion. Defaults to True
-        :type verbose: bool, optional
+
+        :return: The result of the deletion 
+        :rtype: str 
         """
-        self.delete_objects([key], verbose = verbose)
+        return self.delete_objects([key])
 
     @check_mounted
-    def delete_folder(self, key : str, verbose : bool = True) -> None:
+    def delete_folder(self, key : str) -> str:
         """
         Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raised
 
         :param key: The folder of objects to be deleted
         :type key: str
-        :param verbose: Print the result of the deletion. defaults to True
-        :type verbose: bool, optional
+
         :raises RuntimeError: If there are subfolders, a RuntimeError is raised
+
+        :return: The result of the deletion 
+        :rtype: str
         """
         if key[-1] != "/":
             key += "/"
@@ -682,7 +688,23 @@ class HCPHandler:
         for object_path in objects:
             if (object_path[-1] == "/") and (not object_path == key): # `objects` might contain key, in which case everything is fine
                 raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
-        self.delete_objects(objects, verbose = verbose)
+        
+        return self.delete_objects(objects)
+
+    def delete_bucket(self, bucket : str) -> str:
+        """
+        Delete a specified bucket
+
+        :param bucket: The bucket to be deleted
+        :type bucket: str
+        :return: The result of the deletion 
+        :rtype: str 
+        """
+        self.s3_client.delete_bucket(
+            Bucket = bucket
+        )
+        # If the deletion was not successful, `self.s3_client.delete_bucket` would have thrown an error 
+        return bucket + " was successfully deleted"
 
     @check_mounted
     def search_in_bucket(
