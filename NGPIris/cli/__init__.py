@@ -286,10 +286,24 @@ def download(context : Context, bucket : str, source : str, destination : str, f
     help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
     is_flag = True
 )
+@click.option(
+    "-m",
+    "--mode", 
+    type = click.Choice(
+        ["files", "folder"],
+        case_sensitive = False
+    ),
+    default = "files",
+    help = (
+        "Allows for selection of between two modes: `files` or `folder`. " + 
+        "`files` is for deleting individual files, while `folder` is for " + 
+        "deleting a folder. `files` is default mode"
+    )
+)
 @click.pass_context
-def delete_object(context : Context, bucket : str, object : str, dry_run : bool):
+def delete(context : Context, bucket : str, object : str, dry_run : bool, mode : str):
     """
-    Delete an object from an HCP bucket/namespace. 
+    Delete objects in a HCP bucket/namespace.
 
     BUCKET is the name of the bucket where the object to be deleted exist.
 
@@ -298,37 +312,35 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not dry_run:
-        click.echo(hcph.delete_object(object))
-    else: 
-        click.echo("This command would delete:")
-        click.echo(list(hcph.list_objects(object))[0])
-
-@cli.command()
-@click.argument("bucket")
-@click.argument("folder")
-@click.option(
-    "-dr", 
-    "--dry_run", 
-    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
-    is_flag = True
-)
-@click.pass_context
-def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool):
-    """
-    Delete a folder from an HCP bucket/namespace. 
-
-    BUCKET is the name of the bucket where the folder to be deleted exist.
-
-    FOLDER is the name of the folder to be deleted.
-    """
-    hcph : HCPHandler = create_HCPHandler(context)
-    hcph.mount_bucket(bucket)
-    if not dry_run:
-        click.echo(hcph.delete_folder(folder))
+        match mode:
+            case "files":
+                try:
+                    click.echo(hcph.delete_object(object))
+                except RuntimeError:
+                    click.echo(
+                        "The object \"" + object + "\" is a folder object. Please use `-m folder` for this object",
+                        err = True
+                    )
+                    sys.exit(1)
+            case "folder":
+                click.echo(hcph.delete_folder(object))
     else:
-        click.echo("By deleting \"" + folder + "\", the following objects would have been deleted (not including objects in sub-folders):")
-        for obj in hcph.list_objects(folder):
-            click.echo(obj)
+        match mode:
+            case "files":
+                click.echo(
+                    "This command would have deleted the file object \"" + object + "\""
+                )
+            case "folder":
+                click.echo(
+                    "By deleting \"" + object + "\", the following file objects would have been deleted (this list exludes any potential sub-folders):"
+                )
+                lt.stream(
+                    hcph.list_objects(
+                        object,
+                        files_only = True
+                    ),
+                    headers = "keys"
+                )
 
 @cli.command()
 @click.argument("bucket")
