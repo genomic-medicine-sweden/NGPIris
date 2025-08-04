@@ -451,7 +451,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
             headers = "keys"
         )
 
-@cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
+@cli.command(short_help = "Make a simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
@@ -464,7 +464,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
 @click.pass_context
 def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool):
     """
-    Make simple search using substrings in a bucket/namespace on the HCP.
+    Make a simple search using substrings in a bucket/namespace on the HCP.
 
     NOTE: This command does not use the HCI. Instead, it uses a linear search of 
     all the objects in the HCP. As such, this search might be slow.
