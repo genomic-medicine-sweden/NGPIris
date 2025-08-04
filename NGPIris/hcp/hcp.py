@@ -645,6 +645,8 @@ class HCPHandler:
         :param keys: List of object names to be deleted
         :type keys: list[str]
 
+        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
+
         :return: The result of the deletion 
         :rtype: str 
         """
@@ -684,6 +686,8 @@ class HCPHandler:
 
         :param key: The object to be deleted
         :type key: str
+
+        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
 
         :return: The result of the deletion 
         :rtype: str 
