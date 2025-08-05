@@ -5,7 +5,6 @@ from NGPIris.hcp.helpers import (
     check_mounted
 )
 from NGPIris.hcp.exceptions import (
-    VPNConnectionError,
     BucketNotFound,
     BucketForbidden,
     ObjectAlreadyExist,
@@ -21,7 +20,6 @@ from botocore.exceptions import EndpointConnectionError, ClientError
 from boto3.s3.transfer import TransferConfig
 from configparser import ConfigParser
 from pathlib import Path
-from itertools import islice
 from more_itertools import peekable
 
 from os import (
@@ -98,7 +96,9 @@ class HCPHandler:
                     if mapped_tenant:
                         self.tenant = mapped_tenant
                     else:
-                        raise RuntimeError("The provided tenant name, \"" + tenant + "\", could is not a valid tenant name. Hint: did you spell it correctly?")
+                        raise RuntimeError(
+                            "The provided tenant name, \"" + tenant + "\", is not a valid tenant name. Hint: did you spell it correctly?"
+                        )
                 else:
                     self.tenant = tenant
                 
@@ -106,7 +106,9 @@ class HCPHandler:
         
 
         if not self.tenant:
-            raise RuntimeError("Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?")
+            raise RuntimeError(
+                "Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?"
+            )
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
         self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
         self.bucket_name = None
@@ -206,7 +208,9 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            raise RuntimeError("No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`")
+            raise RuntimeError(
+                "No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`"
+            )
         
         response = {}
         try:
@@ -217,9 +221,13 @@ class HCPHandler:
             status_code = e.response["ResponseMetadata"].get("HTTPStatusCode", -1)
             match status_code:
                 case 404:
-                    raise BucketNotFound("Bucket \"" + bucket_name + "\" was not found")
+                    raise BucketNotFound(
+                        "Bucket \"" + bucket_name + "\" was not found"
+                    )
                 case 403:
-                    raise BucketForbidden("Bucket \"" + bucket_name + "\" could not be accessed due to lack of permissions")
+                    raise BucketForbidden(
+                        "Bucket \"" + bucket_name + "\" could not be accessed due to lack of permissions"
+                    )
         except Exception as e: # pragma: no cover
             raise Exception(e)
             
@@ -266,7 +274,7 @@ class HCPHandler:
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
         EXTENDED = "extended"
-        NAME_ONLY = "name_only"
+        MINIMAL = "minimal"
 
     @check_mounted
     def list_objects(
@@ -286,7 +294,7 @@ class HCPHandler:
             The upload mode of the transfer is any of the following:\n
                     HCPHandler.ListObjectsOutputMode.SIMPLE,\n
                     HCPHandler.ListObjectsOutputMode.EXTENDED,\n
-                    HCPHandler.ListObjectsOutputMode.NAME_ONLY\n
+                    HCPHandler.ListObjectsOutputMode.MINIMAL\n
             Default is EXTENDED
         :type output_mode: ListObjectsOutputMode, optional
         :param files_only: If True, only yield file objects. Defaults to False
@@ -327,8 +335,11 @@ class HCPHandler:
                                 "LastModified" : folder_object_metadata["LastModified"],
                                 "IsFile" : False,
                             }
-                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
-                            yield {"Key" : folder_object["Prefix"]}   
+                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
+                            yield {
+                                "Key" : folder_object["Prefix"],
+                                "IsFile" : False,
+                            }
             
             # Handle file objects
             for file_object in page.get("Contents", []):
@@ -345,8 +356,11 @@ class HCPHandler:
                                 "Size" : file_object["Size"],
                                 "IsFile" : file_object["IsFile"]
                             }
-                        case HCPHandler.ListObjectsOutputMode.NAME_ONLY:
-                            yield {"Key" : file_object["Key"]}
+                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
+                            yield {
+                                "Key" : file_object["Key"],
+                                "IsFile" : file_object["IsFile"]
+                            }
                     
     @check_mounted
     def get_object(self, key : str) -> dict:
@@ -404,7 +418,9 @@ class HCPHandler:
         try:
             self.get_object(key)
         except:
-            raise ObjectDoesNotExist("Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+            raise ObjectDoesNotExist(
+                "Could not find object", "\"" + key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\""
+            )
         try:
             if show_progress_bar:
                 file_size : int = self.s3_client.head_object(Bucket = self.bucket_name, Key = key)["ContentLength"]
@@ -469,7 +485,9 @@ class HCPHandler:
         try:
             self.get_object(folder_key)
         except:
-            raise ObjectDoesNotExist("Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\"")
+            raise ObjectDoesNotExist(
+                "Could not find object", "\"" + folder_key + "\"", "in bucket", "\"" + str(self.bucket_name) + "\""
+            )
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(0) # For tracking download limit
             (Path(local_folder_path) / Path(folder_key)).mkdir(parents = True) # Create "base folder"
@@ -487,10 +505,14 @@ class HCPHandler:
                 else: # If the object is a file
                     current_download_size_in_bytes += Byte(object["Size"])
                     if current_download_size_in_bytes >= download_limit_in_bytes and use_download_limit:
-                        raise DownloadLimitReached("The download limit was reached when downloading files")
+                        raise DownloadLimitReached(
+                            "The download limit was reached when downloading files"
+                        )
                     self.download_file(object["Key"], p.as_posix(), show_progress_bar = show_progress_bar)
         else:
-            raise NotADirectory(local_folder_path + " is not a directory")
+            raise NotADirectory(
+                local_folder_path + " is not a directory"
+            )
     
     class UploadMode(Enum):
         STANDARD = "standard"
@@ -533,10 +555,14 @@ class HCPHandler:
             key = file_name
 
         if "\\" in local_file_path:
-            raise RuntimeError("The \"\\\" character is not allowed in the file path")
+            raise RuntimeError(
+                "The \"\\\" character is not allowed in the file path"
+            )
 
         if self.object_exists(key):
-            raise ObjectAlreadyExist("The object \"" + key + "\" already exist in the mounted bucket")
+            raise ObjectAlreadyExist(
+                "The object \"" + key + "\" already exist in the mounted bucket"
+            )
         else:
             file_size : int = stat(local_file_path).st_size
 
@@ -617,6 +643,8 @@ class HCPHandler:
         :param keys: List of object names to be deleted
         :type keys: list[str]
 
+        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
+
         :return: The result of the deletion 
         :rtype: str 
         """
@@ -624,7 +652,12 @@ class HCPHandler:
         does_not_exist = []
         for key in keys:
             if self.object_exists(key):
-                object_list.append({"Key" : key})
+                if key[-1] == "/":
+                    raise RuntimeError(
+                        "The object \"" + key + "\" is a folder object. Please use the `delete_folder` method for this object"
+                    )
+                else:
+                    object_list.append({"Key" : key})
             else:
                 does_not_exist.append(key)
 
@@ -652,6 +685,8 @@ class HCPHandler:
         :param key: The object to be deleted
         :type key: str
 
+        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
+
         :return: The result of the deletion 
         :rtype: str 
         """
@@ -672,24 +707,43 @@ class HCPHandler:
         """
         if key[-1] != "/":
             key += "/"
-
-        objects : list[str] = list(
-            obj["Key"] for obj in 
+        
+        objects : list[dict[str, Any]] = list(
             self.list_objects(
                 key, 
-                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY
+                output_mode = HCPHandler.ListObjectsOutputMode.MINIMAL
             )
         )
-        objects.append(key) # Include the object "folder" path to be deleted
 
+        if not self.object_exists(key):
+            raise RuntimeError(
+                "\"" + key + "\"" + " does not exist"
+            )
+
+        # If the folder object is empty, delete the object itself. Since 
+        # `delete_objects` was only made for file objects in mind then 
         if not objects:
-            raise RuntimeError("\"" + key + "\"" + " is not a valid path") #TODO: change this error
-
-        for object_path in objects:
-            if (object_path[-1] == "/") and (not object_path == key): # `objects` might contain key, in which case everything is fine
-                raise RuntimeError("There are subfolders in this folder. Please remove these first, before deleting this one")
+            result = "\"" + key + "\"" + " was deleted"
+        else:
+            for object in objects:
+                if not object["IsFile"]: 
+                    raise RuntimeError(
+                        "There is at least one subfolder in \"" + key + 
+                        "\". Please remove all subfolders before deleting \"" + 
+                        key + "\" itself"
+                    )
+            
+            result = self.delete_objects(
+                list(obj["Key"] for obj in objects)
+            )
         
-        return self.delete_objects(objects)
+        # Delete the folder object itself separately
+        self.s3_client.delete_object(
+            Bucket = self.bucket_name,
+            Key = key
+        )
+
+        return result
 
     def delete_bucket(self, bucket : str) -> str:
         """
@@ -740,9 +794,6 @@ class HCPHandler:
         :param search_string: Substring to be used in the search
         :type search_string: str
 
-        :param name_only: If True, yield only a the object names. If False, yield the full metadata about each object. Defaults to False.
-        :type name_only: bool, optional
-
         :param case_sensitive: Case sensitivity. Defaults to False
         :type case_sensitive: bool, optional
 
@@ -763,7 +814,7 @@ class HCPHandler:
         full_list_names_only = peekable(
             obj["Key"] for obj in 
             self.list_objects(
-                output_mode = HCPHandler.ListObjectsOutputMode.NAME_ONLY, 
+                output_mode = HCPHandler.ListObjectsOutputMode.MINIMAL, 
                 list_all_bucket_objects = True
             )
         )

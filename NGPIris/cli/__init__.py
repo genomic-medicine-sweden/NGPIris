@@ -92,7 +92,7 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
     CREDENTIALS refers to the path to the JSON credentials file.
     """
 
-@cli.command(short_help = "This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell")
+@cli.command(short_help = "This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell.")
 @click.argument(
     "credentials_path", 
     required = False
@@ -164,7 +164,7 @@ def shell_env(context : Context, credentials_path : str, shell : str):
 @click.pass_context
 def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool, upload_mode : str, equal_parts : int):
     """
-    Upload files to an HCP bucket/namespace. 
+    Upload files to a bucket/namespace on the HCP. 
     
     BUCKET is the name of the upload destination bucket.
 
@@ -196,7 +196,7 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
         else:
             hcph.upload_file(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
 
-@cli.command(short_help = "Download a file or folder from an HCP bucket/namespace.")
+@cli.command(short_help = "Download a file or folder from a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
@@ -221,7 +221,7 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
 @click.pass_context
 def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool, dry_run : bool):
     """
-    Download a file or folder from an HCP bucket/namespace.
+    Download a file or folder from a bucket/namespace from the HCP.
 
     BUCKET is the name of the download source bucket.
 
@@ -286,10 +286,24 @@ def download(context : Context, bucket : str, source : str, destination : str, f
     help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
     is_flag = True
 )
+@click.option(
+    "-m",
+    "--mode", 
+    type = click.Choice(
+        ["files", "folder"],
+        case_sensitive = False
+    ),
+    default = "folder",
+    help = (
+        "Allows for selection of between two modes: `files` or `folder`. " + 
+        "`files` is for deleting individual files, while `folder` is for " + 
+        "deleting a folder. `folder` is default mode"
+    )
+)
 @click.pass_context
-def delete_object(context : Context, bucket : str, object : str, dry_run : bool):
+def delete(context : Context, bucket : str, object : str, dry_run : bool, mode : str):
     """
-    Delete an object from an HCP bucket/namespace. 
+    Delete objects in a bucket/namespace on the HCP.
 
     BUCKET is the name of the bucket where the object to be deleted exist.
 
@@ -298,37 +312,35 @@ def delete_object(context : Context, bucket : str, object : str, dry_run : bool)
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not dry_run:
-        click.echo(hcph.delete_object(object))
-    else: 
-        click.echo("This command would delete:")
-        click.echo(list(hcph.list_objects(object))[0])
-
-@cli.command()
-@click.argument("bucket")
-@click.argument("folder")
-@click.option(
-    "-dr", 
-    "--dry_run", 
-    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
-    is_flag = True
-)
-@click.pass_context
-def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool):
-    """
-    Delete a folder from an HCP bucket/namespace. 
-
-    BUCKET is the name of the bucket where the folder to be deleted exist.
-
-    FOLDER is the name of the folder to be deleted.
-    """
-    hcph : HCPHandler = create_HCPHandler(context)
-    hcph.mount_bucket(bucket)
-    if not dry_run:
-        click.echo(hcph.delete_folder(folder))
+        match mode:
+            case "files":
+                try:
+                    click.echo(hcph.delete_object(object))
+                except RuntimeError:
+                    click.echo(
+                        "The object \"" + object + "\" is a folder object. Please use `-m folder` for this object",
+                        err = True
+                    )
+                    sys.exit(1)
+            case "folder":
+                click.echo(hcph.delete_folder(object))
     else:
-        click.echo("By deleting \"" + folder + "\", the following objects would have been deleted (not including objects in sub-folders):")
-        for obj in hcph.list_objects(folder):
-            click.echo(obj)
+        match mode:
+            case "files":
+                click.echo(
+                    "This command would have deleted the file object \"" + object + "\""
+                )
+            case "folder":
+                click.echo(
+                    "By deleting \"" + object + "\", the following file objects would have been deleted (this list exludes any potential sub-folders):"
+                )
+                lt.stream(
+                    hcph.list_objects(
+                        object,
+                        files_only = True
+                    ),
+                    headers = "keys"
+                )
 
 @cli.command()
 @click.argument("bucket")
@@ -340,6 +352,9 @@ def delete_folder(context : Context, bucket : str, folder : str, dry_run : bool)
 )
 @click.pass_context
 def delete_bucket(context : Context, bucket : str, dry_run : bool):
+    """
+    Delete a bucket/namespace on the HCP
+    """
     hcph : HCPHandler = create_HCPHandler(context)
     if not dry_run:
         click.echo(hcph.delete_bucket(bucket))
@@ -436,7 +451,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
             headers = "keys"
         )
 
-@cli.command(short_help = "Make simple search using substrings in a bucket/namespace on the HCP.")
+@cli.command(short_help = "Make a simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
@@ -449,7 +464,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
 @click.pass_context
 def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool):
     """
-    Make simple search using substrings in a bucket/namespace on the HCP.
+    Make a simple search using substrings in a bucket/namespace on the HCP.
 
     NOTE: This command does not use the HCI. Instead, it uses a linear search of 
     all the objects in the HCP. As such, this search might be slow.
