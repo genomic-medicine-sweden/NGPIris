@@ -3,8 +3,10 @@ from pytest import Config, fixture, UsageError
 from configparser import ConfigParser
 from typing import Any, Generator
 from shutil import rmtree
+from pathlib import Path
 
 from NGPIris.hcp import HCPHandler
+from NGPIris.hci import HCIHandler
 
 class CustomConfig:
     """A typed wrapper around pytest.Config for dynamic attributes."""
@@ -15,6 +17,11 @@ class CustomConfig:
     def hcp_h(self) -> HCPHandler:
         """Access the HCPHandler instance."""
         return getattr(self._config, "hcp_h")
+
+    @property
+    def hci_h(self) -> HCIHandler:
+        """Access the HCIHandler instance."""
+        return getattr(self._config, "hci_h")
 
     def __getattr__(self, name : str) -> Any:
         """Dynamically get attributes set during pytest configuration."""
@@ -47,8 +54,14 @@ def pytest_configure(config : Config) -> None:
         # Dynamically add an HCPHandler instance to config
         setattr(config, "hcp_h", HCPHandler(parser.get("General", "credentials_path")))
 
+        # Dynamically add an HCIHandler instance to config
+        setattr(config, "hci_h", HCIHandler(parser.get("General", "credentials_path")))
+
         # Dynamically add all key-value pairs from "HCP_tests" section
         set_section(config, parser, "HCP_tests")
+
+        # Dynamically add all key-value pairs from "HCI_tests" section
+        set_section(config, parser, "HCI_tests")
 
 @fixture(scope = "session")
 def hcp_result_path(pytestconfig : Config) -> str:
@@ -59,7 +72,8 @@ def clean_up_after_tests(hcp_result_path : str) -> Generator[None, Any, None]:
     # Setup code can go here if needed
     yield
     # Teardown code
-    rmtree(hcp_result_path)
+    if Path(hcp_result_path).exists():
+        rmtree(hcp_result_path)
 
 @fixture
 def custom_config(pytestconfig : Config) -> CustomConfig:
