@@ -55,7 +55,7 @@ class HCPHandler:
         Class for handling HCP requests.
 
         :param credentials: If `credentials` is a `str`, then it will be interpreted as a path to the JSON credentials file. If `credentials` is a `dict`, then a dictionary with the appropriate HCP credentials is expected: ```{"endpoint" : "", "aws_access_key_id" : "", "aws_secret_access_key" : "" }```
-        :type credentials: str | dict
+        :type credentials: str | dict[str, str]
         
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
