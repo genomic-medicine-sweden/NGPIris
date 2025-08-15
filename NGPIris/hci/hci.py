@@ -14,25 +14,32 @@ from urllib3 import disable_warnings
 from json import load
 
 class HCIHandler:
-    def __init__(self, credentials_path : str, use_ssl : bool = False) -> None:
+    def __init__(self, credentials : str | dict[str, str], use_ssl : bool = False) -> None:
         """
         Class for handling HCI requests.
 
-        :param credentials_path: Path to the JSON credentials file
-        :type credentials_path: str
+        :param credentials_path: If `credentials` is a `str`, then it will be interpreted as a path to the JSON credentials file. If `credentials` is a `dict`, then a dictionary with the appropriate HCI credentials is expected: ```{"username" : "", "password" : "", "address" : "", "auth_port" : "", "api_port" : ""}```
+        :type credentials_path: str | dict[str, str]
 
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
         """
-        credentials_handler = CredentialsHandler(credentials_path)
-        self.hci = credentials_handler.hci
+        if type(credentials) is str:
+            credentials_handler = CredentialsHandler(credentials)
+            self.hci = credentials_handler.hci
+            
+            self.username = self.hci["username"]
+            self.password = self.hci["password"]
+            self.address = self.hci["address"]
+            self.auth_port = self.hci["auth_port"]
+            self.api_port = self.hci["api_port"]
+        elif type(credentials) is dict:
+            self.username = credentials["username"]
+            self.password = credentials["password"]
+            self.address = credentials["address"]
+            self.auth_port = credentials["auth_port"]
+            self.api_port = credentials["api_port"]
         
-        self.username = self.hci["username"]
-        self.password = self.hci["password"]
-        self.address = self.hci["address"]
-        self.auth_port = self.hci["auth_port"]
-        self.api_port = self.hci["api_port"]
-
         self.token = ""
 
         self.use_ssl = use_ssl
