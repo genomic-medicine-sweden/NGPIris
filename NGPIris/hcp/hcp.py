@@ -7,10 +7,16 @@ from NGPIris.hcp.helpers import (
 from NGPIris.hcp.exceptions import (
     BucketNotFound,
     BucketForbidden,
+    NoBucketMounted,
     ObjectAlreadyExist,
     ObjectDoesNotExist,
     DownloadLimitReached,
-    NotADirectory
+    NotADirectory,
+    NotAValidTenant,
+    UnableToParseEndpoint,
+    UnallowedCharacter,
+    IsFolderObject,
+    SubfolderException
 )
 
 from boto3 import client
@@ -96,7 +102,7 @@ class HCPHandler:
                     if mapped_tenant:
                         self.tenant = mapped_tenant
                     else:
-                        raise RuntimeError(
+                        raise NotAValidTenant(
                             "The provided tenant name, \"" + tenant + "\", is not a valid tenant name. Hint: did you spell it correctly?"
                         )
                 else:
@@ -106,7 +112,7 @@ class HCPHandler:
         
 
         if not self.tenant:
-            raise RuntimeError(
+            raise UnableToParseEndpoint(
                 "Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?"
             )
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
@@ -208,7 +214,7 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            raise RuntimeError(
+            raise NoBucketMounted(
                 "No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`"
             )
         
@@ -555,7 +561,7 @@ class HCPHandler:
             key = file_name
 
         if "\\" in local_file_path:
-            raise RuntimeError(
+            raise UnallowedCharacter(
                 "The \"\\\" character is not allowed in the file path"
             )
 
@@ -653,7 +659,7 @@ class HCPHandler:
         for key in keys:
             if self.object_exists(key):
                 if key[-1] == "/":
-                    raise RuntimeError(
+                    raise IsFolderObject(
                         "The object \"" + key + "\" is a folder object. Please use the `delete_folder` method for this object"
                     )
                 else:
@@ -716,7 +722,7 @@ class HCPHandler:
         )
 
         if not self.object_exists(key):
-            raise RuntimeError(
+            raise ObjectDoesNotExist(
                 "\"" + key + "\"" + " does not exist"
             )
 
@@ -727,7 +733,7 @@ class HCPHandler:
         else:
             for object in objects:
                 if not object["IsFile"]: 
-                    raise RuntimeError(
+                    raise SubfolderException(
                         "There is at least one subfolder in \"" + key + 
                         "\". Please remove all subfolders before deleting \"" + 
                         key + "\" itself"

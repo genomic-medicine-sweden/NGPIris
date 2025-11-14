@@ -1,5 +1,3 @@
-class VPNConnectionError(Exception):
-    pass
 
 class NoBucketMounted(Exception):
     pass
@@ -20,4 +18,19 @@ class DownloadLimitReached(Exception):
     pass
 
 class NotADirectory(Exception):
+    pass
+
+class NotAValidTenant(Exception):
+    pass
+
+class UnableToParseEndpoint(Exception):
+    pass
+
+class UnallowedCharacter(Exception):
+    pass
+
+class IsFolderObject(Exception):
+    pass
+
+class SubfolderException(Exception):
     pass
