@@ -8,7 +8,7 @@
   "exclude": [
     ".github",
     ".venv",
-    "typings/",
+    "typings/"
   ],
 
   "reportMissingImports": "error",

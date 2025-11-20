@@ -7,10 +7,16 @@ from NGPIris.hcp.helpers import (
 from NGPIris.hcp.exceptions import (
     BucketNotFound,
     BucketForbidden,
+    NoBucketMounted,
     ObjectAlreadyExist,
     ObjectDoesNotExist,
     DownloadLimitReached,
-    NotADirectory
+    NotADirectory,
+    NotAValidTenant,
+    UnableToParseEndpoint,
+    UnallowedCharacter,
+    IsFolderObject,
+    SubfolderException
 )
 
 from boto3 import client
@@ -60,6 +66,10 @@ class HCPHandler:
         
         :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
         :type custom_config_path: str, optional
+
+        :raise NotAValidTenant: If the tenant in the specified endpoint is not valid
+
+        :raise UnableToParseEndpoint: The endpoint could not be parsed
         """
         if type(credentials) is str:
             credentials_handler = CredentialsHandler(credentials)
@@ -96,7 +106,7 @@ class HCPHandler:
                     if mapped_tenant:
                         self.tenant = mapped_tenant
                     else:
-                        raise RuntimeError(
+                        raise NotAValidTenant(
                             "The provided tenant name, \"" + tenant + "\", is not a valid tenant name. Hint: did you spell it correctly?"
                         )
                 else:
@@ -106,7 +116,7 @@ class HCPHandler:
         
 
         if not self.tenant:
-            raise RuntimeError(
+            raise UnableToParseEndpoint(
                 "Unable to parse endpoint, \"" + self.endpoint + "\". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain \"https://\" or port numbers\n - Is the endpoint spelled correctly?"
             )
         self.base_request_url = self.endpoint + ":9090/mapi/tenants/" + self.tenant
@@ -168,6 +178,7 @@ class HCPHandler:
 
         :param path_extension: Extension for the base request URL, defaults to the empty string
         :type path_extension: str, optional
+
         :return: The response as a dictionary
         :rtype: dict
         """
@@ -195,8 +206,8 @@ class HCPHandler:
         :param bucket_name: The name of the bucket to be mounted. Defaults to the empty string
         :type bucket_name: str, optional
 
-        :raises RuntimeError: If no bucket is selected
-        :raises VPNConnectionError: If there is no VPN connection
+        :raises NoBucketMounted: If no bucket is selected
+        :raises EndpointConnectionError: If the endpoint can't be reached
         :raises BucketNotFound: If no bucket of that name was found
         :raises Exception: Other exceptions
 
@@ -208,7 +219,7 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            raise RuntimeError(
+            raise NoBucketMounted(
                 "No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`"
             )
         
@@ -414,6 +425,11 @@ class HCPHandler:
         :type show_progress_bar: bool, optional
 
         :raises ObjectDoesNotExist: If the object does not exist in the bucket
+
+        :raises ClientError:
+            Underlying botocore exception.
+            https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html#aws-service-exceptions
+        :raises Exception: Other exceptions
         """
         try:
             self.get_object(key)
@@ -544,7 +560,9 @@ class HCPHandler:
         :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
 
-        :raises RuntimeError: If the \"\\\" is used in the file path 
+        :raises FileNotFoundError: If `path` does not exist
+
+        :raises UnallowedCharacter: If the \"\\\" is used in the file path
         
         :raises ObjectAlreadyExist: If the object already exist on the mounted bucket
         """
@@ -555,7 +573,7 @@ class HCPHandler:
             key = file_name
 
         if "\\" in local_file_path:
-            raise RuntimeError(
+            raise UnallowedCharacter(
                 "The \"\\\" character is not allowed in the file path"
             )
 
@@ -619,6 +637,8 @@ class HCPHandler:
 
         :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
+
+        :raises FileNotFoundError: If `path` does not exist
         """
         raise_path_error(local_folder_path)
 
@@ -643,7 +663,7 @@ class HCPHandler:
         :param keys: List of object names to be deleted
         :type keys: list[str]
 
-        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
+        :raises IsFolderObject: If the provided object is a folder object
 
         :return: The result of the deletion 
         :rtype: str 
@@ -653,7 +673,7 @@ class HCPHandler:
         for key in keys:
             if self.object_exists(key):
                 if key[-1] == "/":
-                    raise RuntimeError(
+                    raise IsFolderObject(
                         "The object \"" + key + "\" is a folder object. Please use the `delete_folder` method for this object"
                     )
                 else:
@@ -685,7 +705,7 @@ class HCPHandler:
         :param key: The object to be deleted
         :type key: str
 
-        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
+        :raises IsFolderObject: If the provided object is a folder object
 
         :return: The result of the deletion 
         :rtype: str 
@@ -695,12 +715,15 @@ class HCPHandler:
     @check_mounted
     def delete_folder(self, key : str) -> str:
         """
-        Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raised
+        Delete a folder of objects in the mounted bucket. If there are
+        subfolders, a `SubfolderException` is raised
 
         :param key: The folder of objects to be deleted
         :type key: str
 
-        :raises RuntimeError: If there are subfolders, a RuntimeError is raised
+        :raises ObjectDoesNotExist: If an object does not exist
+
+        :raises SubfolderException: If there are subfolders
 
         :return: The result of the deletion 
         :rtype: str
@@ -716,7 +739,7 @@ class HCPHandler:
         )
 
         if not self.object_exists(key):
-            raise RuntimeError(
+            raise ObjectDoesNotExist(
                 "\"" + key + "\"" + " does not exist"
             )
 
@@ -727,7 +750,7 @@ class HCPHandler:
         else:
             for object in objects:
                 if not object["IsFile"]: 
-                    raise RuntimeError(
+                    raise SubfolderException(
                         "There is at least one subfolder in \"" + key + 
                         "\". Please remove all subfolders before deleting \"" + 
                         key + "\" itself"
