@@ -66,6 +66,10 @@ class HCPHandler:
         
         :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
         :type custom_config_path: str, optional
+
+        :raise NotAValidTenant: If the tenant in the specified endpoint is not valid
+
+        :raise UnableToParseEndpoint: The endpoint could not be parsed
         """
         if type(credentials) is str:
             credentials_handler = CredentialsHandler(credentials)
@@ -174,6 +178,7 @@ class HCPHandler:
 
         :param path_extension: Extension for the base request URL, defaults to the empty string
         :type path_extension: str, optional
+
         :return: The response as a dictionary
         :rtype: dict
         """
@@ -201,8 +206,8 @@ class HCPHandler:
         :param bucket_name: The name of the bucket to be mounted. Defaults to the empty string
         :type bucket_name: str, optional
 
-        :raises RuntimeError: If no bucket is selected
-        :raises VPNConnectionError: If there is no VPN connection
+        :raises NoBucketMounted: If no bucket is selected
+        :raises EndpointConnectionError: If the endpoint can't be reached
         :raises BucketNotFound: If no bucket of that name was found
         :raises Exception: Other exceptions
 
@@ -420,6 +425,11 @@ class HCPHandler:
         :type show_progress_bar: bool, optional
 
         :raises ObjectDoesNotExist: If the object does not exist in the bucket
+
+        :raises ClientError:
+            Underlying botocore exception.
+            https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html#aws-service-exceptions
+        :raises Exception: Other exceptions
         """
         try:
             self.get_object(key)
@@ -550,7 +560,9 @@ class HCPHandler:
         :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
 
-        :raises RuntimeError: If the \"\\\" is used in the file path 
+        :raises FileNotFoundError: If `path` does not exist
+
+        :raises UnallowedCharacter: If the \"\\\" is used in the file path
         
         :raises ObjectAlreadyExist: If the object already exist on the mounted bucket
         """
@@ -625,6 +637,8 @@ class HCPHandler:
 
         :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
+
+        :raises FileNotFoundError: If `path` does not exist
         """
         raise_path_error(local_folder_path)
 
@@ -649,7 +663,7 @@ class HCPHandler:
         :param keys: List of object names to be deleted
         :type keys: list[str]
 
-        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
+        :raises IsFolderObject: If the provided object is a folder object
 
         :return: The result of the deletion 
         :rtype: str 
@@ -691,7 +705,7 @@ class HCPHandler:
         :param key: The object to be deleted
         :type key: str
 
-        :raises RuntimeError: If the provided object is a folder object, then a `RuntimeError` is raised
+        :raises IsFolderObject: If the provided object is a folder object
 
         :return: The result of the deletion 
         :rtype: str 
@@ -701,12 +715,15 @@ class HCPHandler:
     @check_mounted
     def delete_folder(self, key : str) -> str:
         """
-        Delete a folder of objects in the mounted bucket. If there are subfolders, a RuntimeError is raised
+        Delete a folder of objects in the mounted bucket. If there are
+        subfolders, a `SubfolderException` is raised
 
         :param key: The folder of objects to be deleted
         :type key: str
 
-        :raises RuntimeError: If there are subfolders, a RuntimeError is raised
+        :raises ObjectDoesNotExist: If an object does not exist
+
+        :raises SubfolderException: If there are subfolders
 
         :return: The result of the deletion 
         :rtype: str
