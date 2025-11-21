@@ -168,11 +168,11 @@ class HCPHandler:
 
             self.transfer_config = TransferConfig(
                 multipart_threshold=ini_config.getint(
-                    "hcp", "multipart_threshold"
+                    "hcp", "multipart_threshold",
                 ),
                 max_concurrency=ini_config.getint("hcp", "max_concurrency"),
                 multipart_chunksize=ini_config.getint(
-                    "hcp", "multipart_chunksize"
+                    "hcp", "multipart_chunksize",
                 ),
                 use_threads=ini_config.getboolean("hcp", "use_threads"),
             )
@@ -242,7 +242,7 @@ class HCPHandler:
             raise e
         except ClientError as e:
             status_code = e.response["ResponseMetadata"].get(
-                "HTTPStatusCode", -1
+                "HTTPStatusCode", -1,
             )
             match status_code:
                 case 404:
@@ -334,7 +334,7 @@ class HCPHandler:
             pages: PageIterator = paginator.paginate(Bucket=self.bucket_name)
         else:
             pages: PageIterator = paginator.paginate(
-                Bucket=self.bucket_name, Prefix=path_key, Delimiter="/"
+                Bucket=self.bucket_name, Prefix=path_key, Delimiter="/",
             )
 
         for page in pages:
@@ -350,7 +350,7 @@ class HCPHandler:
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object: dict
                     folder_object_metadata = self.get_object(
-                        folder_object["Prefix"]
+                        folder_object["Prefix"],
                     )
                     match output_mode:
                         case HCPHandler.ListObjectsOutputMode.EXTENDED:
@@ -412,7 +412,7 @@ class HCPHandler:
             self.s3_client.get_object(
                 Bucket=self.bucket_name,
                 Key=key,
-            )
+            ),
         )
         return response
 
@@ -438,7 +438,7 @@ class HCPHandler:
 
     @check_mounted
     def download_file(
-        self, key: str, local_file_path: str, show_progress_bar: bool = True
+        self, key: str, local_file_path: str, show_progress_bar: bool = True,
     ) -> None:
         """
         Download one object file from the mounted bucket
@@ -471,7 +471,7 @@ class HCPHandler:
         try:
             if show_progress_bar:
                 file_size: int = self.s3_client.head_object(
-                    Bucket=self.bucket_name, Key=key
+                    Bucket=self.bucket_name, Key=key,
                 )["ContentLength"]
                 with tqdm(
                     total=file_size,
@@ -485,7 +485,7 @@ class HCPHandler:
                         Filename=local_file_path,
                         Config=self.transfer_config,
                         Callback=lambda bytes_transferred: pbar.update(
-                            bytes_transferred
+                            bytes_transferred,
                         ),
                     )
             else:
@@ -544,13 +544,13 @@ class HCPHandler:
             )
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(
-                0
+                0,
             )  # For tracking download limit
             (Path(local_folder_path) / Path(folder_key)).mkdir(
-                parents=True
+                parents=True,
             )  # Create "base folder"
             for object in self.list_objects(
-                folder_key
+                folder_key,
             ):  # Build the tree with directories or add files:
                 p = Path(local_folder_path) / Path(object["Key"])
                 if not object["IsFile"]:  # If the object is a "folder"
@@ -650,7 +650,7 @@ class HCPHandler:
                 config = TransferConfig(multipart_chunksize=file_size)
             case HCPHandler.UploadMode.EQUAL_PARTS:
                 config = TransferConfig(
-                    multipart_chunksize=round(file_size / equal_parts)
+                    multipart_chunksize=round(file_size / equal_parts),
                 )
 
         if show_progress_bar:
@@ -666,7 +666,7 @@ class HCPHandler:
                     Key=key,
                     Config=config,
                     Callback=lambda bytes_transferred: pbar.update(
-                        bytes_transferred
+                        bytes_transferred,
                     ),
                 )
         else:
@@ -762,7 +762,7 @@ class HCPHandler:
 
             deleted_files = list(d["Key"] for d in response["Deleted"])
             result += "The following was successfully deleted: \n" + "\n".join(
-                deleted_files
+                deleted_files,
             )
 
         if does_not_exist:
@@ -960,7 +960,7 @@ class HCPHandler:
 
     @check_mounted
     def modify_single_object_acl(
-        self, key: str, user_ID: str, permission: str
+        self, key: str, user_ID: str, permission: str,
     ) -> None:
         """
         Modify permissions for a user in the Access Control List (ACL) for one object
@@ -984,7 +984,7 @@ class HCPHandler:
             Bucket=self.bucket_name,
             Key=key,
             AccessControlPolicy=create_access_control_policy(
-                {user_ID: permission}
+                {user_ID: permission},
             ),
         )
 
@@ -1008,13 +1008,13 @@ class HCPHandler:
         self.s3_client.put_bucket_acl(
             Bucket=self.bucket_name,
             AccessControlPolicy=create_access_control_policy(
-                {user_ID: permission}
+                {user_ID: permission},
             ),
         )
 
     @check_mounted
     def modify_object_acl(
-        self, key_user_ID_permissions: dict[str, dict[str, str]]
+        self, key_user_ID_permissions: dict[str, dict[str, str]],
     ) -> None:
         """
         Modifies  permissions to multiple objects, see below.
@@ -1029,7 +1029,7 @@ class HCPHandler:
                 Bucket=self.bucket_name,
                 Key=key,
                 AccessControlPolicy=create_access_control_policy(
-                    user_ID_permissions
+                    user_ID_permissions,
                 ),
             )
 
@@ -1044,6 +1044,6 @@ class HCPHandler:
         self.s3_client.put_bucket_acl(
             Bucket=self.bucket_name,
             AccessControlPolicy=create_access_control_policy(
-                user_ID_permissions
+                user_ID_permissions,
             ),
         )

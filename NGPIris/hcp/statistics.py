@@ -11,7 +11,7 @@ class HCPStatistics(HCPHandler):
         custom_config_path: str = "",
     ) -> None:
         super().__init__(
-            credentials_path, use_ssl, proxy_path, custom_config_path
+            credentials_path, use_ssl, proxy_path, custom_config_path,
         )
 
     @check_mounted
@@ -21,11 +21,11 @@ class HCPStatistics(HCPHandler):
     @check_mounted
     def get_namespace_statistics(self) -> dict:
         return self.get_response(
-            "/namespaces/" + self.bucket_name + "/statistics"
+            "/namespaces/" + self.bucket_name + "/statistics",
         )  # type: ignore
 
     @check_mounted
     def get_namespace_permissions(self) -> dict:
         return self.get_response(
-            "/namespaces/" + self.bucket_name + "/permissions"
+            "/namespaces/" + self.bucket_name + "/permissions",
         )  # type: ignore

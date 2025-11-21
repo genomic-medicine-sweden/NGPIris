@@ -4,7 +4,7 @@ from requests import Response, get, post
 
 
 def get_index_response(
-    address: str, api_port: str, token: str, use_ssl: bool
+    address: str, api_port: str, token: str, use_ssl: bool,
 ) -> Response:
     """
     Retrieve the index response given the address, API port and token.

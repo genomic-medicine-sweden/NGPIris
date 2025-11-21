@@ -101,7 +101,7 @@ def cli(context: Context, credentials: str, debug: bool, transfer_config: str):
 
 
 @cli.command(
-    short_help="This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell."
+    short_help="This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell.",
 )
 @click.argument(
     "credentials_path",
@@ -136,7 +136,7 @@ def shell_env(context: Context, credentials_path: str, shell: str):
         click.prompt("Please enter the path to your credentials file")
 
     click.echo(
-        "Copy and paste the following command in order to set your environment variable:"
+        "Copy and paste the following command in order to set your environment variable:",
     )
     match shell:
         case "bash":
@@ -195,7 +195,7 @@ def upload(
     """
     if equal_parts <= 0:
         click.echo(
-            "Error: --equal_parts value must be a positive integer", err=True
+            "Error: --equal_parts value must be a positive integer", err=True,
         )
         sys.exit(1)
 
@@ -212,7 +212,7 @@ def upload(
                 + source
                 + '" to "'
                 + destination
-                + '"'
+                + '"',
             )
         else:
             hcph.upload_folder(
@@ -230,7 +230,7 @@ def upload(
                 + source
                 + '" to "'
                 + destination
-                + '"'
+                + '"',
             )
         else:
             hcph.upload_file(
@@ -242,7 +242,7 @@ def upload(
 
 
 @cli.command(
-    short_help="Download a file or folder from a bucket/namespace on the HCP."
+    short_help="Download a file or folder from a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.argument("source")
@@ -333,18 +333,18 @@ def download(
             downloaded_source = Path(destination) / Path(source).name
             if downloaded_source.exists() and not force:
                 exit(
-                    "Object already exists. If you wish to overwrite the existing file, use the -f, --force option"
+                    "Object already exists. If you wish to overwrite the existing file, use the -f, --force option",
                 )
             hcph.download_file(source, downloaded_source.as_posix())
     elif object_is_folder(source, hcph):
         click.echo(
             'This command would have downloaded the folder "'
             + source
-            + "\". If you wish to know the contents of this folder, use the 'list-objects' command"
+            + "\". If you wish to know the contents of this folder, use the 'list-objects' command",
         )
     else:
         click.echo(
-            'This command would have downloaded the object "' + source + '":'
+            'This command would have downloaded the object "' + source + '":',
         )
         click.echo(list(hcph.list_objects(source))[0])
 
@@ -374,7 +374,7 @@ def download(
 )
 @click.pass_context
 def delete(
-    context: Context, bucket: str, object: str, dry_run: bool, mode: str
+    context: Context, bucket: str, object: str, dry_run: bool, mode: str,
 ):
     """
     Delete objects in a bucket/namespace on the HCP.
@@ -441,7 +441,7 @@ def delete_bucket(context: Context, bucket: str, dry_run: bool):
         click.echo(hcph.delete_bucket(bucket))
     else:
         click.echo(
-            'This command would have deleted the bucket called "' + bucket + '"'
+            'This command would have deleted the bucket called "' + bucket + '"',
         )
 
 
@@ -460,7 +460,7 @@ def list_buckets(context: Context):
 
 
 @cli.command(
-    short_help="List the objects in a certain bucket/namespace on the HCP."
+    short_help="List the objects in a certain bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.argument("path", required=False)
@@ -514,7 +514,7 @@ def list_objects(
         printable in a terminal
         """
         objects = hcph.list_objects(
-            path, output_mode=output_mode, files_only=files_only
+            path, output_mode=output_mode, files_only=files_only,
         )
         for obj in objects:
             yield str(obj) + "\n"
@@ -556,7 +556,7 @@ def list_objects(
 
 
 @cli.command(
-    short_help="Make a simple search using substrings in a bucket/namespace on the HCP."
+    short_help="Make a simple search using substrings in a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -569,7 +569,7 @@ def list_objects(
 )
 @click.pass_context
 def simple_search(
-    context: Context, bucket: str, search_string: str, case_sensitive: bool
+    context: Context, bucket: str, search_string: str, case_sensitive: bool,
 ):
     """
     Make a simple search using substrings in a bucket/namespace on the HCP.
@@ -595,7 +595,7 @@ def simple_search(
 
 
 @cli.command(
-    short_help="Make a fuzzy search using a search string in a bucket/namespace on the HCP."
+    short_help="Make a fuzzy search using a search string in a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.argument("search_string")

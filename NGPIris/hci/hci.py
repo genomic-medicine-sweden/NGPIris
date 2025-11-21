@@ -10,7 +10,7 @@ from NGPIris.parse_credentials import CredentialsHandler
 
 class HCIHandler:
     def __init__(
-        self, credentials: str | dict[str, str], use_ssl: bool = False
+        self, credentials: str | dict[str, str], use_ssl: bool = False,
     ) -> None:
         """
         Class for handling HCI requests.
@@ -83,7 +83,7 @@ class HCIHandler:
         :rtype: list[str]
         """
         response: Response = get_index_response(
-            self.address, self.api_port, self.token, self.use_ssl
+            self.address, self.api_port, self.token, self.use_ssl,
         )
         return [entry["name"] for entry in response.json()]
 
@@ -99,7 +99,7 @@ class HCIHandler:
         :rtype: dict
         """
         response: Response = get_index_response(
-            self.address, self.api_port, self.token, self.use_ssl
+            self.address, self.api_port, self.token, self.use_ssl,
         )
 
         for entry in response.json():
@@ -125,7 +125,7 @@ class HCIHandler:
                 self.api_port,
                 self.token,
                 self.use_ssl,
-            ).json()
+            ).json(),
         )
 
     def raw_query_from_JSON(self, query_path: str) -> dict:
@@ -146,11 +146,11 @@ class HCIHandler:
                     self.api_port,
                     self.token,
                     self.use_ssl,
-                ).json()
+                ).json(),
             )
 
     def query(
-        self, index_name: str, query_string: str = "", facets: list[str] = []
+        self, index_name: str, query_string: str = "", facets: list[str] = [],
     ) -> dict:
         """
         Make a query to the HCI based on the parameters of this method
