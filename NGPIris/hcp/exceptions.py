@@ -1,5 +1,5 @@
-
 # -------------- Parsing exceptions --------------
+
 
 class NotAValidTenant(Exception):
     """
@@ -35,6 +35,7 @@ class BucketForbidden(Exception):
 
 # -------------- Bucket object exceptions --------------
 
+
 class ObjectAlreadyExist(Exception):
     """
     The object already exist on the mounted bucket.
@@ -68,6 +69,7 @@ class DownloadLimitReached(Exception):
 
 # -------------- File system exceptions --------------
 
+
 class NotADirectory(Exception):
     """
     The given file system path is not a directory
@@ -78,4 +80,3 @@ class UnallowedCharacter(Exception):
     """
     A character that is not allowed was used.
     """
-

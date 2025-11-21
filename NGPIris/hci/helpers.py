@@ -1,10 +1,11 @@
-
 from json import dumps
 
 from requests import Response, get, post
 
 
-def get_index_response(address : str, api_port : str, token : str, use_ssl : bool) -> Response:
+def get_index_response(
+    address: str, api_port: str, token: str, use_ssl: bool
+) -> Response:
     """
     Retrieve the index response given the address, API port and token.
 
@@ -14,7 +15,7 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
     :param api_port: The API port at the given address
     :type api_port: str
 
-    :param token: The HCI token 
+    :param token: The HCI token
     :type token: str
 
     :param use_ssl: Boolean choice of using SSL
@@ -23,30 +24,31 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
     :return: A response containing information about the index
     :rtype: requests.Response
     """
-    url     : str            = "https://" + address + ":" + api_port + "/api/search/indexes/"
-    headers : dict[str, str] = {
+    url: str = "https://" + address + ":" + api_port + "/api/search/indexes/"
+    headers: dict[str, str] = {
         "Accept": "application/json",
         "Authorization": "Bearer " + token,
     }
 
-    response : Response = get(
+    response: Response = get(
         url,
-        headers = headers,
-        verify = use_ssl,
+        headers=headers,
+        verify=use_ssl,
     )
 
     response.raise_for_status()
 
     return response
 
+
 def get_query_response(
-        query_dict : dict[str, str | list | dict],
-        address : str,
-        api_port : str,
-        token : str,
-        use_ssl : bool,
-        path_extension : str = "",
-    ) -> Response:
+    query_dict: dict[str, str | list | dict],
+    address: str,
+    api_port: str,
+    token: str,
+    use_ssl: bool,
+    path_extension: str = "",
+) -> Response:
     """
     Retrieve the query response given the address, API port and token.
 
@@ -59,7 +61,7 @@ def get_query_response(
     :param api_port: The API port at the given address
     :type api_port: str
 
-    :param token: The HCI token 
+    :param token: The HCI token
     :type token: str
 
     :param use_ssl: Boolean choice of using SSL
@@ -74,18 +76,25 @@ def get_query_response(
     if "indexName" not in query_dict:
         raise RuntimeError("Field indexName is missing in the query dictionary")
 
-    url     : str            = "https://" + address + ":" + api_port + "/api/search/query/" + path_extension
-    query   : dict[str, str | list | dict] = query_dict
-    headers : dict[str, str] = {
+    url: str = (
+        "https://"
+        + address
+        + ":"
+        + api_port
+        + "/api/search/query/"
+        + path_extension
+    )
+    query: dict[str, str | list | dict] = query_dict
+    headers: dict[str, str] = {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "Authorization": "Bearer " + token,
     }
-    response : Response = post(
+    response: Response = post(
         url,
         dumps(query),
-        headers = headers,
-        verify = use_ssl,
+        headers=headers,
+        verify=use_ssl,
     )
 
     response.raise_for_status()
