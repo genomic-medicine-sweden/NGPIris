@@ -1,12 +1,8 @@
 
-from json import (
-    dumps
-)
-from requests import (
-    Response,
-    get,
-    post    
-)
+from json import dumps
+
+from requests import Response, get, post
+
 
 def get_index_response(address : str, api_port : str, token : str, use_ssl : bool) -> Response:
     """
@@ -30,13 +26,13 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
     url     : str            = "https://" + address + ":" + api_port + "/api/search/indexes/"
     headers : dict[str, str] = {
         "Accept": "application/json",
-        "Authorization": "Bearer " + token
+        "Authorization": "Bearer " + token,
     }
 
     response : Response = get(
         url,
         headers = headers,
-        verify = use_ssl
+        verify = use_ssl,
     )
 
     response.raise_for_status()
@@ -44,12 +40,12 @@ def get_index_response(address : str, api_port : str, token : str, use_ssl : boo
     return response
 
 def get_query_response(
-        query_dict : dict[str, str | list | dict], 
-        address : str, 
-        api_port : str, 
-        token : str, 
-        use_ssl : bool, 
-        path_extension : str = ""
+        query_dict : dict[str, str | list | dict],
+        address : str,
+        api_port : str,
+        token : str,
+        use_ssl : bool,
+        path_extension : str = "",
     ) -> Response:
     """
     Retrieve the query response given the address, API port and token.
@@ -75,7 +71,7 @@ def get_query_response(
     :return: A response containing information about the query
     :rtype: requests.Response
     """
-    if not "indexName" in query_dict.keys():
+    if "indexName" not in query_dict:
         raise RuntimeError("Field indexName is missing in the query dictionary")
 
     url     : str            = "https://" + address + ":" + api_port + "/api/search/query/" + path_extension
@@ -83,16 +79,15 @@ def get_query_response(
     headers : dict[str, str] = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Authorization": "Bearer " + token
+        "Authorization": "Bearer " + token,
     }
     response : Response = post(
-        url, 
-        dumps(query), 
-        headers = headers, 
-        verify = use_ssl
+        url,
+        dumps(query),
+        headers = headers,
+        verify = use_ssl,
     )
 
     response.raise_for_status()
-    
+
     return response
-    
