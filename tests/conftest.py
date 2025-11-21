@@ -1,31 +1,27 @@
 
-from collections.abc import Generator
+from pytest import Config, fixture, UsageError
 from configparser import ConfigParser
-from pathlib import Path
+from typing import Any, Generator
 from shutil import rmtree
-from typing import Any
+from pathlib import Path
 
-from pytest import Config, UsageError, fixture
-
-from NGPIris.hci import HCIHandler
 from NGPIris.hcp import HCPHandler
-
+from NGPIris.hci import HCIHandler
 
 class CustomConfig:
     """A typed wrapper around pytest.Config for dynamic attributes."""
-
     def __init__(self, pytest_config : Config):
         self._config = pytest_config
 
     @property
     def hcp_h(self) -> HCPHandler:
         """Access the HCPHandler instance."""
-        return self._config.hcp_h
+        return getattr(self._config, "hcp_h")
 
     @property
     def hci_h(self) -> HCIHandler:
         """Access the HCIHandler instance."""
-        return self._config.hci_h
+        return getattr(self._config, "hci_h")
 
     def __getattr__(self, name : str) -> Any:
         """Dynamically get attributes set during pytest configuration."""
@@ -48,23 +44,24 @@ def pytest_configure(config : Config) -> None:
     config_path = config.getoption("--config")
     if not config_path:
         raise UsageError("--config argument is required.")
-    parser = ConfigParser()
-    parser.read(str(config_path))
+    else:
+        parser = ConfigParser()
+        parser.read(str(config_path))
 
-    # Add the INI parser to config
-    config.parser = parser
+        # Add the INI parser to config
+        setattr(config, "parser", parser)
 
-    # Dynamically add an HCPHandler instance to config
-    config.hcp_h = HCPHandler(parser.get("General", "credentials_path"))
+        # Dynamically add an HCPHandler instance to config
+        setattr(config, "hcp_h", HCPHandler(parser.get("General", "credentials_path")))
 
-    # Dynamically add an HCIHandler instance to config
-    config.hci_h = HCIHandler(parser.get("General", "credentials_path"))
+        # Dynamically add an HCIHandler instance to config
+        setattr(config, "hci_h", HCIHandler(parser.get("General", "credentials_path")))
 
-    # Dynamically add all key-value pairs from "HCP_tests" section
-    set_section(config, parser, "HCP_tests")
+        # Dynamically add all key-value pairs from "HCP_tests" section
+        set_section(config, parser, "HCP_tests")
 
-    # Dynamically add all key-value pairs from "HCI_tests" section
-    set_section(config, parser, "HCI_tests")
+        # Dynamically add all key-value pairs from "HCI_tests" section
+        set_section(config, parser, "HCI_tests")
 
 @fixture(scope = "session")
 def hcp_result_path(pytestconfig : Config) -> str:

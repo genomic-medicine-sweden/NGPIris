@@ -1,24 +1,23 @@
 
 from os import path as p
-from typing import Callable, ParamSpec, TypeVar
+from typing import Callable, TypeVar, ParamSpec
 
 from NGPIris.hcp.exceptions import NoBucketMounted
 
-
 def create_access_control_policy(user_ID_permissions : dict[str, str]) -> dict:
     access_control_policy : dict[str, list] = {
-        "Grants" : [],
+        "Grants" : []
     }
     for user_ID, permission in user_ID_permissions.items():
-        if permission not in ["FULL_CONTROL", "WRITE", "WRITE_ACP", "READ", "READ_ACP"]:
+        if not permission in ["FULL_CONTROL", "WRITE", "WRITE_ACP", "READ", "READ_ACP"]:
             print("Invalid permission option:", permission)
             exit()
         grantee = {
             "Grantee": {
                 "ID": user_ID,
-                "Type": "CanonicalUser",
+                "Type": "CanonicalUser"
             },
-            "Permission": permission,
+            "Permission": permission
         }
         access_control_policy["Grants"].append(grantee)
     return access_control_policy
@@ -33,7 +32,7 @@ def raise_path_error(path : str):
     :raises FileNotFoundError: If `path` does not exist
     """
     if not p.exists(path):
-        raise FileNotFoundError('"' + path + '"' + " does not exist")
+        raise FileNotFoundError("\"" + path + "\"" + " does not exist")
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -55,3 +54,4 @@ def check_mounted(method : Callable[P, T]) -> Callable[P, T]:
             raise NoBucketMounted("No bucket is mounted")
         return method(*args, **kwargs)
     return check_if_mounted
+    

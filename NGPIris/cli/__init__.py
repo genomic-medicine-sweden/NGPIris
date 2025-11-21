@@ -1,19 +1,16 @@
 
-import os
-import sys
-from collections.abc import Generator
+import click
+from click.core import Context
 from json import dump
 from pathlib import Path
-from typing import Any
-
-import click
-import lazy_table as lt
-from bitmath import Byte, TiB
 from boto3 import set_stream_logger
-from click.core import Context
+from typing import Any, Generator
+from bitmath import Byte, TiB
+import lazy_table as lt
+import sys
+import os
 
 from NGPIris.hcp import HCPHandler
-
 
 def add_trailing_slash(path : str) -> str:
     if not path[-1] == "/":
@@ -29,62 +26,62 @@ def create_HCPHandler(context : Context) -> HCPHandler:
         # Should never happen
         click.echo("Something went wrong with the subcommand and parent command relation", err = True)
         sys.exit(1)
-
+    
     credentials : str | None = parent_context.params.get("credentials")
 
     if credentials:
         hcp_credentials = credentials
     elif os.environ.get("NGPIRIS_CREDENTIALS_PATH", None):
         hcp_credentials = os.environ["NGPIRIS_CREDENTIALS_PATH"]
-    else:
+    else: 
         endpoint : str = click.prompt(
-            "Please enter your tenant endpoint",
+            "Please enter your tenant endpoint"
         )
 
         aws_access_key_id : str = click.prompt(
-            "Please enter your base64 hashed aws_access_key_id",
+            "Please enter your base64 hashed aws_access_key_id"
         )
 
         aws_secret_access_key : str = click.prompt(
             "Please enter your md5 hashed aws_secret_access_key",
             hide_input = True,
-            confirmation_prompt = True,
+            confirmation_prompt = True
         )
 
         hcp_credentials = {
             "endpoint" : endpoint,
             "aws_access_key_id" : aws_access_key_id,
-            "aws_secret_access_key" : aws_secret_access_key,
+            "aws_secret_access_key" : aws_secret_access_key
         }
-
+    
     debug : bool | None = parent_context.params.get("debug")
     transfer_config : str | None = parent_context.params.get("transfer_config")
     if transfer_config:
         hcp_h = HCPHandler(hcp_credentials, custom_config_path = transfer_config)
-    else:
+    else:    
         hcp_h = HCPHandler(hcp_credentials)
-
+    
     if debug:
         set_stream_logger(name="")
         click.echo(hcp_h.transfer_config.__dict__)
-
+        
     return hcp_h
 
 @click.group()
 @click.option(
-    "-c",
-    "--credentials",
-    help = "Path to a JSON file with credentials",
+    "-c", 
+    "--credentials", 
+    help = "Path to a JSON file with credentials", 
 )
 @click.option(
     "--debug",
     help = "Get the debug log for running a command",
-    is_flag = True,
+    is_flag = True
 )
 @click.option(
-    "-tc",
-    "--transfer_config",
-    help = "Path for using a custom transfer config for uploads or downloads",
+    "-tc", 
+    "--transfer_config", 
+    help = "Path for using a custom transfer config for uploads or downloads", 
 )
 @click.version_option(package_name = "NGPIris")
 @click.pass_context
@@ -97,18 +94,18 @@ def cli(context : Context, credentials : str, debug : bool, transfer_config : st
 
 @cli.command(short_help = "This command returns a shell command that sets the `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell.")
 @click.argument(
-    "credentials_path",
-    required = False,
+    "credentials_path", 
+    required = False
 )
 @click.option(
     "-s",
-    "--shell",
+    "--shell", 
     type = click.Choice(
         ["bash", "fish", "zsh"],
-        case_sensitive = False,
+        case_sensitive = False
     ),
     help = "Allows for selection of shell that the produced command should support",
-    default = "bash",
+    default = "bash"
 )
 @click.pass_context
 def shell_env(context : Context, credentials_path : str, shell : str):
@@ -127,7 +124,7 @@ def shell_env(context : Context, credentials_path : str, shell : str):
     """
     if not credentials_path:
         click.prompt("Please enter the path to your credentials file")
-
+    
     click.echo("Copy and paste the following command in order to set your environment variable:")
     match shell:
         case "bash":
@@ -142,27 +139,27 @@ def shell_env(context : Context, credentials_path : str, shell : str):
 @click.argument("source")
 @click.argument("destination")
 @click.option(
-    "-dr",
-    "--dry_run",
-    help = "Simulate the command execution without making actual changes. Useful for testing and verification",
-    is_flag = True,
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
 )
 @click.option(
-    "-um",
-    "--upload_mode",
+    "-um", 
+    "--upload_mode", 
     help = "Choose an upload method. Default upload mode is STANDARD which uses a basic multipart upload. Use another mode than STANDARD if that mode misbehaves",
     type = click.Choice(
         ["STANDARD", "SIMPLE", "EQUAL_PARTS"],
-        case_sensitive = False,
+        case_sensitive = False
     ),
-    default = "STANDARD",
+    default = "STANDARD"
 )
 @click.option(
-    "-ep",
-    "--equal_parts",
-    help = "Supplementary option when using the EQUAL_PARTS upload mode. Splits each file into a given number of parts. Must be a positive integer",
+    "-ep", 
+    "--equal_parts", 
+    help = "Supplementary option when using the EQUAL_PARTS upload mode. Splits each file into a given number of parts. Must be a positive integer", 
     type = int,
-    default = 5,
+    default = 5
 )
 @click.pass_context
 def upload(context : Context, bucket : str, source : str, destination : str, dry_run : bool, upload_mode : str, equal_parts : int):
@@ -175,10 +172,11 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
     
     DESTINATION is the destination path on the HCP. 
     """
+
     if equal_parts <= 0:
         click.echo("Error: --equal_parts value must be a positive integer", err=True)
         sys.exit(1)
-
+    
     upload_mode_choice = HCPHandler.UploadMode(upload_mode.lower())
 
     hcph : HCPHandler = create_HCPHandler(context)
@@ -187,14 +185,14 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
     if Path(source).is_dir():
         source = add_trailing_slash(source)
         if dry_run:
-            click.echo('This command would have uploaded the folder "' + source + '" to "' + destination + '"')
+            click.echo("This command would have uploaded the folder \"" + source + "\" to \"" + destination + "\"")
         else:
             hcph.upload_folder(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
     else:
         file_name = Path(source).name
         destination += file_name
         if dry_run:
-            click.echo('This command would have uploaded the file "' + source + '" to "' + destination + '"')
+            click.echo("This command would have uploaded the file \"" + source + "\" to \"" + destination + "\"")
         else:
             hcph.upload_file(source, destination, upload_mode = upload_mode_choice, equal_parts = equal_parts)
 
@@ -203,22 +201,22 @@ def upload(context : Context, bucket : str, source : str, destination : str, dry
 @click.argument("source")
 @click.argument("destination")
 @click.option(
-    "-f",
-    "--force",
-    help = "Overwrite existing file with the same name (single file download only)",
-    is_flag = True,
+    "-f", 
+    "--force", 
+    help = "Overwrite existing file with the same name (single file download only)", 
+    is_flag = True
 )
 @click.option(
-    "-iw",
-    "--ignore_warning",
-    help = "Ignore the download limit",
-    is_flag = True,
+    "-iw", 
+    "--ignore_warning", 
+    help = "Ignore the download limit", 
+    is_flag = True
 )
 @click.option(
-    "-dr",
-    "--dry_run",
-    help = "Simulate the command execution without making actual changes. Useful for testing and verification",
-    is_flag = True,
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
 )
 @click.pass_context
 def download(context : Context, bucket : str, source : str, destination : str, force : bool, ignore_warning : bool, dry_run : bool):
@@ -233,7 +231,7 @@ def download(context : Context, bucket : str, source : str, destination : str, f
     """
     def object_is_folder(object_path : str, hcph : HCPHandler) -> bool:
         return (object_path[-1] == "/") and (hcph.get_object(object_path)["ContentLength"] == 0)
-
+        
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     if not Path(destination).exists():
@@ -255,11 +253,11 @@ def download(context : Context, bucket : str, source : str, destination : str, f
                         inp = click.getchar(True)
                         if inp == "y" or inp == "Y":
                             break
-                        # inp == "n" or inp == "N" or something else
-                        exit("\nAborting download")
-
+                        else: # inp == "n" or inp == "N" or something else
+                            exit("\nAborting download")
+        
             hcph.download_folder(source, Path(destination).as_posix())
-        else:
+        else: 
             if Byte(hcph.get_object(source)["ContentLength"]) >= TiB(1):
                 click.echo("WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ", nl = False)
                 inp = click.getchar(True)
@@ -272,34 +270,35 @@ def download(context : Context, bucket : str, source : str, destination : str, f
             if downloaded_source.exists() and not force:
                 exit("Object already exists. If you wish to overwrite the existing file, use the -f, --force option")
             hcph.download_file(source, downloaded_source.as_posix())
-    elif object_is_folder(source, hcph):
-        click.echo('This command would have downloaded the folder "' + source + "\". If you wish to know the contents of this folder, use the 'list-objects' command")
-    else:
-        click.echo('This command would have downloaded the object "' + source + '":')
-        click.echo(list(hcph.list_objects(source))[0])
+    else: 
+        if object_is_folder(source, hcph):
+            click.echo("This command would have downloaded the folder \"" + source + "\". If you wish to know the contents of this folder, use the 'list-objects' command")
+        else:
+            click.echo("This command would have downloaded the object \"" + source + "\":")
+            click.echo(list(hcph.list_objects(source))[0])
 
 @cli.command()
 @click.argument("bucket")
 @click.argument("object")
 @click.option(
-    "-dr",
-    "--dry_run",
-    help = "Simulate the command execution without making actual changes. Useful for testing and verification",
-    is_flag = True,
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
 )
 @click.option(
     "-m",
-    "--mode",
+    "--mode", 
     type = click.Choice(
         ["files", "folder"],
-        case_sensitive = False,
+        case_sensitive = False
     ),
     default = "folder",
     help = (
-        "Allows for selection of between two modes: `files` or `folder`. " +
-        "`files` is for deleting individual files, while `folder` is for " +
+        "Allows for selection of between two modes: `files` or `folder`. " + 
+        "`files` is for deleting individual files, while `folder` is for " + 
         "deleting a folder. `folder` is default mode"
-    ),
+    )
 )
 @click.pass_context
 def delete(context : Context, bucket : str, object : str, dry_run : bool, mode : str):
@@ -319,8 +318,8 @@ def delete(context : Context, bucket : str, object : str, dry_run : bool, mode :
                     click.echo(hcph.delete_object(object))
                 except RuntimeError:
                     click.echo(
-                        'The object "' + object + '" is a folder object. Please use `-m folder` for this object',
-                        err = True,
+                        "The object \"" + object + "\" is a folder object. Please use `-m folder` for this object",
+                        err = True
                     )
                     sys.exit(1)
             case "folder":
@@ -329,27 +328,27 @@ def delete(context : Context, bucket : str, object : str, dry_run : bool, mode :
         match mode:
             case "files":
                 click.echo(
-                    'This command would have deleted the file object "' + object + '"',
+                    "This command would have deleted the file object \"" + object + "\""
                 )
             case "folder":
                 click.echo(
-                    'By deleting "' + object + '", the following file objects would have been deleted (this list exludes any potential sub-folders):',
+                    "By deleting \"" + object + "\", the following file objects would have been deleted (this list exludes any potential sub-folders):"
                 )
                 lt.stream(
                     hcph.list_objects(
                         object,
-                        files_only = True,
+                        files_only = True
                     ),
-                    headers = "keys",
+                    headers = "keys"
                 )
 
 @cli.command()
 @click.argument("bucket")
 @click.option(
-    "-dr",
-    "--dry_run",
-    help = "Simulate the command execution without making actual changes. Useful for testing and verification",
-    is_flag = True,
+    "-dr", 
+    "--dry_run", 
+    help = "Simulate the command execution without making actual changes. Useful for testing and verification", 
+    is_flag = True
 )
 @click.pass_context
 def delete_bucket(context : Context, bucket : str, dry_run : bool):
@@ -360,7 +359,7 @@ def delete_bucket(context : Context, bucket : str, dry_run : bool):
     if not dry_run:
         click.echo(hcph.delete_bucket(bucket))
     else:
-        click.echo('This command would have deleted the bucket called "' + bucket + '"')
+        click.echo("This command would have deleted the bucket called \"" + bucket + "\"")
 
 @cli.command()
 @click.pass_context
@@ -371,8 +370,8 @@ def list_buckets(context : Context):
     hcph : HCPHandler = create_HCPHandler(context)
     click.echo(
         "".join(
-            list(map(lambda s : s + "\n", hcph.list_buckets())),
-        ).strip("\n"),
+            list(map(lambda s : s + "\n", hcph.list_buckets()))
+        ).strip("\n")
     )
 
 @cli.command(short_help = "List the objects in a certain bucket/namespace on the HCP.")
@@ -383,21 +382,21 @@ def list_buckets(context : Context):
     "--pagination",
     help = "Output as a paginator",
     default = False,
-    is_flag = True,
+    is_flag = True
 )
 @click.option(
-    "-fo",
-    "--files-only",
-    help = "Output only file objects",
+    "-fo", 
+    "--files-only", 
+    help = "Output only file objects", 
     default = False,
-    is_flag = True,
+    is_flag = True
 )
 @click.option(
-    "-e",
-    "--extended-information",
-    help = "Output the fully exteded information for each object",
+    "-e", 
+    "--extended-information", 
+    help = "Output the fully exteded information for each object", 
     default = False,
-    is_flag = True,
+    is_flag = True
 )
 @click.pass_context
 def list_objects(context : Context, bucket : str, path : str, pagination : bool, files_only : bool, extended_information : bool):
@@ -421,7 +420,7 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     output_mode = (
-        HCPHandler.ListObjectsOutputMode.EXTENDED if extended_information
+        HCPHandler.ListObjectsOutputMode.EXTENDED if extended_information 
         else HCPHandler.ListObjectsOutputMode.SIMPLE
     )
 
@@ -436,31 +435,31 @@ def list_objects(context : Context, bucket : str, path : str, pagination : bool,
     if pagination:
         click.echo_via_pager(
             list_objects_generator(
-                hcph,
-                path_with_slash,
-                files_only,
-                output_mode,
-            ),
+                hcph, 
+                path_with_slash, 
+                files_only, 
+                output_mode
+            )
         )
     else:
         lt.stream(
             hcph.list_objects(
-                path_with_slash,
+                path_with_slash, 
                 output_mode = output_mode,
-                files_only = files_only,
+                files_only = files_only
             ),
-            headers = "keys",
+            headers = "keys"
         )
 
 @cli.command(short_help = "Make a simple search using substrings in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
-    "-cs",
-    "--case_sensitive",
-    help = "Use case sensitivity? Default value is False",
+    "-cs", 
+    "--case_sensitive", 
+    help = "Use case sensitivity? Default value is False", 
     default = False,
-    is_flag = True,
+    is_flag = True
 )
 @click.pass_context
 def simple_search(context : Context, bucket : str, search_string : str, case_sensitive : bool):
@@ -477,30 +476,30 @@ def simple_search(context : Context, bucket : str, search_string : str, case_sen
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     list_of_results = hcph.search_in_bucket(
-        search_string,
-        case_sensitive = case_sensitive,
+        search_string,  
+        case_sensitive = case_sensitive
     )
     click.echo("Search results:")
     lt.stream(
         list_of_results,
-        headers = "keys",
+        headers = "keys"
     )
 
 @cli.command(short_help = "Make a fuzzy search using a search string in a bucket/namespace on the HCP.")
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
-    "-cs",
-    "--case_sensitive",
-    help = "Use case sensitivity? Default value is False",
+    "-cs", 
+    "--case_sensitive", 
+    help = "Use case sensitivity? Default value is False", 
     default = False,
-    is_flag = True,
+    is_flag = True
 )
 @click.option(
-    "-t",
-    "--threshold",
-    help = "Set the threshold for the fuzzy search score. Default value is 80",
-    default = 80,
+    "-t", 
+    "--threshold", 
+    help = "Set the threshold for the fuzzy search score. Default value is 80", 
+    default = 80
 )
 @click.pass_context
 def fuzzy_search(context : Context, bucket : str, search_string : str, case_sensitive : bool, threshold : int):
@@ -518,14 +517,14 @@ def fuzzy_search(context : Context, bucket : str, search_string : str, case_sens
     hcph : HCPHandler = create_HCPHandler(context)
     hcph.mount_bucket(bucket)
     list_of_results = hcph.fuzzy_search_in_bucket(
-        search_string,
+        search_string, 
         case_sensitive = case_sensitive,
-        threshold = threshold,
-    )
+        threshold = threshold
+    ) 
     click.echo("Search results:")
     lt.stream(
         list_of_results,
-        headers = "keys",
+        headers = "keys"
     )
 
 @cli.command()
@@ -544,12 +543,12 @@ def test_connection(context : Context, bucket : str):
 @click.option(
     "--path",
     help = "Path for where to put the new credentials file.",
-    default = "",
+    default = ""
 )
 @click.option(
     "--name",
-    help = 'Custom name for the credentials file. Will filter out everything after a "." character, if any exist.',
-    default = "credentials",
+    help = "Custom name for the credentials file. Will filter out everything after a \".\" character, if any exist.",
+    default = "credentials"
 )
 def iris_generate_credentials_file(path : str, name : str):
     """
@@ -561,15 +560,15 @@ def iris_generate_credentials_file(path : str, name : str):
         "hcp" : {
             "endpoint" : "",
             "aws_access_key_id" : "",
-            "aws_secret_access_key" : "",
+            "aws_secret_access_key" : ""
         },
         "hci" : {
             "username" : "",
             "password" : "",
             "address" : "",
             "auth_port" : "",
-            "api_port" : "",
-        },
+            "api_port" : ""
+        }
     }
 
     name = name.split(".")[0] + ".json"
@@ -578,14 +577,14 @@ def iris_generate_credentials_file(path : str, name : str):
             path += "/"
 
         if path == ".":
-            file_path = name
+            file_path = name    
         else:
             file_path = path + name
-
+    
         if not Path(path).is_dir():
             Path(path).mkdir(parents=True)
     else:
         file_path = name
-
+        
     with open(file_path, "w") as f:
         dump(credentials_dict, f, indent = 4)

@@ -25,7 +25,7 @@ def check_empty_field(credentials : Credentials):
     if all([all_fields_empty(k, credentials) for k in credentials.keys()]):
         raise RuntimeError(
             "Missing entries in all fields in the credentials file. " +
-            "Please enter your credentials in the credentials file",
+            "Please enter your credentials in the credentials file"
         )
     empty_fields_per_entry : dict[str, list[str]] = {}
     for k1, d in credentials.items():
@@ -46,13 +46,13 @@ def check_empty_field(credentials : Credentials):
 
     if all_empty_fields:
         raise RuntimeError(
-            "Missing fields for the following entries in the credentials file: \n" +
-            "".join(all_empty_fields),
+            "Missing fields for the following entries in the credentials file: \n" + 
+            "".join(all_empty_fields)
         )
 
 def parse_credentials(credentials_path : str) -> Credentials:
     credentials : Credentials = {}
-    with open(credentials_path) as inp:
+    with open(credentials_path, 'r') as inp:
         credentials : Credentials = load(inp)
         check_empty_field(credentials)
         return credentials

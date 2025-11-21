@@ -1,13 +1,17 @@
 
-from json import load
-
-from requests import Response, post
-from urllib3 import disable_warnings
-
-from NGPIris.hci.exceptions import *
-from NGPIris.hci.helpers import get_index_response, get_query_response
 from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.hci.helpers import (
+    get_index_response,
+    get_query_response
+)
+from NGPIris.hci.exceptions import *
 
+from requests import (
+    Response,
+    post
+)
+from urllib3 import disable_warnings
+from json import load
 
 class HCIHandler:
     def __init__(self, credentials : str | dict[str, str], use_ssl : bool = False) -> None:
@@ -23,7 +27,7 @@ class HCIHandler:
         if type(credentials) is str:
             credentials_handler = CredentialsHandler(credentials)
             self.hci = credentials_handler.hci
-
+            
             self.username = self.hci["username"]
             self.password = self.hci["password"]
             self.address = self.hci["address"]
@@ -35,14 +39,14 @@ class HCIHandler:
             self.address = credentials["address"]
             self.auth_port = credentials["auth_port"]
             self.api_port = credentials["api_port"]
-
+        
         self.token = ""
 
         self.use_ssl = use_ssl
 
         if not self.use_ssl:
             disable_warnings()
-
+    
     def request_token(self) -> None:
         """
         Request a token from the HCI, which is stored in the HCIHandler object. 
@@ -53,13 +57,13 @@ class HCIHandler:
         """
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
         data = {
-            "grant_type": "password",
-            "username": self.username,
+            "grant_type": "password", 
+            "username": self.username, 
             "password": self.password,
-            "scope": "*",
-            "client_secret": "hci-client",
-            "client_id": "hci-client",
-            "realm": "LOCAL",
+            "scope": "*",  
+            "client_secret": "hci-client", 
+            "client_id": "hci-client", 
+            "realm": "LOCAL"
         }
         try:
             response : Response = post(url, data = data, verify = self.use_ssl)
@@ -79,7 +83,7 @@ class HCIHandler:
         """
         response : Response = get_index_response(self.address, self.api_port, self.token, self.use_ssl)
         return [entry["name"]for entry in response.json()]
-
+    
     def look_up_index(self, index_name : str) -> dict:
         """
         Look up index information in the form of a dictionary by submitting 
@@ -96,7 +100,7 @@ class HCIHandler:
         for entry in response.json():
             if entry["name"] == index_name:
                 return dict(entry)
-
+        
         return {}
 
     def raw_query(self, query_dict : dict[str, str | list | dict]) -> dict:
@@ -110,13 +114,13 @@ class HCIHandler:
         :rtype: dict
         """
         return dict(get_query_response(
-            query_dict,
-            self.address,
-            self.api_port,
-            self.token,
-            self.use_ssl,
+            query_dict, 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl
         ).json())
-
+            
     def raw_query_from_JSON(self, query_path : str) -> dict:
         """
         Make query to an HCI index, with prewritten query in a JSON file
@@ -127,13 +131,13 @@ class HCIHandler:
         :return: Dictionary containing the raw query
         :rtype: dict
         """
-        with open(query_path) as inp:
+        with open(query_path, "r") as inp:
             return dict(get_query_response(
-            dict(load(inp)),
-            self.address,
-            self.api_port,
-            self.token,
-            self.use_ssl,
+            dict(load(inp)), 
+            self.address, 
+            self.api_port, 
+            self.token, 
+            self.use_ssl
         ).json())
 
     def query(self, index_name : str, query_string : str = "", facets : list[str] = []) -> dict:
@@ -157,6 +161,6 @@ class HCIHandler:
             {
                 "indexName" : index_name,
                 "queryString" : query_string,
-                "facetRequests" : facetRequests,
-            },
+                "facetRequests" : facetRequests
+            }
         )
