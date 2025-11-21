@@ -431,6 +431,7 @@ dependencies = [
     { name = "parse" },
     { name = "rapidfuzz" },
     { name = "requests" },
+    { name = "ruff" },
     { name = "tqdm" },
     { name = "urllib3" },
 ]
@@ -456,6 +457,7 @@ requires-dist = [
     { name = "pytype", marker = "extra == 'dev'", specifier = ">=2024.10.11" },
     { name = "rapidfuzz", specifier = ">=3.10.1" },
     { name = "requests", specifier = ">=2.31.0" },
+    { name = "ruff", specifier = ">=0.14.5" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.5" },
     { name = "tqdm", specifier = ">=4.66.2" },
     { name = "urllib3", specifier = "==2.5.0" },
