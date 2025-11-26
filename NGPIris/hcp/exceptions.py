@@ -1,33 +1,33 @@
 # -------------- Parsing exceptions --------------
 
 
-class NotAValidTenant(Exception):
+class NotAValidTenantError(Exception):
     """
     The given tenant name is not valid.
     """
 
 
-class UnableToParseEndpoint(Exception):
+class UnableToParseEndpointError(Exception):
     """
     The given endpoint URL was not correctly parsed.
     """
 
 
 # -------------- Bucket exceptions --------------
-class NoBucketMounted(Exception):
+class NoBucketMountedError(Exception):
     """
     "
     No bucket has been mounted before using a method that require it.
     """
 
 
-class BucketNotFound(Exception):
+class BucketNotFoundError(Exception):
     """
     The bucket could not be found.
     """
 
 
-class BucketForbidden(Exception):
+class BucketForbiddenError(Exception):
     """
     The credentials used do not have permission to reach this bucket.
     """
@@ -36,31 +36,31 @@ class BucketForbidden(Exception):
 # -------------- Bucket object exceptions --------------
 
 
-class ObjectAlreadyExist(Exception):
+class ObjectAlreadyExistError(Exception):
     """
     The object already exist on the mounted bucket.
     """
 
 
-class ObjectDoesNotExist(Exception):
+class ObjectDoesNotExistError(Exception):
     """
     The object does not exist on the mounted bucket.
     """
 
 
-class IsFolderObject(Exception):
+class IsFolderObjectError(Exception):
     """
     The object on the mounted bucket is a folder.
     """
 
 
-class SubfolderException(Exception):
+class SubfolderError(Exception):
     """
     There is at least one subfolder in the given path on the mounted bucket.
     """
 
 
-class DownloadLimitReached(Exception):
+class DownloadLimitReachedError(Exception):
     """
     Download limit was reached while downloading file objects from the
     mounted bucket.
@@ -70,13 +70,7 @@ class DownloadLimitReached(Exception):
 # -------------- File system exceptions --------------
 
 
-class NotADirectory(Exception):
-    """
-    The given file system path is not a directory
-    """
-
-
-class UnallowedCharacter(Exception):
+class UnallowedCharacterError(Exception):
     """
     A character that is not allowed was used.
     """
