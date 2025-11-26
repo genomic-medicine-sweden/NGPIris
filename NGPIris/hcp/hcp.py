@@ -19,18 +19,17 @@ from tqdm import tqdm
 from urllib3 import disable_warnings
 
 from NGPIris.hcp.exceptions import (
-    BucketForbidden,
-    BucketNotFound,
-    DownloadLimitReached,
-    IsFolderObject,
-    NoBucketMounted,
-    NotADirectory,
-    NotAValidTenant,
-    ObjectAlreadyExist,
-    ObjectDoesNotExist,
-    SubfolderException,
-    UnableToParseEndpoint,
-    UnallowedCharacter,
+    BucketForbiddenError,
+    BucketNotFoundError,
+    DownloadLimitReachedError,
+    IsFolderObjectError,
+    NoBucketMountedError,
+    NotAValidTenantError,
+    ObjectAlreadyExistError,
+    ObjectDoesNotExistError,
+    SubfolderError,
+    UnableToParseEndpointError,
+    UnallowedCharacterError,
 )
 from NGPIris.hcp.helpers import (
     check_mounted,
@@ -41,7 +40,6 @@ from NGPIris.parse_credentials import CredentialsHandler
 
 _KB = 1024
 _MB = _KB * _KB
-
 
 class HCPHandler:
     def __init__(
@@ -63,9 +61,9 @@ class HCPHandler:
         :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
         :type custom_config_path: str, optional
 
-        :raise NotAValidTenant: If the tenant in the specified endpoint is not valid
+        :raise NotAValidTenantError: If the tenant in the specified endpoint is not valid
 
-        :raise UnableToParseEndpoint: The endpoint could not be parsed
+        :raise UnableToParseEndpointError: The endpoint could not be parsed
         """
         if type(credentials) is str:
             credentials_handler = CredentialsHandler(credentials)
@@ -109,7 +107,7 @@ class HCPHandler:
                     if mapped_tenant:
                         self.tenant = mapped_tenant
                     else:
-                        raise NotAValidTenant(
+                        raise NotAValidTenantError(
                             'The provided tenant name, "'
                             + tenant
                             + '", is not a valid tenant name. Hint: did you spell it correctly?',
@@ -120,7 +118,7 @@ class HCPHandler:
                 break
 
         if not self.tenant:
-            raise UnableToParseEndpoint(
+            raise UnableToParseEndpointError(
                 'Unable to parse endpoint, "'
                 + self.endpoint
                 + '". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain "https://" or port numbers\n - Is the endpoint spelled correctly?',
@@ -218,9 +216,9 @@ class HCPHandler:
         :param bucket_name: The name of the bucket to be mounted. Defaults to the empty string
         :type bucket_name: str, optional
 
-        :raises NoBucketMounted: If no bucket is selected
+        :raises NoBucketMountedError: If no bucket is selected
         :raises EndpointConnectionError: If the endpoint can't be reached
-        :raises BucketNotFound: If no bucket of that name was found
+        :raises BucketNotFoundError: If no bucket of that name was found
         :raises Exception: Other exceptions
 
         :return: A dictionary of the response
@@ -231,7 +229,7 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            raise NoBucketMounted(
+            raise NoBucketMountedError(
                 "No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`",
             )
 
@@ -246,11 +244,11 @@ class HCPHandler:
             )
             match status_code:
                 case 404:
-                    raise BucketNotFound(
+                    raise BucketNotFoundError(
                         'Bucket "' + bucket_name + '" was not found',
                     )
                 case 403:
-                    raise BucketForbidden(
+                    raise BucketForbiddenError(
                         'Bucket "'
                         + bucket_name
                         + '" could not be accessed due to lack of permissions',
@@ -452,7 +450,7 @@ class HCPHandler:
         :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
 
-        :raises ObjectDoesNotExist: If the object does not exist in the bucket
+        :raises ObjectDoesNotExistError: If the object does not exist in the bucket
 
         :raises ClientError:
             Underlying botocore exception.
@@ -462,7 +460,7 @@ class HCPHandler:
         try:
             self.get_object(key)
         except:
-            raise ObjectDoesNotExist(
+            raise ObjectDoesNotExistError(
                 "Could not find object",
                 '"' + key + '"',
                 "in bucket",
@@ -527,16 +525,16 @@ class HCPHandler:
         :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
 
-        :raises ObjectDoesNotExist: If the object does not exist in the bucket
+        :raises ObjectDoesNotExistError: If the object does not exist in the bucket
 
-        :raises DownloadLimitReached: If download limit was reached while downloading files
+        :raises DownloadLimitReachedError: If download limit was reached while downloading files
 
-        :raises NotADirectory: If local_folder_path is not a directory
+        :raises NotADirectoryError: If local_folder_path is not a directory
         """
         try:
             self.get_object(folder_key)
         except:
-            raise ObjectDoesNotExist(
+            raise ObjectDoesNotExistError(
                 "Could not find object",
                 '"' + folder_key + '"',
                 "in bucket",
@@ -570,7 +568,7 @@ class HCPHandler:
                         >= download_limit_in_bytes
                         and use_download_limit
                     ):
-                        raise DownloadLimitReached(
+                        raise DownloadLimitReachedError(
                             "The download limit was reached when downloading files",
                         )
                     self.download_file(
@@ -579,7 +577,7 @@ class HCPHandler:
                         show_progress_bar=show_progress_bar,
                     )
         else:
-            raise NotADirectory(
+            raise NotADirectoryError(
                 local_folder_path + " is not a directory",
             )
 
@@ -622,9 +620,9 @@ class HCPHandler:
 
         :raises FileNotFoundError: If `path` does not exist
 
-        :raises UnallowedCharacter: If the \"\\\" is used in the file path
+        :raises UnallowedCharacterError: If the \"\\\" is used in the file path
 
-        :raises ObjectAlreadyExist: If the object already exist on the mounted bucket
+        :raises ObjectAlreadyExistError: If the object already exist on the mounted bucket
         """
         raise_path_error(local_file_path)
 
@@ -633,12 +631,12 @@ class HCPHandler:
             key = file_name
 
         if "\\" in local_file_path:
-            raise UnallowedCharacter(
+            raise UnallowedCharacterError(
                 'The "\\" character is not allowed in the file path',
             )
 
         if self.object_exists(key):
-            raise ObjectAlreadyExist(
+            raise ObjectAlreadyExistError(
                 'The object "' + key + '" already exist in the mounted bucket',
             )
         file_size: int = stat(local_file_path).st_size
@@ -733,7 +731,7 @@ class HCPHandler:
         :param keys: List of object names to be deleted
         :type keys: list[str]
 
-        :raises IsFolderObject: If the provided object is a folder object
+        :raises IsFolderObjectError: If the provided object is a folder object
 
         :return: The result of the deletion
         :rtype: str
@@ -743,7 +741,7 @@ class HCPHandler:
         for key in keys:
             if self.object_exists(key):
                 if key[-1] == "/":
-                    raise IsFolderObject(
+                    raise IsFolderObjectError(
                         'The object "'
                         + key
                         + '" is a folder object. Please use the `delete_folder` method for this object',
@@ -797,9 +795,9 @@ class HCPHandler:
         :param key: The folder of objects to be deleted
         :type key: str
 
-        :raises ObjectDoesNotExist: If an object does not exist
+        :raises ObjectDoesNotExistError: If an object does not exist
 
-        :raises SubfolderException: If there are subfolders
+        :raises SubfolderError: If there are subfolders
 
         :return: The result of the deletion
         :rtype: str
@@ -815,7 +813,7 @@ class HCPHandler:
         )
 
         if not self.object_exists(key):
-            raise ObjectDoesNotExist(
+            raise ObjectDoesNotExistError(
                 '"' + key + '"' + " does not exist",
             )
 
@@ -826,7 +824,7 @@ class HCPHandler:
         else:
             for object in objects:
                 if not object["IsFile"]:
-                    raise SubfolderException(
+                    raise SubfolderError(
                         'There is at least one subfolder in "'
                         + key
                         + '". Please remove all subfolders before deleting "'
