@@ -405,7 +405,7 @@ def download( # noqa: PLR0913
 
 @cli.command()
 @click.argument("bucket")
-@click.argument("object")
+@click.argument("hcp_object")
 @click.option(
     "-dr",
     "--dry_run",
@@ -433,8 +433,8 @@ def download( # noqa: PLR0913
 def delete(
     context: Context,
     bucket: str,
-    object: str,
-    dry_run: bool,
+    hcp_object: str,
+    dry_run: bool, # noqa: FBT001
     mode: str,
 ) -> None:
     """
@@ -442,7 +442,7 @@ def delete(
 
     BUCKET is the name of the bucket where the object to be deleted exist.
 
-    OBJECT is the name of the object to be deleted.
+    HCP_OBJECT is the name of the object to be deleted.
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
@@ -450,34 +450,36 @@ def delete(
         match mode:
             case "files":
                 try:
-                    click.echo(hcp_h.delete_object(object))
+                    click.echo(hcp_h.delete_object(hcp_object))
                 except RuntimeError:
                     click.echo(
                         'The object "'
-                        + object
-                        + '" is a folder object. Please use `-m folder` for this object',
+                        + hcp_object
+                        + '" is a folder object. Please use `-m folder` for '
+                        + "this object",
                         err=True,
                     )
                     sys.exit(1)
             case "folder":
-                click.echo(hcp_h.delete_folder(object))
+                click.echo(hcp_h.delete_folder(hcp_object))
     else:
         match mode:
             case "files":
                 click.echo(
                     'This command would have deleted the file object "'
-                    + object
+                    + hcp_object
                     + '"',
                 )
             case "folder":
                 click.echo(
                     'By deleting "'
-                    + object
-                    + '", the following file objects would have been deleted (this list exludes any potential sub-folders):',
+                    + hcp_object
+                    + '", the following file objects would have been deleted '
+                    + "(this list exludes any potential sub-folders):",
                 )
                 lt.stream(
                     hcp_h.list_objects(
-                        object,
+                        hcp_object,
                         files_only=True,
                     ),
                     headers="keys",
@@ -489,13 +491,20 @@ def delete(
 @click.option(
     "-dr",
     "--dry_run",
-    help="Simulate the command execution without making actual changes. Useful for testing and verification",
+    help="""
+    Simulate the command execution without making actual changes.
+    Useful for testing and verification
+    """,
     is_flag=True,
 )
 @click.pass_context
-def delete_bucket(context: Context, bucket: str, dry_run: bool) -> None:
+def delete_bucket(
+        context: Context,
+        bucket: str,
+        dry_run: bool, # noqa: FBT001
+) -> None:
     """
-    Delete a bucket/namespace on the HCP
+    Delete a bucket/namespace on the HCP.
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     if not dry_run:
@@ -517,7 +526,7 @@ def list_buckets(context: Context) -> None:
     hcp_h: HCPHandler = create_HCPHandler(context)
     click.echo(
         "".join(
-            list(map(lambda s: s + "\n", hcp_h.list_buckets())),
+            [bucket + "\n" for bucket in hcp_h.list_buckets()],
         ).strip("\n"),
     )
 
@@ -549,13 +558,13 @@ def list_buckets(context: Context) -> None:
     is_flag=True,
 )
 @click.pass_context
-def list_objects(
+def list_objects( # noqa: PLR0913
     context: Context,
     bucket: str,
     path: str,
-    pagination: bool,
-    files_only: bool,
-    extended_information: bool,
+    pagination: bool, # noqa: FBT001
+    files_only: bool, # noqa: FBT001
+    extended_information: bool, # noqa: FBT001
 ) -> None:
     """
     List the objects in a certain bucket/namespace on the HCP.
@@ -568,13 +577,13 @@ def list_objects(
     def list_objects_generator(
         hcp_h: HCPHandler,
         path: str,
-        files_only: bool,
+        files_only: bool, # noqa: FBT001
         output_mode: HCPHandler.ListObjectsOutputMode,
     ) -> Generator[str, Any, None]:
         """
-        Handle object list as a paginator that `click` can handle. It works slightly
-        different from `list_objects` in `hcp.py` in order to make the output
-        printable in a terminal
+        Handle object list as a paginator that `click` can handle.
+        It works slightly different from `list_objects` in `hcp.py` in order to
+        make the output printable in a terminal
         """
         objects = hcp_h.list_objects(
             path,
@@ -596,7 +605,8 @@ def list_objects(
         path_with_slash = add_trailing_slash(path)
 
         if not hcp_h.object_exists(path_with_slash):
-            raise RuntimeError("Path does not exist")
+            msg = "Path does not exist"
+            raise RuntimeError(msg)
     else:
         path_with_slash = ""
 
@@ -621,7 +631,9 @@ def list_objects(
 
 
 @cli.command(
-    short_help="Make a simple search using substrings in a bucket/namespace on the HCP.",
+    short_help="""
+    Make a simple search using substrings in a bucket/namespace on the HCP.
+    """,
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -637,7 +649,7 @@ def simple_search(
     context: Context,
     bucket: str,
     search_string: str,
-    case_sensitive: bool,
+    case_sensitive: bool, # noqa: FBT001
 ) -> None:
     """
     Make a simple search using substrings in a bucket/namespace on the HCP.
@@ -663,7 +675,9 @@ def simple_search(
 
 
 @cli.command(
-    short_help="Make a fuzzy search using a search string in a bucket/namespace on the HCP.",
+    short_help="""
+    Make a fuzzy search using a search string in a bucket/namespace on the HCP.
+    """,
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -685,7 +699,7 @@ def fuzzy_search(
     context: Context,
     bucket: str,
     search_string: str,
-    case_sensitive: bool,
+    case_sensitive: bool, # noqa: FBT001
     threshold: int,
 ) -> None:
     """
@@ -734,14 +748,18 @@ def test_connection(context: Context, bucket: str) -> None:
 )
 @click.option(
     "--name",
-    help='Custom name for the credentials file. Will filter out everything after a "." character, if any exist.',
+    help="""
+    Custom name for the credentials file. Will filter out everything after a "."
+    character, if any exist.
+    """,
     default="credentials",
 )
 def iris_generate_credentials_file(path: str, name: str) -> None:
     """
     Generate blank credentials file for the HCI and HCP.
 
-    WARNING: This file will store sensitive information (such as passwords) in plaintext.
+    WARNING: This file will store sensitive information (such as passwords) in
+    plaintext.
     """
     credentials_dict = {
         "hcp": {
@@ -763,15 +781,12 @@ def iris_generate_credentials_file(path: str, name: str) -> None:
         if not path[-1] == "/":
             path += "/"
 
-        if path == ".":
-            file_path = name
-        else:
-            file_path = path + name
+        file_path = name if path == "." else path + name
 
         if not Path(path).is_dir():
             Path(path).mkdir(parents=True)
     else:
         file_path = name
 
-    with open(file_path, "w") as f:
+    with Path(file_path).open("w") as f:
         dump(credentials_dict, f, indent=4)
