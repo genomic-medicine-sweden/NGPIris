@@ -357,42 +357,50 @@ def download( # noqa: PLR0913
                             ,
                             nl=False,
                         )
-                        inp = click.getchar(True)
-                        if inp == "y" or inp == "Y":
+                        inp = click.getchar(echo = True)
+                        if inp in ["y", "Y"]:
                             break
                         # inp == "n" or inp == "N" or something else
-                        exit("\nAborting download")
+                        sys.exit("\nAborting download")
 
             hcp_h.download_folder(source, Path(destination).as_posix())
         else:
             if Byte(hcp_h.get_object(source)["ContentLength"]) >= TiB(1):
                 click.echo(
-                    "WARNING: You are about to download more than 1 TB of data. Is this your intention? [y/N]: ",
+                    """
+                    WARNING: You are about to download more than 1 TB
+                    of data. Is this your intention? [y/N]: 
+                    """ # noqa: W291
+                    ,
                     nl=False,
                 )
-                inp = click.getchar(True)
-                if inp == "y" or inp == "Y":
+                inp = click.getchar(echo = True)
+                if inp in ["y", "Y"]:
                     pass
                 else:  # inp == "n" or inp == "N" or something else
-                    exit("\nAborting download")
+                    sys.exit("\nAborting download")
 
             downloaded_source = Path(destination) / Path(source).name
             if downloaded_source.exists() and not force:
-                exit(
-                    "Object already exists. If you wish to overwrite the existing file, use the -f, --force option",
+                sys.exit(
+                    """Object already exists. If you wish to overwrite the
+                    existing file, use the -f, --force option""",
                 )
             hcp_h.download_file(source, downloaded_source.as_posix())
     elif object_is_folder(source, hcp_h):
         click.echo(
             'This command would have downloaded the folder "'
             + source
-            + "\". If you wish to know the contents of this folder, use the 'list-objects' command",
+            + '". If you wish to know the contents of this folder, '
+            + "use the 'list-objects' command",
         )
     else:
         click.echo(
             'This command would have downloaded the object "' + source + '":',
         )
-        click.echo(list(hcp_h.list_objects(source))[0])
+        click.echo(
+            next(iter(hcp_h.list_objects(source))),
+        )
 
 
 @cli.command()
@@ -401,7 +409,10 @@ def download( # noqa: PLR0913
 @click.option(
     "-dr",
     "--dry_run",
-    help="Simulate the command execution without making actual changes. Useful for testing and verification",
+    help="""
+    Simulate the command execution without making actual changes.
+    Useful for testing and verification
+    """,
     is_flag=True,
 )
 @click.option(
