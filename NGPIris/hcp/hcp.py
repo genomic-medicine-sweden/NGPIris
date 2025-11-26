@@ -3,14 +3,13 @@ from configparser import ConfigParser
 from enum import Enum
 from os import listdir, stat
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from bitmath import Byte, TiB
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.client import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
-from botocore.paginate import PageIterator, Paginator
 from more_itertools import peekable
 from parse import Result, parse
 from rapidfuzz import fuzz, process, utils
@@ -38,10 +37,17 @@ from NGPIris.hcp.helpers import (
 )
 from NGPIris.parse_credentials import CredentialsHandler
 
+if TYPE_CHECKING:
+    from botocore.paginate import PageIterator, Paginator
+
 _KB = 1024
 _MB = _KB * _KB
 
 class HCPHandler:
+    """
+    Class for handling HCP requests.
+    """
+
     def __init__(
         self,
         credentials: str | dict[str, str],
@@ -50,18 +56,31 @@ class HCPHandler:
         custom_config_path: str = "",
     ) -> None:
         """
-        Class for handling HCP requests.
+        Constructor for the `HCPHandler` class.
 
-        :param credentials: If `credentials` is a `str`, then it will be interpreted as a path to the JSON credentials file. If `credentials` is a `dict`, then a dictionary with the appropriate HCP credentials is expected: ```{"endpoint" : "", "aws_access_key_id" : "", "aws_secret_access_key" : "" }```
+        :param credentials:
+            If `credentials` is a `str`, then it will be interpreted as a path
+            to the JSON credentials file. If `credentials` is a `dict`, then a
+            dictionary with the appropriate HCP credentials is expected:
+            ```
+            {
+                "endpoint" : "",
+                "aws_access_key_id" : "",
+                "aws_secret_access_key" : ""
+            }
+            ```
         :type credentials: str | dict[str, str]
 
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
 
-        :param custom_config_path: Path to a .ini file for customs settings regarding download and upload
+        :param custom_config_path:
+            Path to a .ini file for customs settings regarding download and
+            upload
         :type custom_config_path: str, optional
 
-        :raise NotAValidTenantError: If the tenant in the specified endpoint is not valid
+        :raise NotAValidTenantError:
+            If the tenant in the specified endpoint is not valid
 
         :raise UnableToParseEndpointError: The endpoint could not be parsed
         """
@@ -110,7 +129,8 @@ class HCPHandler:
                         raise NotAValidTenantError(
                             'The provided tenant name, "'
                             + tenant
-                            + '", is not a valid tenant name. Hint: did you spell it correctly?',
+                            + '", is not a valid tenant name. Hint: did you'
+                            + "spell it correctly?",
                         )
                 else:
                     self.tenant = tenant
@@ -121,7 +141,10 @@ class HCPHandler:
             raise UnableToParseEndpointError(
                 'Unable to parse endpoint, "'
                 + self.endpoint
-                + '". Make sure that you have entered the correct endpoint in your credentials JSON file. Hints:\n - The endpoint should *not* contain "https://" or port numbers\n - Is the endpoint spelled correctly?',
+                + '". Make sure that you have entered the correct endpoint in'
+                + "your credentials JSON file. "
+                + 'Hints:\n - The endpoint should *not* contain "https://" or'
+                + "port numbers\n - Is the endpoint spelled correctly?",
             )
         self.base_request_url = (
             self.endpoint + ":9090/mapi/tenants/" + self.tenant
@@ -184,9 +207,10 @@ class HCPHandler:
 
     def get_response(self, path_extension: str = "") -> dict:
         """
-        Make a request to the HCP in order to use the builtin MAPI
+        Make a request to the HCP in order to use the builtin MAPI.
 
-        :param path_extension: Extension for the base request URL, defaults to the empty string
+        :param path_extension:
+            Extension for the base request URL, defaults to the empty string
         :type path_extension: str, optional
 
         :return: The response as a dictionary
@@ -213,7 +237,8 @@ class HCPHandler:
         Test the connection to the mounted bucket or another bucket which is
         supplied as the argument :py:obj:`bucket_name`.
 
-        :param bucket_name: The name of the bucket to be mounted. Defaults to the empty string
+        :param bucket_name:
+            The name of the bucket to be mounted. Defaults to the empty string
         :type bucket_name: str, optional
 
         :raises NoBucketMountedError: If no bucket is selected
@@ -229,9 +254,10 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            raise NoBucketMountedError(
-                "No bucket selected. Either use `mount_bucket` first or supply the optional `bucket_name` parameter for `test_connection`",
-            )
+            msg = ("No bucket selected. Either use `mount_bucket` first or "
+                   "supply the optional `bucket_name` parameter for "
+                   "`test_connection`")
+            raise NoBucketMountedError(msg)
 
         response = {}
         try:
@@ -261,8 +287,8 @@ class HCPHandler:
     def mount_bucket(self, bucket_name: str) -> None:
         """
         Mount bucket that is to be used. This method needs to executed in order
-        for most of the other methods to work. It mainly concerns operations with
-        download and upload.
+        for most of the other methods to work. It mainly concerns operations
+        with download and upload.
 
         :param bucket_name: The name of the bucket to be mounted
         :type bucket_name: str
@@ -309,9 +335,12 @@ class HCPHandler:
     ) -> Generator[dict[str, Any], Any, None]:
         """
         List all objects in the mounted bucket as a generator. If one wishes to
-        get the result as a list, use :py:function:`list` to type cast the generator
+        get the result as a list, use :py:function:`list` to type cast the
+        generator
 
-        :param path_key: Filter string for which keys to list, specifically for finding objects in certain folders. Defaults to \"the root\" of the bucket
+        :param path_key:
+            Filter string for which keys to list, specifically for finding
+            objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
         :param output_mode:
             The upload mode of the transfer is any of the following:\n
@@ -322,7 +351,9 @@ class HCPHandler:
         :type output_mode: ListObjectsOutputMode, optional
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
-        :param list_all_bucket_objects: If True, the value of `path_key` will be ignored and instead will list all objects in the bucket. Defaults to False
+        :param list_all_bucket_objects:
+            If True, the value of `path_key` will be ignored and instead will
+            list all objects in the bucket. Defaults to False
         :type list_all_bucket_objects: bool, optional
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
@@ -444,13 +475,17 @@ class HCPHandler:
         :param key: Name of the object
         :type key: str
 
-        :param local_file_path: Path to a file on your local system where the contents of the object file can be put
+        :param local_file_path:
+            Path to a file on your local system where the contents of the
+            object file can be put
         :type local_file_path: str
 
-        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :param show_progress_bar:
+            Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
 
-        :raises ObjectDoesNotExistError: If the object does not exist in the bucket
+        :raises ObjectDoesNotExistError:
+            If the object does not exist in the bucket
 
         :raises ClientError:
             Underlying botocore exception.
@@ -513,21 +548,29 @@ class HCPHandler:
         :param folder_key: Name of the folder
         :type folder_key: str
 
-        :param local_folder_path: Path to a folder on your local system where the contents of the objects can be put
+        :param local_folder_path:
+            Path to a folder on your local system where the contents of the
+            objects can be put
         :type local_folder_path: str
 
-        :param use_download_limit: Boolean choice for using a download limit. Defaults to False
+        :param use_download_limit:
+            Boolean choice for using a download limit. Defaults to False
         :type use_download_limit: bool, optional
 
-        :param download_limit_in_bytes: The optional download limit in Byte (from the package `bitmath`). Defaults to 1 TB (`TiB(1).to_Byte()`)
+        :param download_limit_in_bytes:
+            The optional download limit in Byte (from the package `bitmath`).
+            Defaults to 1 TB (`TiB(1).to_Byte()`)
         :type download_limit_in_bytes: Byte, optional
 
-        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :param show_progress_bar:
+            Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
 
-        :raises ObjectDoesNotExistError: If the object does not exist in the bucket
+        :raises ObjectDoesNotExistError:
+            If the object does not exist in the bucket
 
-        :raises DownloadLimitReachedError: If download limit was reached while downloading files
+        :raises DownloadLimitReachedError:
+            If download limit was reached while downloading files
 
         :raises NotADirectoryError: If local_folder_path is not a directory
         """
@@ -569,7 +612,8 @@ class HCPHandler:
                         and use_download_limit
                     ):
                         raise DownloadLimitReachedError(
-                            "The download limit was reached when downloading files",
+                            "The download limit was reached when downloading"
+                            " files",
                         )
                     self.download_file(
                         object["Key"],
@@ -601,10 +645,13 @@ class HCPHandler:
         :param local_file_path: Path to the file to be uploaded
         :type local_file_path: str
 
-        :param key: An optional new name for the file object on the bucket. Defaults to the same name as the file
+        :param key:
+            An optional new name for the file object on the bucket.
+            Defaults to the same name as the file
         :type key: str, optional
 
-        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :param show_progress_bar:
+            Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
 
         :param upload_mode:
@@ -615,14 +662,17 @@ class HCPHandler:
             Default is STANDARD
         :type upload_mode: UploadMode, optional
 
-        :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
+        :param equal_parts:
+            The number of equal parts that each file should be divided into when
+            using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
 
         :raises FileNotFoundError: If `path` does not exist
 
         :raises UnallowedCharacterError: If the \"\\\" is used in the file path
 
-        :raises ObjectAlreadyExistError: If the object already exist on the mounted bucket
+        :raises ObjectAlreadyExistError:
+            If the object already exist on the mounted bucket
         """
         raise_path_error(local_file_path)
 
@@ -690,10 +740,13 @@ class HCPHandler:
         :param local_folder_path: Path to the folder to be uploaded
         :type local_folder_path: str
 
-        :param key: An optional new name for the folder path on the bucket. Defaults to the same name as the local folder path
+        :param key:
+            An optional new name for the folder path on the bucket. Defaults to
+            the same name as the local folder path
         :type key: str, optional
 
-        :param show_progress_bar: Boolean choice of displaying a progress bar. Defaults to True
+        :param show_progress_bar:
+            Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
 
         :param upload_mode:
@@ -703,7 +756,9 @@ class HCPHandler:
                 HCPHandler.UploadMode.EQUAL_PARTS\n
         :type upload_mode: UploadMode, optional
 
-        :param equal_parts: The number of equal parts that each file should be divided into when using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
+        :param equal_parts:
+            The number of equal parts that each file should be divided into when
+            using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
 
         :raises FileNotFoundError: If `path` does not exist
@@ -744,7 +799,8 @@ class HCPHandler:
                     raise IsFolderObjectError(
                         'The object "'
                         + key
-                        + '" is a folder object. Please use the `delete_folder` method for this object',
+                        + '" is a folder object. Please use the `delete_folder`'
+                        + "method for this object",
                     )
                 object_list.append({"Key": key})
             else:
@@ -765,7 +821,8 @@ class HCPHandler:
 
         if does_not_exist:
             result += (
-                "The following could not be deleted because they didn't exist: \n"
+                "The following could not be deleted because they didn't "
+                 "exist:\n"
                 + "\n".join(does_not_exist)
             )
 
@@ -856,7 +913,8 @@ class HCPHandler:
         self.s3_client.delete_bucket(
             Bucket=bucket,
         )
-        # If the deletion was not successful, `self.s3_client.delete_bucket` would have thrown an error
+        # If the deletion was not successful, `self.s3_client.delete_bucket`
+        # would have thrown an error
         return bucket + " was successfully deleted"
 
     @check_mounted
@@ -961,7 +1019,8 @@ class HCPHandler:
         self, key: str, user_ID: str, permission: str,
     ) -> None:
         """
-        Modify permissions for a user in the Access Control List (ACL) for one object
+        Modify permissions for a user in the Access Control List (ACL) for one
+        object.
 
         :param key: The name of the object
         :type key: str
@@ -989,7 +1048,8 @@ class HCPHandler:
     @check_mounted
     def modify_single_bucket_acl(self, user_ID: str, permission: str) -> None:
         """
-        Modify permissions for a user in the Access Control List (ACL) for the mounted bucket
+        Modify permissions for a user in the Access Control List (ACL) for the
+        mounted bucket.
 
         :param user_ID: The user name. Can either be the DisplayName or user_ID
         :type user_ID: str
@@ -1017,9 +1077,15 @@ class HCPHandler:
         """
         Modifies  permissions to multiple objects, see below.
 
-        In order to add permissions for multiple objects, we make use of a dictionary of a dictionary: :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`. So for every object (key), we set the permissions for every user ID for that object.
+        In order to add permissions for multiple objects, we make use of a
+        dictionary of a dictionary:
+        :py:obj:`key_user_ID_permissions = {key : {user_ID : permission}}`.
+        So for every object (key), we set the permissions for every user ID for
+        that object.
 
-        :param key_user_ID_permissions: The dictionary containing object name and user_id-permission dictionary
+        :param key_user_ID_permissions:
+            The dictionary containing object name and user_id-permission
+            dictionary
         :type key_user_ID_permissions: dict[str, dict[str, str]]
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
@@ -1034,9 +1100,11 @@ class HCPHandler:
     @check_mounted
     def modify_bucket_acl(self, user_ID_permissions: dict[str, str]) -> None:
         """
-        Modify permissions for multiple users for the mounted bucket
+        Modify permissions for multiple users for the mounted bucket.
 
-        :param user_ID_permissions: The dictionary containing the user name and the corresponding permission to be set to that user
+        :param user_ID_permissions:
+            The dictionary containing the user name and the corresponding
+            permission to be set to that user
         :type user_ID_permissions: dict[str, str]
         """
         self.s3_client.put_bucket_acl(
