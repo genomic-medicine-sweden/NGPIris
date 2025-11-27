@@ -368,9 +368,8 @@ class HCPHandler:
             if not page:
                 break
 
-            if (
-                not files_only
-            ):  # Hide folder objects when flag `files_only` is True
+            if not files_only:
+                # Hide folder objects when flag `files_only` is True
                 # Handle folder objects before file objects
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object: dict
