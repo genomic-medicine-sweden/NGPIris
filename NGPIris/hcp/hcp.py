@@ -338,6 +338,7 @@ class HCPHandler:
             Filter string for which keys to list, specifically for finding
             objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
+
         :param output_mode:
             The upload mode of the transfer is any of the following:\n
                     HCPHandler.ListObjectsOutputMode.SIMPLE,\n
@@ -345,12 +346,15 @@ class HCPHandler:
                     HCPHandler.ListObjectsOutputMode.MINIMAL\n
             Default is EXTENDED
         :type output_mode: ListObjectsOutputMode, optional
+
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
+
         :param list_all_bucket_objects:
             If True, the value of `path_key` will be ignored and instead will
             list all objects in the bucket. Defaults to False
         :type list_all_bucket_objects: bool, optional
+
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """
