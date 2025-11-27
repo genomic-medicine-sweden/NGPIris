@@ -88,8 +88,14 @@ class HCPHandler:
             hcp_credentials = CredentialsHandler(credentials).hcp
 
             self.endpoint = "https://" + hcp_credentials["endpoint"]
-            self.aws_access_key_id = hcp_credentials["aws_access_key_id"]
-            self.aws_secret_access_key = hcp_credentials["aws_secret_access_key"]
+            self.username = (
+                hcp_credentials["username"]
+                if hcp_credentials.get("username")
+                else hcp_credentials["aws_access_key_id"])
+            self.password = (
+                hcp_credentials["password"]
+                if hcp_credentials.get("password")
+                else hcp_credentials["aws_secret_access_key"])
         elif type(credentials) is dict:
             self.endpoint = "https://" + credentials["endpoint"]
             self.aws_access_key_id = credentials["aws_access_key_id"]
