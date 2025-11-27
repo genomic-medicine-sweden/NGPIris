@@ -300,8 +300,8 @@ class HCPHandler:
 
     def create_bucket(self, bucket_name: str) -> None:
         """
-        Create a bucket. The user in the given credentials will be the owner
-        of the bucket
+        Create a bucket. The user in the given credentials will be the owner of
+        the bucket
 
         :param bucket_name: Name of the new bucket
         :type bucket_name: str
@@ -334,7 +334,7 @@ class HCPHandler:
         files_only: bool = False,
         list_all_bucket_objects: bool = False,
     ) -> Generator[dict[str, Any], Any, None]:
-        """
+        r"""
         List all objects in the mounted bucket as a generator. If one wishes to
         get the result as a list, use :py:function:`list` to type cast the
         generator
@@ -430,7 +430,7 @@ class HCPHandler:
     @check_mounted
     def get_object(self, key: str) -> dict:
         """
-        Retrieve object metadata
+        Retrieve object metadata.
 
         :param key: The object name
         :type key: str
@@ -438,18 +438,17 @@ class HCPHandler:
         :return: A dictionary containing the object metadata
         :rtype: dict
         """
-        response = dict(
+        return dict(
             self.s3_client.get_object(
                 Bucket=self.bucket_name,
                 Key=key,
             ),
         )
-        return response
 
     @check_mounted
     def object_exists(self, key: str) -> bool:
         """
-        Check if a given object is in the mounted bucket
+        Check if a given object is in the mounted bucket.
 
         :param key: The object name
         :type key: str
@@ -459,19 +458,16 @@ class HCPHandler:
         """
         try:
             response = self.get_object(key)
-            if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-                return True
-            # pragma: no cover
-            return False
-        except:  # pragma: no cover
+            return response["ResponseMetadata"]["HTTPStatusCode"] == 200 # noqa: PLR2004
+        except Exception: # noqa: BLE001  # pragma: no cover
             return False
 
     @check_mounted
     def download_file(
-        self, key: str, local_file_path: str, show_progress_bar: bool = True,
+        self, key: str, local_file_path: str, show_progress_bar: bool = True, # noqa: FBT001, FBT002
     ) -> None:
         """
-        Download one object file from the mounted bucket
+        Download one object file from the mounted bucket.
 
         :param key: Name of the object
         :type key: str
@@ -496,12 +492,11 @@ class HCPHandler:
         try:
             self.get_object(key)
         except:
+            msg = ('Could not find object "' + key + '" in bucket "'
+                   + str(self.bucket_name) + '"')
             raise ObjectDoesNotExistError(
-                "Could not find object",
-                '"' + key + '"',
-                "in bucket",
-                '"' + str(self.bucket_name) + '"',
-            )
+                msg,
+            ) from None
         try:
             if show_progress_bar:
                 file_size: int = self.s3_client.head_object(
@@ -529,10 +524,10 @@ class HCPHandler:
                     Filename=local_file_path,
                     Config=self.transfer_config,
                 )
-        except ClientError as e0:
-            raise e0
-        except Exception as e:  # pragma: no cover
-            raise Exception(e)
+        except ClientError:
+            raise
+        except Exception:  # pragma: no cover
+            raise
 
     @check_mounted
     def download_folder(
