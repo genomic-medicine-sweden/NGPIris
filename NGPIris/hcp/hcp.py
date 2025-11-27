@@ -1,7 +1,6 @@
 from collections.abc import Generator
 from configparser import ConfigParser
 from enum import Enum
-from os import listdir, stat
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -1007,9 +1006,9 @@ class HCPHandler:
 
     @check_mounted
     def modify_single_object_acl(
-        self, key: str, user_ID: str, permission: str, # noqa: N803
+        self, key: str, user_ID: str, permission: str,
     ) -> None:
-        """
+        r"""
         Modify permissions for a user in the Access Control List (ACL) for one
         object.
 
@@ -1037,8 +1036,8 @@ class HCPHandler:
         )
 
     @check_mounted
-    def modify_single_bucket_acl(self, user_ID: str, permission: str) -> None: # noqa: N803
-        """
+    def modify_single_bucket_acl(self, user_ID: str, permission: str) -> None:
+        r"""
         Modify permissions for a user in the Access Control List (ACL) for the
         mounted bucket.
 
@@ -1065,7 +1064,7 @@ class HCPHandler:
     def modify_object_acl(
         self, key_user_ID_permissions: dict[str, dict[str, str]],
     ) -> None:
-        """
+        r"""
         Modifies  permissions to multiple objects, see below.
 
         In order to add permissions for multiple objects, we make use of a
