@@ -226,6 +226,7 @@ class HCPHandler:
             url,
             headers=headers,
             verify=self.use_ssl,
+            timeout=15,
         )
 
         response.raise_for_status()
@@ -262,8 +263,8 @@ class HCPHandler:
         response = {}
         try:
             response = dict(self.s3_client.head_bucket(Bucket=bucket_name))
-        except EndpointConnectionError as e:  # pragma: no cover
-            raise e
+        except EndpointConnectionError:  # pragma: no cover
+            raise
         except ClientError as e:
             status_code = e.response["ResponseMetadata"].get(
                 "HTTPStatusCode", -1,
@@ -272,15 +273,15 @@ class HCPHandler:
                 case 404:
                     raise BucketNotFoundError(
                         'Bucket "' + bucket_name + '" was not found',
-                    )
+                    ) from e
                 case 403:
                     raise BucketForbiddenError(
                         'Bucket "'
                         + bucket_name
                         + '" could not be accessed due to lack of permissions',
-                    )
-        except Exception as e:  # pragma: no cover
-            raise Exception(e)
+                    ) from e
+        except Exception:  # pragma: no cover
+            raise
 
         return response
 
