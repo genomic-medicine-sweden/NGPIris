@@ -539,7 +539,7 @@ class HCPHandler:
         show_progress_bar: bool = True,
     ) -> None:
         """
-        Download multiple objects from a folder in the mounted bucket
+        Download multiple objects from a folder in the mounted bucket.
 
         :param folder_key: Name of the folder
         :type folder_key: str
@@ -573,12 +573,11 @@ class HCPHandler:
         try:
             self.get_object(folder_key)
         except:
+            msg = ('Could not find object "' + folder_key + '" in bucket "'
+                + str(self.bucket_name) + '"')
             raise ObjectDoesNotExistError(
-                "Could not find object",
-                '"' + folder_key + '"',
-                "in bucket",
-                '"' + str(self.bucket_name) + '"',
-            )
+                msg,
+            ) from None
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(
                 0,
@@ -586,14 +585,14 @@ class HCPHandler:
             (Path(local_folder_path) / Path(folder_key)).mkdir(
                 parents=True,
             )  # Create "base folder"
-            for object in self.list_objects(
+            for hcp_object in self.list_objects(
                 folder_key,
             ):  # Build the tree with directories or add files:
-                p = Path(local_folder_path) / Path(object["Key"])
-                if not object["IsFile"]:  # If the object is a "folder"
+                p = Path(local_folder_path) / Path(hcp_object["Key"])
+                if not hcp_object["IsFile"]:  # If the object is a "folder"
                     p.mkdir(parents=True)
                     self.download_folder(
-                        folder_key=str(object["Key"]),
+                        folder_key=str(hcp_object["Key"]),
                         local_folder_path=local_folder_path,
                         use_download_limit=use_download_limit,
                         show_progress_bar=show_progress_bar,
@@ -601,7 +600,7 @@ class HCPHandler:
                         - current_download_size_in_bytes,
                     )
                 else:  # If the object is a file
-                    current_download_size_in_bytes += Byte(object["Size"])
+                    current_download_size_in_bytes += Byte(hcp_object["Size"])
                     if (
                         current_download_size_in_bytes
                         >= download_limit_in_bytes
@@ -612,7 +611,7 @@ class HCPHandler:
                             " files",
                         )
                     self.download_file(
-                        object["Key"],
+                        hcp_object["Key"],
                         p.as_posix(),
                         show_progress_bar=show_progress_bar,
                     )
@@ -875,8 +874,8 @@ class HCPHandler:
         if not objects:
             result = '"' + key + '"' + " was deleted"
         else:
-            for object in objects:
-                if not object["IsFile"]:
+            for hcp_object in objects:
+                if not hcp_object["IsFile"]:
                     raise SubfolderError(
                         'There is at least one subfolder in "'
                         + key
