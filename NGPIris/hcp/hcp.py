@@ -606,10 +606,11 @@ class HCPHandler:
                         >= download_limit_in_bytes
                         and use_download_limit
                     ):
-                        raise DownloadLimitReachedError(
+                        msg = (
                             "The download limit was reached when downloading"
-                            " files",
+                            " files"
                         )
+                        raise DownloadLimitReachedError(msg)
                     self.download_file(
                         hcp_object["Key"],
                         p.as_posix(),
@@ -634,8 +635,8 @@ class HCPHandler:
         upload_mode: UploadMode = UploadMode.STANDARD,
         equal_parts: int = 5,
     ) -> None:
-        """
-        Upload one file to the mounted bucket
+        r"""
+        Upload one file to the mounted bucket.
 
         :param local_file_path: Path to the file to be uploaded
         :type local_file_path: str
@@ -676,15 +677,14 @@ class HCPHandler:
             key = file_name
 
         if "\\" in local_file_path:
-            raise UnallowedCharacterError(
-                'The "\\" character is not allowed in the file path',
-            )
+            msg = 'The "\\" character is not allowed in the file path'
+            raise UnallowedCharacterError(msg)
 
         if self.object_exists(key):
-            raise ObjectAlreadyExistError(
-                'The object "' + key + '" already exist in the mounted bucket',
-            )
-        file_size: int = stat(local_file_path).st_size
+            msg = 'The object "' + key + '" already exist in the mounted bucket'
+            raise ObjectAlreadyExistError(msg)
+
+        file_size: int = Path(local_file_path).stat().st_size
 
         match upload_mode:
             case HCPHandler.UploadMode.STANDARD:
@@ -729,8 +729,8 @@ class HCPHandler:
         upload_mode: UploadMode = UploadMode.STANDARD,
         equal_parts: int = 5,
     ) -> None:
-        """
-        Upload the contents of a folder to the mounted bucket
+        r"""
+        Upload the contents of a folder to the mounted bucket.
 
         :param local_folder_path: Path to the folder to be uploaded
         :type local_folder_path: str
@@ -762,12 +762,13 @@ class HCPHandler:
 
         if not key:
             key = local_folder_path
-        filenames = listdir(local_folder_path)
+
+        filenames = Path(local_folder_path).iterdir()
 
         for filename in filenames:
             self.upload_file(
-                local_folder_path + filename,
-                key + filename,
+                local_folder_path + filename.name,
+                key + filename.name,
                 show_progress_bar=show_progress_bar,
                 upload_mode=upload_mode,
                 equal_parts=equal_parts,
@@ -776,7 +777,7 @@ class HCPHandler:
     @check_mounted
     def delete_objects(self, keys: list[str]) -> str:
         """
-        Delete a list of objects on the mounted bucket
+        Delete a list of objects on the mounted bucket.
 
         :param keys: List of object names to be deleted
         :type keys: list[str]
@@ -809,7 +810,7 @@ class HCPHandler:
                 Delete=deletion_dict,
             )
 
-            deleted_files = list(d["Key"] for d in response["Deleted"])
+            deleted_files: list = [d["Key"] for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
                 deleted_files,
             )
@@ -826,7 +827,7 @@ class HCPHandler:
     @check_mounted
     def delete_object(self, key: str) -> str:
         """
-        Delete a single object in the mounted bucket
+        Delete a single object in the mounted bucket.
 
         :param key: The object to be deleted
         :type key: str
@@ -884,9 +885,7 @@ class HCPHandler:
                         + '" itself',
                     )
 
-            result = self.delete_objects(
-                list(obj["Key"] for obj in objects),
-            )
+            result = self.delete_objects([obj["Key"] for obj in objects])
 
         # Delete the folder object itself separately
         self.s3_client.delete_object(
@@ -898,7 +897,7 @@ class HCPHandler:
 
     def delete_bucket(self, bucket: str) -> str:
         """
-        Delete a specified bucket
+        Delete a specified bucket.
 
         :param bucket: The bucket to be deleted
         :type bucket: str
@@ -955,10 +954,7 @@ class HCPHandler:
         :return: A generator of objects based on the search string
         :rtype: Generator
         """
-        if case_sensitive:
-            processor = None
-        else:
-            processor = utils.default_process
+        processor = None if case_sensitive else utils.default_process
 
         full_list = peekable(self.list_objects(list_all_bucket_objects=True))
 
@@ -982,7 +978,7 @@ class HCPHandler:
     @check_mounted
     def get_object_acl(self, key: str) -> dict:
         """
-        Get the object Access Control List (ACL)
+        Get the object Access Control List (ACL).
 
         :param key: The name of the object
         :type key: str
@@ -999,7 +995,7 @@ class HCPHandler:
     @check_mounted
     def get_bucket_acl(self) -> dict:
         """
-        Get the bucket Access Control List (ACL)
+        Get the bucket Access Control List (ACL).
 
         :return: Return the ACL in the shape of a dictionary
         :rtype: dict
@@ -1011,7 +1007,7 @@ class HCPHandler:
 
     @check_mounted
     def modify_single_object_acl(
-        self, key: str, user_ID: str, permission: str,
+        self, key: str, user_ID: str, permission: str, # noqa: N803
     ) -> None:
         """
         Modify permissions for a user in the Access Control List (ACL) for one
@@ -1041,7 +1037,7 @@ class HCPHandler:
         )
 
     @check_mounted
-    def modify_single_bucket_acl(self, user_ID: str, permission: str) -> None:
+    def modify_single_bucket_acl(self, user_ID: str, permission: str) -> None: # noqa: N803
         """
         Modify permissions for a user in the Access Control List (ACL) for the
         mounted bucket.
