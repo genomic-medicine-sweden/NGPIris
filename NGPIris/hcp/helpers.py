@@ -1,8 +1,9 @@
+import sys
 from collections.abc import Callable
-from os import path as p
+from pathlib import Path
 from typing import ParamSpec, TypeVar
 
-from NGPIris.hcp.exceptions import NoBucketMounted
+from NGPIris.hcp.exceptions import NoBucketMountedError
 
 
 def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:
@@ -18,7 +19,7 @@ def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:
             "READ_ACP",
         ]:
             print("Invalid permission option:", permission)
-            exit()
+            sys.exit()
         grantee = {
             "Grantee": {
                 "ID": user_ID,
@@ -30,7 +31,7 @@ def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:
     return access_control_policy
 
 
-def raise_path_error(path: str):
+def raise_path_error(path: str) -> None:
     """
     Raise FileNotFoundError if the system path does not exist
 
@@ -39,7 +40,7 @@ def raise_path_error(path: str):
 
     :raises FileNotFoundError: If `path` does not exist
     """
-    if not p.exists(path):
+    if not Path(path).exists():
         raise FileNotFoundError('"' + path + '"' + " does not exist")
 
 
@@ -61,8 +62,9 @@ def check_mounted(method: Callable[P, T]) -> Callable[P, T]:
 
     def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> T:
         self = args[0]
-        if not self.bucket_name:  # type: ignore
-            raise NoBucketMounted("No bucket is mounted")
+        if not self.bucket_name:
+            msg = "No bucket is mounted"
+            raise NoBucketMountedError(msg)
         return method(*args, **kwargs)
 
     return check_if_mounted
