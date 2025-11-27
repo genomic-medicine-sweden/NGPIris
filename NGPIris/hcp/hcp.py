@@ -51,7 +51,6 @@ class HCPHandler:
         self,
         credentials: str | dict[str, str],
         use_ssl: bool = False,
-        proxy_path: str = "",
         custom_config_path: str = "",
     ) -> None:
         """
@@ -155,23 +154,13 @@ class HCPHandler:
         if not self.use_ssl:
             disable_warnings()
 
-        if proxy_path:  # pragma: no cover
-            s3_config = Config(
-                s3={
-                    "addressing_style": "path",
-                    "payload_signing_enabled": True,
-                },
-                signature_version="s3v4",
-                proxies=CredentialsHandler(proxy_path).hcp,
-            )
-        else:
-            s3_config = Config(
-                s3={
-                    "addressing_style": "path",
-                    "payload_signing_enabled": True,
-                },
-                signature_version="s3v4",
-            )
+        s3_config = Config(
+            s3={
+                "addressing_style": "path",
+                "payload_signing_enabled": True,
+            },
+            signature_version="s3v4",
+        )
 
         self.s3_client = client(
             "s3",
