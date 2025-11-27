@@ -82,13 +82,14 @@ class HCPHandler:
 
         :raise UnableToParseEndpointError: The endpoint could not be parsed
         """
-        if type(credentials) is str:
-            credentials_handler = CredentialsHandler(credentials)
-            self.hcp = credentials_handler.hcp
 
-            self.endpoint = "https://" + self.hcp["endpoint"]
-            self.aws_access_key_id = self.hcp["aws_access_key_id"]
-            self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
+        # Determine type of `credentials`
+        if type(credentials) is str:
+            hcp_credentials = CredentialsHandler(credentials).hcp
+
+            self.endpoint = "https://" + hcp_credentials["endpoint"]
+            self.aws_access_key_id = hcp_credentials["aws_access_key_id"]
+            self.aws_secret_access_key = hcp_credentials["aws_secret_access_key"]
         elif type(credentials) is dict:
             self.endpoint = "https://" + credentials["endpoint"]
             self.aws_access_key_id = credentials["aws_access_key_id"]
