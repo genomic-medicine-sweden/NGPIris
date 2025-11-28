@@ -1,2 +1,0 @@
-class VPNConnectionError(Exception):
-    pass
