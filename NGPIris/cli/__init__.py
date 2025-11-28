@@ -6,7 +6,6 @@ from typing import Any
 
 import click
 import lazy_table as lt
-from bitmath import Byte, TiB
 from click.core import Context
 
 from NGPIris import HCPHandler
@@ -17,7 +16,6 @@ from NGPIris.cli.helpers import (
     download_folder,
     ensure_destination_dir,
     object_is_folder,
-    prompt_large_download,
 )
 
 
@@ -276,7 +274,8 @@ def download(  # noqa: PLR0913
                 )
             else:
                 click.echo(
-                    'This command would have downloaded the object "' + source + '"',
+                    'This command would have downloaded the object "'
+                    + source + '"',
                 )
         else:
             click.echo(
