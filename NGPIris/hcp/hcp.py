@@ -63,8 +63,8 @@ class HCPHandler:
             ```
             {
                 "endpoint" : "",
-                "aws_access_key_id" : "",
-                "aws_secret_access_key" : ""
+                "username" : "",
+                "password" : ""
             }
             ```
         :type credentials: str | dict[str, str]
@@ -85,21 +85,29 @@ class HCPHandler:
 
         # Determine type of `credentials`
         if type(credentials) is str:
-            hcp_credentials = CredentialsHandler(credentials).hcp
+            parsed_credentials = CredentialsHandler(credentials).hcp
 
-            self.endpoint = "https://" + hcp_credentials["endpoint"]
+            self.endpoint = "https://" + parsed_credentials["endpoint"]
             self.username = (
-                hcp_credentials["username"]
-                if hcp_credentials.get("username")
-                else hcp_credentials["aws_access_key_id"])
+                parsed_credentials["username"]
+                if parsed_credentials.get("username")
+                else parsed_credentials["aws_access_key_id"])
             self.password = (
-                hcp_credentials["password"]
-                if hcp_credentials.get("password")
-                else hcp_credentials["aws_secret_access_key"])
+                parsed_credentials["password"]
+                if parsed_credentials.get("password")
+                else parsed_credentials["aws_secret_access_key"])
         elif type(credentials) is dict:
             self.endpoint = "https://" + credentials["endpoint"]
-            self.aws_access_key_id = credentials["aws_access_key_id"]
-            self.aws_secret_access_key = credentials["aws_secret_access_key"]
+            self.username = (
+                credentials["username"]
+                if credentials.get("username")
+                else credentials["aws_access_key_id"]
+            )
+            self.password = (
+                credentials["password"]
+                if credentials.get("password")
+                else credentials["aws_secret_access_key"]
+            )
 
         # A lookup table for GMC names to HCP tenant names
         gmc_tenant_map = {
@@ -154,7 +162,7 @@ class HCPHandler:
         self.base_request_url = (
             self.endpoint + ":9090/mapi/tenants/" + self.tenant
         )
-        self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
+        self.token = self.username + ":" + self.password
         self.bucket_name = None
         self.use_ssl = use_ssl
 
@@ -171,8 +179,8 @@ class HCPHandler:
 
         self.s3_client = client(
             "s3",
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key,
+            aws_access_key_id=self.username,
+            aws_secret_access_key=self.password,
             endpoint_url=self.endpoint,
             verify=self.use_ssl,
             config=s3_config,
