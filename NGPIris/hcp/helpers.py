@@ -6,7 +6,7 @@ from typing import ParamSpec, TypeVar
 from NGPIris.hcp.exceptions import NoBucketMountedError
 
 
-def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:
+def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict: # noqa: D103
     access_control_policy: dict[str, list] = {
         "Grants": [],
     }
