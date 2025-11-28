@@ -51,7 +51,6 @@ class HCPHandler:
         self,
         credentials: str | dict[str, str],
         use_ssl: bool = False,
-        proxy_path: str = "",
         custom_config_path: str = "",
     ) -> None:
         """
@@ -64,8 +63,8 @@ class HCPHandler:
             ```
             {
                 "endpoint" : "",
-                "aws_access_key_id" : "",
-                "aws_secret_access_key" : ""
+                "username" : "",
+                "password" : ""
             }
             ```
         :type credentials: str | dict[str, str]
@@ -83,17 +82,31 @@ class HCPHandler:
 
         :raise UnableToParseEndpointError: The endpoint could not be parsed
         """
+        # Determine type of `credentials`
         if type(credentials) is str:
-            credentials_handler = CredentialsHandler(credentials)
-            self.hcp = credentials_handler.hcp
+            parsed_credentials = CredentialsHandler(credentials).hcp
 
-            self.endpoint = "https://" + self.hcp["endpoint"]
-            self.aws_access_key_id = self.hcp["aws_access_key_id"]
-            self.aws_secret_access_key = self.hcp["aws_secret_access_key"]
+            self.endpoint = "https://" + parsed_credentials["endpoint"]
+            self.username = (
+                parsed_credentials["username"]
+                if parsed_credentials.get("username")
+                else parsed_credentials["aws_access_key_id"])
+            self.password = (
+                parsed_credentials["password"]
+                if parsed_credentials.get("password")
+                else parsed_credentials["aws_secret_access_key"])
         elif type(credentials) is dict:
             self.endpoint = "https://" + credentials["endpoint"]
-            self.aws_access_key_id = credentials["aws_access_key_id"]
-            self.aws_secret_access_key = credentials["aws_secret_access_key"]
+            self.username = (
+                credentials["username"]
+                if credentials.get("username")
+                else credentials["aws_access_key_id"]
+            )
+            self.password = (
+                credentials["password"]
+                if credentials.get("password")
+                else credentials["aws_secret_access_key"]
+            )
 
         # A lookup table for GMC names to HCP tenant names
         gmc_tenant_map = {
@@ -148,35 +161,25 @@ class HCPHandler:
         self.base_request_url = (
             self.endpoint + ":9090/mapi/tenants/" + self.tenant
         )
-        self.token = self.aws_access_key_id + ":" + self.aws_secret_access_key
+        self.token = self.username + ":" + self.password
         self.bucket_name = None
         self.use_ssl = use_ssl
 
         if not self.use_ssl:
             disable_warnings()
 
-        if proxy_path:  # pragma: no cover
-            s3_config = Config(
-                s3={
-                    "addressing_style": "path",
-                    "payload_signing_enabled": True,
-                },
-                signature_version="s3v4",
-                proxies=CredentialsHandler(proxy_path).hcp,
-            )
-        else:
-            s3_config = Config(
-                s3={
-                    "addressing_style": "path",
-                    "payload_signing_enabled": True,
-                },
-                signature_version="s3v4",
-            )
+        s3_config = Config(
+            s3={
+                "addressing_style": "path",
+                "payload_signing_enabled": True,
+            },
+            signature_version="s3v4",
+        )
 
         self.s3_client = client(
             "s3",
-            aws_access_key_id=self.aws_access_key_id,
-            aws_secret_access_key=self.aws_secret_access_key,
+            aws_access_key_id=self.username,
+            aws_secret_access_key=self.password,
             endpoint_url=self.endpoint,
             verify=self.use_ssl,
             config=s3_config,
@@ -326,12 +329,11 @@ class HCPHandler:
         MINIMAL = "minimal"
 
     @check_mounted
-    def list_objects(
+    def list_objects( # noqa: C901
         self,
         path_key: str = "",
         output_mode: ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
         files_only: bool = False,
-        list_all_bucket_objects: bool = False,
     ) -> Generator[dict[str, Any], Any, None]:
         r"""
         List all objects in the mounted bucket as a generator. If one wishes to
@@ -342,6 +344,7 @@ class HCPHandler:
             Filter string for which keys to list, specifically for finding
             objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
+
         :param output_mode:
             The upload mode of the transfer is any of the following:\n
                     HCPHandler.ListObjectsOutputMode.SIMPLE,\n
@@ -349,82 +352,85 @@ class HCPHandler:
                     HCPHandler.ListObjectsOutputMode.MINIMAL\n
             Default is EXTENDED
         :type output_mode: ListObjectsOutputMode, optional
+
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
+
         :param list_all_bucket_objects:
             If True, the value of `path_key` will be ignored and instead will
             list all objects in the bucket. Defaults to False
         :type list_all_bucket_objects: bool, optional
+
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """
+        def _format_output_dictionary(
+            key: str,
+            object_metadata : dict,
+            is_file : bool,
+            output_mode : HCPHandler.ListObjectsOutputMode
+        ) -> dict[str, Any]:
+            base = {
+                "Key": key,
+                "IsFile": is_file,
+            }
+
+            match output_mode:
+                case HCPHandler.ListObjectsOutputMode.MINIMAL:
+                    return base
+
+                case HCPHandler.ListObjectsOutputMode.SIMPLE:
+                    return base | {
+                        "LastModified": object_metadata["LastModified"],
+                        "Size": object_metadata.get("Size", "")
+                    }
+
+                case HCPHandler.ListObjectsOutputMode.EXTENDED:
+                    return base | {
+                        "LastModified": object_metadata["LastModified"],
+                        "Size": object_metadata.get("Size", ""),
+                        "ETag": object_metadata["ETag"]
+                    }
+
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
-        if list_all_bucket_objects:
-            pages: PageIterator = paginator.paginate(Bucket=self.bucket_name)
-        else:
-            pages: PageIterator = paginator.paginate(
-                Bucket=self.bucket_name, Prefix=path_key, Delimiter="/",
-            )
+        pages: PageIterator = paginator.paginate(
+            Bucket=self.bucket_name, Prefix=path_key, Delimiter="/",
+        )
 
         for page in pages:
             page: dict | None
             # Check if `page` is None
             if not page:
-                break
+                # Defensive: paginator shouldn't normally yield falsy pages
+                continue
 
-            if (
-                not files_only
-            ):  # Hide folder objects when flag `files_only` is True
+            if not files_only:
+                # Hide folder objects when flag `files_only` is True
                 # Handle folder objects before file objects
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object: dict
+                    key = folder_object["Prefix"]
                     folder_object_metadata = self.get_object(
-                        folder_object["Prefix"],
+                        key,
                     )
-                    match output_mode:
-                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
-                            yield {
-                                "Key": folder_object["Prefix"],
-                                "LastModified": folder_object_metadata[
-                                    "LastModified"
-                                ],
-                                "ETag": folder_object_metadata["ETag"],
-                                "IsFile": False,
-                            }
-                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
-                            yield {
-                                "Key": folder_object["Prefix"],
-                                "LastModified": folder_object_metadata[
-                                    "LastModified"
-                                ],
-                                "IsFile": False,
-                            }
-                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
-                            yield {
-                                "Key": folder_object["Prefix"],
-                                "IsFile": False,
-                            }
+                    yield _format_output_dictionary(
+                        key,
+                        folder_object_metadata,
+                        False,
+                        output_mode
+                    )
 
             # Handle file objects
-            for file_object in page.get("Contents", []):
-                file_object: dict
-                if file_object["Key"] != path_key:
-                    file_object["IsFile"] = True
-                    match output_mode:
-                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
-                            yield file_object
-                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
-                            yield {
-                                "Key": file_object["Key"],
-                                "LastModified": file_object["LastModified"],
-                                "Size": file_object["Size"],
-                                "IsFile": file_object["IsFile"],
-                            }
-                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
-                            yield {
-                                "Key": file_object["Key"],
-                                "IsFile": file_object["IsFile"],
-                            }
+            for file_object_metadata in page.get("Contents", []):
+                file_object_metadata: dict
+                key = file_object_metadata["Key"]
+                if key != path_key:
+                    yield _format_output_dictionary(
+                        key,
+                        file_object_metadata,
+                        True,
+                        output_mode
+                    )
 
     @check_mounted
     def get_object(self, key: str) -> dict:
@@ -463,7 +469,7 @@ class HCPHandler:
 
     @check_mounted
     def download_file(
-        self, key: str, local_file_path: str, show_progress_bar: bool = True, # noqa: FBT001, FBT002
+        self, key: str, local_file_path: str, show_progress_bar: bool = True,
     ) -> None:
         """
         Download one object file from the mounted bucket.
