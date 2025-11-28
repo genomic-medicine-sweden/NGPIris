@@ -33,7 +33,7 @@ def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict: #
 
 def raise_path_error(path: str) -> None:
     """
-    Raise FileNotFoundError if the system path does not exist
+    Raise FileNotFoundError if the system path does not exist.
 
     :param path: Local system path
     :type path: str

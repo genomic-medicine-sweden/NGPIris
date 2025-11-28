@@ -7,12 +7,12 @@ Credentials: TypeAlias = dict[str, dict[str, str]]
 
 class CredentialsHandler:
     """
-    Class for handling credentials parsing
+    Class for handling credentials parsing.
     """
 
     def __init__(self, credentials_path: str) -> None:
         """
-        Class for handling credentials to HCP and HCI
+        Class for handling credentials to HCP and HCI.
 
         :param credentials_path: Path to the credentials JSON file
         :type credentials_path: str
@@ -50,7 +50,7 @@ def check_empty_field(credentials: Credentials) -> None:
     :type credentials: Credentials
 
     :raise RuntimeError: If any check is true
-    """
+    """ # noqa: D400, D415
     if all(all_fields_empty(k, credentials) for k in credentials):
         msg = ("Missing entries in all fields in the credentials file. "
              "Please enter your credentials in the credentials file")
@@ -80,7 +80,7 @@ def check_empty_field(credentials: Credentials) -> None:
 
 def parse_credentials(credentials_path: str) -> Credentials:
     """
-    Parse credentials at the given `credentials_path`
+    Parse credentials at the given `credentials_path`.
 
     :param credentials_path: Path to credentials
     :type credentials_path: str

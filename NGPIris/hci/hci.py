@@ -15,7 +15,9 @@ class HCIHandler:
     """
 
     def __init__(
-        self, credentials: str | dict[str, str], use_ssl: bool = False,
+        self,
+        credentials: str | dict[str, str],
+        use_ssl: bool = False
     ) -> None:
         """
         Class for handling HCI requests.
@@ -133,7 +135,7 @@ class HCIHandler:
 
     def raw_query(self, query_dict: dict[str, str | list | dict]) -> dict:
         """
-        Make query to an HCI index, with a dictionary
+        Make query to an HCI index, with a dictionary.
 
         :param query_dict: Dictionary consisting of the query
         :type query_dict: dict[str, str | list | dict]
@@ -153,7 +155,7 @@ class HCIHandler:
 
     def raw_query_from_JSON(self, query_path: str) -> dict: # noqa: N802
         """
-        Make query to an HCI index, with prewritten query in a JSON file
+        Make query to an HCI index, with prewritten query in a JSON file.
 
         :param query_path: Path to the JSON file
         :type query_path: str
@@ -176,7 +178,7 @@ class HCIHandler:
         self, index_name: str, query_string: str = "", facets: list[str] = [], # noqa: B006
     ) -> dict:
         """
-        Make a query to the HCI based on the parameters of this method
+        Make a query to the HCI based on the parameters of this method.
 
         :param index_name: Name of the index
         :type index_name: str

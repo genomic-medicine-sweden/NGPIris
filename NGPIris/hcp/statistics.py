@@ -1,17 +1,16 @@
-from NGPIris.hcp import HCPHandler
+from NGPIris import HCPHandler
 from NGPIris.hcp.helpers import check_mounted
 
 
 class HCPStatistics(HCPHandler):
     """
-    Class for handling HCP statistics requests. Subclass of `HCPHandler`
+    Class for handling HCP statistics requests. Subclass of `HCPHandler`.
     """
 
     def __init__(
         self,
         credentials_path: str,
         use_ssl: bool = False,
-        proxy_path: str = "",
         custom_config_path: str = "",
     ) -> None:
         """
@@ -19,7 +18,7 @@ class HCPStatistics(HCPHandler):
         of `HCPHandler`.
         """
         super().__init__(
-            credentials_path, use_ssl, proxy_path, custom_config_path,
+            credentials_path, use_ssl, custom_config_path
         )
 
     @check_mounted

@@ -303,7 +303,7 @@ class HCPHandler:
     def create_bucket(self, bucket_name: str) -> None:
         """
         Create a bucket. The user in the given credentials will be the owner of
-        the bucket
+        the bucket.
 
         :param bucket_name: Name of the new bucket
         :type bucket_name: str
@@ -336,9 +336,9 @@ class HCPHandler:
         files_only: bool = False,
     ) -> Generator[dict[str, Any], Any, None]:
         r"""
-        List all objects in the mounted bucket as a generator. If one wishes to
-        get the result as a list, use :py:function:`list` to type cast the
-        generator
+        List all objects in the mounted bucket as a generator.
+        If one wishes to get the result as a list, use :py:function:`list` to
+        type cast the generator
 
         :param path_key:
             Filter string for which keys to list, specifically for finding
@@ -356,14 +356,9 @@ class HCPHandler:
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
 
-        :param list_all_bucket_objects:
-            If True, the value of `path_key` will be ignored and instead will
-            list all objects in the bucket. Defaults to False
-        :type list_all_bucket_objects: bool, optional
-
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
-        """
+        """ # noqa: D400, D415
         def _format_output_dictionary(
             key: str,
             object_metadata : dict,
@@ -843,8 +838,8 @@ class HCPHandler:
     @check_mounted
     def delete_folder(self, key: str) -> str:
         """
-        Delete a folder of objects in the mounted bucket. If there are
-        subfolders, a `SubfolderException` is raised
+        Delete a folder of objects in the mounted bucket.
+        If there are subfolders, a `SubfolderException` is raised
 
         :param key: The folder of objects to be deleted
         :type key: str
@@ -855,7 +850,7 @@ class HCPHandler:
 
         :return: The result of the deletion
         :rtype: str
-        """
+        """ # noqa: D400, D415
         if key[-1] != "/":
             key += "/"
 
@@ -930,7 +925,7 @@ class HCPHandler:
 
         :return: A generator of objects based on the search string
         :rtype: Generator
-        """
+        """ # noqa: D400, D415
         return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
 
     @check_mounted

@@ -111,7 +111,7 @@ def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
 @click.version_option(package_name="NGPIris")
 @click.pass_context
 def cli(
-    context: Context, credentials: str, debug: bool, transfer_config: str, # noqa: FBT001
+    context: Context, credentials: str, debug: bool, transfer_config: str,
 ) -> None:
     """
     NGP Intelligence and Repository Interface Software, IRIS.
@@ -215,7 +215,7 @@ def upload( # noqa: PLR0913
     bucket: str,
     source: str,
     destination: str,
-    dry_run: bool, # noqa: FBT001
+    dry_run: bool,
     upload_mode: str,
     equal_parts: int,
 ) -> None:
@@ -312,9 +312,9 @@ def download( # noqa: PLR0913
     bucket: str,
     source: str,
     destination: str,
-    force: bool, # noqa: FBT001
-    ignore_warning: bool, # noqa: FBT001
-    dry_run: bool, # noqa: FBT001
+    force: bool,
+    ignore_warning: bool,
+    dry_run: bool,
 ) -> None:
     """
     Download a file or folder from a bucket/namespace from the HCP.
@@ -434,7 +434,7 @@ def delete(
     context: Context,
     bucket: str,
     hcp_object: str,
-    dry_run: bool, # noqa: FBT001
+    dry_run: bool,
     mode: str,
 ) -> None:
     """
@@ -501,7 +501,7 @@ def delete(
 def delete_bucket(
         context: Context,
         bucket: str,
-        dry_run: bool, # noqa: FBT001
+        dry_run: bool,
 ) -> None:
     """
     Delete a bucket/namespace on the HCP.
@@ -562,9 +562,9 @@ def list_objects( # noqa: PLR0913
     context: Context,
     bucket: str,
     path: str,
-    pagination: bool, # noqa: FBT001
-    files_only: bool, # noqa: FBT001
-    extended_information: bool, # noqa: FBT001
+    pagination: bool,
+    files_only: bool,
+    extended_information: bool,
 ) -> None:
     """
     List the objects in a certain bucket/namespace on the HCP.
@@ -577,14 +577,14 @@ def list_objects( # noqa: PLR0913
     def list_objects_generator(
         hcp_h: HCPHandler,
         path: str,
-        files_only: bool, # noqa: FBT001
+        files_only: bool,
         output_mode: HCPHandler.ListObjectsOutputMode,
     ) -> Generator[str, Any, None]:
         """
         Handle object list as a paginator that `click` can handle.
         It works slightly different from `list_objects` in `hcp.py` in order to
         make the output printable in a terminal
-        """
+        """ # noqa: D415, D400
         objects = hcp_h.list_objects(
             path,
             output_mode=output_mode,
@@ -649,7 +649,7 @@ def simple_search(
     context: Context,
     bucket: str,
     search_string: str,
-    case_sensitive: bool, # noqa: FBT001
+    case_sensitive: bool,
 ) -> None:
     """
     Make a simple search using substrings in a bucket/namespace on the HCP.
@@ -699,7 +699,7 @@ def fuzzy_search(
     context: Context,
     bucket: str,
     search_string: str,
-    case_sensitive: bool, # noqa: FBT001
+    case_sensitive: bool,
     threshold: int,
 ) -> None:
     """
