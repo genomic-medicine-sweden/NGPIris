@@ -1,4 +1,3 @@
-
 import os
 import sys
 from pathlib import Path
@@ -25,6 +24,7 @@ def add_trailing_slash(path: str) -> str:
         path += "/"
     return path
 
+
 def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
     """
     Returns a `HCPHandler` based on the given command `context`.
@@ -40,8 +40,10 @@ def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
     else:
         # Should never happen
         click.echo(
-            ("Something went wrong with the subcommand and parent"
-             "command relation"),
+            (
+                "Something went wrong with the subcommand and parent"
+                "command relation"
+            ),
             err=True,
         )
         sys.exit(1)
@@ -86,6 +88,7 @@ def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
 
     return hcp_h
 
+
 def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
     """
     Predicate for checking if an HCP object is a folder or not.
@@ -94,6 +97,7 @@ def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
         hcp_h.get_object(object_path)["ContentLength"] == 0
     )
 
+
 def ensure_destination_dir(destination: str) -> Path:
     """
     Ensure that `destination` exists and return it as a `Path`.
@@ -101,6 +105,7 @@ def ensure_destination_dir(destination: str) -> Path:
     dest_path = Path(destination)
     dest_path.mkdir(parents=True, exist_ok=True)
     return dest_path
+
 
 def prompt_large_download() -> None:
     """
@@ -112,7 +117,10 @@ def prompt_large_download() -> None:
     ):
         sys.exit("\nAborting download")
 
-def download_folder(source : str, destination_path : Path, ignore_warning : bool, hcp_h : HCPHandler):
+
+def download_folder(
+    source: str, destination_path: Path, ignore_warning: bool, hcp_h: HCPHandler
+):
     """
     Helper function to `download` for downloading a folder.
     """
@@ -129,14 +137,20 @@ def download_folder(source : str, destination_path : Path, ignore_warning : bool
 
     hcp_h.download_folder(prefix, destination_path.as_posix())
 
-def download_file(source : str, destination_path : Path, ignore_warning : bool, force : bool, hcp_h : HCPHandler):
+
+def download_file(
+    source: str,
+    destination_path: Path,
+    ignore_warning: bool,
+    force: bool,
+    hcp_h: HCPHandler,
+):
     """
     Helper function to `download` for downloading a file.
     """
     check_size_and_ignore_warning_flag = (
-        (Byte(hcp_h.get_object(source)["ContentLength"]) >= TiB(1)) and
-        (not ignore_warning)
-    )
+        Byte(hcp_h.get_object(source)["ContentLength"]) >= TiB(1)
+    ) and (not ignore_warning)
     if check_size_and_ignore_warning_flag:
         prompt_large_download()
 
@@ -144,6 +158,6 @@ def download_file(source : str, destination_path : Path, ignore_warning : bool, 
     if downloaded_source.exists() and not force:
         sys.exit(
             "Object already exists. If you wish to overwrite the existing file, "
-             "use the -f / --force option"
+            "use the -f / --force option"
         )
     hcp_h.download_file(source, downloaded_source.as_posix())

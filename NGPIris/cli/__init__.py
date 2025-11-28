@@ -275,7 +275,8 @@ def download(  # noqa: PLR0913
             else:
                 click.echo(
                     'This command would have downloaded the object "'
-                    + source + '"',
+                    + source
+                    + '"',
                 )
         else:
             click.echo(
