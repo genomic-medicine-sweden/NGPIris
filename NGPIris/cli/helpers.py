@@ -127,7 +127,7 @@ def download_file(source : str, destination_path : Path, ignore_warning : bool, 
     downloaded_source = Path(destination_path) / Path(source).name
     if downloaded_source.exists() and not force:
         sys.exit(
-            """Object already exists. If you wish to overwrite the
-            existing file, use the -f / --force option"""
+            "Object already exists. If you wish to overwrite the existing file, "
+            + "use the -f / --force option"
         )
     hcp_h.download_file(source, downloaded_source.as_posix())
