@@ -366,6 +366,34 @@ class HCPHandler:
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """
+        def _format_output_dictionary(
+            key: str,
+            object_metadata : dict,
+            is_file : bool,
+            output_mode : HCPHandler.ListObjectsOutputMode
+        ) -> dict[str, Any]:
+            base = {
+                "Key": key,
+                "IsFile": is_file,
+            }
+
+            match output_mode:
+                case HCPHandler.ListObjectsOutputMode.MINIMAL:
+                    return base
+
+                case HCPHandler.ListObjectsOutputMode.SIMPLE:
+                    return base | {
+                        "LastModified": object_metadata["LastModified"],
+                        "Size": object_metadata.get("Size", "")
+                    }
+
+                case HCPHandler.ListObjectsOutputMode.EXTENDED:
+                    return base | {
+                        "LastModified": object_metadata["LastModified"],
+                        "Size": object_metadata.get("Size", ""),
+                        "ETag": object_metadata["ETag"]
+                    }
+
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         if list_all_bucket_objects:
             pages: PageIterator = paginator.paginate(Bucket=self.bucket_name)
