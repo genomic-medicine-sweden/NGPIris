@@ -335,7 +335,6 @@ class HCPHandler:
         path_key: str = "",
         output_mode: ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
         files_only: bool = False,
-        list_all_bucket_objects: bool = False,
     ) -> Generator[dict[str, Any], Any, None]:
         r"""
         List all objects in the mounted bucket as a generator. If one wishes to
@@ -395,71 +394,43 @@ class HCPHandler:
                     }
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
-        if list_all_bucket_objects:
-            pages: PageIterator = paginator.paginate(Bucket=self.bucket_name)
-        else:
-            pages: PageIterator = paginator.paginate(
-                Bucket=self.bucket_name, Prefix=path_key, Delimiter="/",
-            )
+        pages: PageIterator = paginator.paginate(
+            Bucket=self.bucket_name, Prefix=path_key, Delimiter="/",
+        )
 
         for page in pages:
             page: dict | None
             # Check if `page` is None
             if not page:
-                break
+                continue
 
             if not files_only:
                 # Hide folder objects when flag `files_only` is True
                 # Handle folder objects before file objects
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object: dict
+                    key = folder_object["Prefix"]
                     folder_object_metadata = self.get_object(
-                        folder_object["Prefix"],
+                        key,
                     )
-                    match output_mode:
-                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
-                            yield {
-                                "Key": folder_object["Prefix"],
-                                "LastModified": folder_object_metadata[
-                                    "LastModified"
-                                ],
-                                "ETag": folder_object_metadata["ETag"],
-                                "IsFile": False,
-                            }
-                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
-                            yield {
-                                "Key": folder_object["Prefix"],
-                                "LastModified": folder_object_metadata[
-                                    "LastModified"
-                                ],
-                                "IsFile": False,
-                            }
-                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
-                            yield {
-                                "Key": folder_object["Prefix"],
-                                "IsFile": False,
-                            }
+                    yield _format_output_dictionary(
+                        key,
+                        folder_object_metadata,
+                        False,
+                        output_mode
+                    )
 
             # Handle file objects
             for file_object in page.get("Contents", []):
                 file_object: dict
-                if file_object["Key"] != path_key:
-                    file_object["IsFile"] = True
-                    match output_mode:
-                        case HCPHandler.ListObjectsOutputMode.EXTENDED:
-                            yield file_object
-                        case HCPHandler.ListObjectsOutputMode.SIMPLE:
-                            yield {
-                                "Key": file_object["Key"],
-                                "LastModified": file_object["LastModified"],
-                                "Size": file_object["Size"],
-                                "IsFile": file_object["IsFile"],
-                            }
-                        case HCPHandler.ListObjectsOutputMode.MINIMAL:
-                            yield {
-                                "Key": file_object["Key"],
-                                "IsFile": file_object["IsFile"],
-                            }
+                key = file_object["Key"]
+                if key != path_key:
+                    yield _format_output_dictionary(
+                        key,
+                        file_object,
+                        True,
+                        output_mode
+                    )
 
     @check_mounted
     def get_object(self, key: str) -> dict:
