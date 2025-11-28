@@ -1,20 +1,54 @@
-
-from NGPIris.hcp import HCPHandler
+from NGPIris import HCPHandler
 from NGPIris.hcp.helpers import check_mounted
 
 
 class HCPStatistics(HCPHandler):
-    def __init__(self, credentials_path: str, use_ssl: bool = False, proxy_path: str = "", custom_config_path: str = "") -> None:
-        super().__init__(credentials_path, use_ssl, proxy_path, custom_config_path)
+    """
+    Class for handling HCP statistics requests. Subclass of `HCPHandler`.
+    """
+
+    def __init__(
+        self,
+        credentials_path: str,
+        use_ssl: bool = False,
+        custom_config_path: str = "",
+    ) -> None:
+        """
+        Constructor for the `HCPStatistics` class. Identical to the constructor
+        of `HCPHandler`.
+        """
+        super().__init__(credentials_path, use_ssl, custom_config_path)
 
     @check_mounted
     def get_namespace_settings(self) -> dict:
-        return self.get_response("/namespaces/" + self.bucket_name) #type: ignore
+        """
+        Get namespace/bucket settings.
+
+        :return: Namespace/bucket settings as a dictionary.
+        :rtype: dict
+        """
+        return self.get_response("/namespaces/" + self.bucket_name)
 
     @check_mounted
     def get_namespace_statistics(self) -> dict:
-        return self.get_response("/namespaces/" + self.bucket_name + "/statistics") #type: ignore
+        """
+        Get namespace/bucket statistics.
+
+        :return: Namespace/bucket statistics as a dictionary.
+        :rtype: dict
+        """
+        return self.get_response(
+            "/namespaces/" + self.bucket_name + "/statistics",
+        )
 
     @check_mounted
     def get_namespace_permissions(self) -> dict:
-            return self.get_response("/namespaces/" + self.bucket_name + "/permissions") #type: ignore
+        """
+        Get namespace/bucket permissions.
+
+        :return: Namespace/bucket permissions as a dictionary.
+        :rtype: dict
+        """
+        return self.get_response(
+            "/namespaces/" + self.bucket_name + "/permissions",
+        )
