@@ -6,9 +6,9 @@ from typing import Any
 from conftest import CustomConfig
 from icecream import ic
 
-from NGPIris.hcp import HCPHandler
+from NGPIris import HCPHandler
 
-# --------------------------- Helper fucntions ---------------------------------
+# --------------------------- Helper functions ---------------------------------
 
 
 def _without_mounting(
