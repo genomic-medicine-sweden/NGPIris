@@ -968,9 +968,11 @@ class HCPHandler:
         :return: A generator of objects based on the search string
         :rtype: Generator
         """
+        msg = "This method is currently not implemented"
+        raise NotImplementedError(msg)
         processor = None if case_sensitive else utils.default_process
 
-        full_list = peekable(self.list_objects(list_all_bucket_objects=True))
+        full_list = peekable(self.list_objects())
 
         full_list_names_only = peekable(
             obj["Key"]
