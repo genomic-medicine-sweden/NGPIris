@@ -4,7 +4,10 @@ from requests import Response, get, post
 
 
 def get_index_response(
-    address: str, api_port: str, token: str, use_ssl: bool,
+    address: str,
+    api_port: str,
+    token: str,
+    use_ssl: bool,
 ) -> Response:
     """
     Retrieve the index response given the address, API port and token.
@@ -30,19 +33,14 @@ def get_index_response(
         "Authorization": "Bearer " + token,
     }
 
-    response: Response = get(
-        url,
-        headers=headers,
-        verify=use_ssl,
-        timeout=15
-    )
+    response: Response = get(url, headers=headers, verify=use_ssl, timeout=15)
 
     response.raise_for_status()
 
     return response
 
 
-def get_query_response( # noqa: PLR0913
+def get_query_response(  # noqa: PLR0913
     query_dict: dict[str, str | list | dict],
     address: str,
     api_port: str,
@@ -95,11 +93,7 @@ def get_query_response( # noqa: PLR0913
         "Authorization": "Bearer " + token,
     }
     response: Response = post(
-        url,
-        dumps(query),
-        headers=headers,
-        verify=use_ssl,
-        timeout=15
+        url, dumps(query), headers=headers, verify=use_ssl, timeout=15
     )
 
     response.raise_for_status()

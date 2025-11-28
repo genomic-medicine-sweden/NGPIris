@@ -1,4 +1,3 @@
-
 from json import load
 from pathlib import Path
 
@@ -15,9 +14,7 @@ class HCIHandler:
     """
 
     def __init__(
-        self,
-        credentials: str | dict[str, str],
-        use_ssl: bool = False
+        self, credentials: str | dict[str, str], use_ssl: bool = False
     ) -> None:
         """
         Class for handling HCI requests.
@@ -84,10 +81,7 @@ class HCIHandler:
         }
         try:
             response: Response = post(
-                url,
-                data=data,
-                verify=self.use_ssl,
-                timeout=15
+                url, data=data, verify=self.use_ssl, timeout=15
             )
         except:  # noqa: E722  # pragma: no cover
             error_msg: str = (
@@ -108,7 +102,10 @@ class HCIHandler:
         :rtype: list[str]
         """
         response: Response = get_index_response(
-            self.address, self.api_port, self.token, self.use_ssl,
+            self.address,
+            self.api_port,
+            self.token,
+            self.use_ssl,
         )
         return [entry["name"] for entry in response.json()]
 
@@ -124,7 +121,10 @@ class HCIHandler:
         :rtype: dict
         """
         response: Response = get_index_response(
-            self.address, self.api_port, self.token, self.use_ssl,
+            self.address,
+            self.api_port,
+            self.token,
+            self.use_ssl,
         )
 
         for entry in response.json():
@@ -153,7 +153,7 @@ class HCIHandler:
             ).json(),
         )
 
-    def raw_query_from_JSON(self, query_path: str) -> dict: # noqa: N802
+    def raw_query_from_JSON(self, query_path: str) -> dict:  # noqa: N802
         """
         Make query to an HCI index, with prewritten query in a JSON file.
 
@@ -175,7 +175,10 @@ class HCIHandler:
             )
 
     def query(
-        self, index_name: str, query_string: str = "", facets: list[str] = [], # noqa: B006
+        self,
+        index_name: str,
+        query_string: str = "",
+        facets: list[str] = [],  # noqa: B006
     ) -> dict:
         """
         Make a query to the HCI based on the parameters of this method.

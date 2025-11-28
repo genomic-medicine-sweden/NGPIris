@@ -17,9 +17,7 @@ class HCPStatistics(HCPHandler):
         Constructor for the `HCPStatistics` class. Identical to the constructor
         of `HCPHandler`.
         """
-        super().__init__(
-            credentials_path, use_ssl, custom_config_path
-        )
+        super().__init__(credentials_path, use_ssl, custom_config_path)
 
     @check_mounted
     def get_namespace_settings(self) -> dict:

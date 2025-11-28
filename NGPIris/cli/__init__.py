@@ -111,7 +111,10 @@ def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
 @click.version_option(package_name="NGPIris")
 @click.pass_context
 def cli(
-    context: Context, credentials: str, debug: bool, transfer_config: str,
+    context: Context,
+    credentials: str,
+    debug: bool,
+    transfer_config: str,
 ) -> None:
     """
     NGP Intelligence and Repository Interface Software, IRIS.
@@ -210,7 +213,7 @@ def shell_env(_: Context, credentials_path: str, shell: str) -> None:
     default=5,
 )
 @click.pass_context
-def upload( # noqa: PLR0913
+def upload(  # noqa: PLR0913
     context: Context,
     bucket: str,
     source: str,
@@ -307,7 +310,7 @@ def upload( # noqa: PLR0913
     is_flag=True,
 )
 @click.pass_context
-def download( # noqa: PLR0913
+def download(  # noqa: PLR0913
     context: Context,
     bucket: str,
     source: str,
@@ -353,11 +356,10 @@ def download( # noqa: PLR0913
                             """
                             WARNING: You are about to download more than 1 TB
                             of data. Is this your intention? [y/N]: 
-                            """ # noqa: W291
-                            ,
+                            """,  # noqa: W291
                             nl=False,
                         )
-                        inp = click.getchar(echo = True)
+                        inp = click.getchar(echo=True)
                         if inp in ["y", "Y"]:
                             break
                         # inp == "n" or inp == "N" or something else
@@ -370,11 +372,10 @@ def download( # noqa: PLR0913
                     """
                     WARNING: You are about to download more than 1 TB
                     of data. Is this your intention? [y/N]: 
-                    """ # noqa: W291
-                    ,
+                    """,  # noqa: W291
                     nl=False,
                 )
-                inp = click.getchar(echo = True)
+                inp = click.getchar(echo=True)
                 if inp in ["y", "Y"]:
                     pass
                 else:  # inp == "n" or inp == "N" or something else
@@ -499,9 +500,9 @@ def delete(
 )
 @click.pass_context
 def delete_bucket(
-        context: Context,
-        bucket: str,
-        dry_run: bool,
+    context: Context,
+    bucket: str,
+    dry_run: bool,
 ) -> None:
     """
     Delete a bucket/namespace on the HCP.
@@ -558,7 +559,7 @@ def list_buckets(context: Context) -> None:
     is_flag=True,
 )
 @click.pass_context
-def list_objects( # noqa: PLR0913
+def list_objects(  # noqa: PLR0913
     context: Context,
     bucket: str,
     path: str,
@@ -584,7 +585,7 @@ def list_objects( # noqa: PLR0913
         Handle object list as a paginator that `click` can handle.
         It works slightly different from `list_objects` in `hcp.py` in order to
         make the output printable in a terminal
-        """ # noqa: D415, D400
+        """  # noqa: D415, D400
         objects = hcp_h.list_objects(
             path,
             output_mode=output_mode,

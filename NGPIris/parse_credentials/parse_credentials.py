@@ -50,10 +50,12 @@ def check_empty_field(credentials: Credentials) -> None:
     :type credentials: Credentials
 
     :raise RuntimeError: If any check is true
-    """ # noqa: D400, D415
+    """  # noqa: D400, D415
     if all(all_fields_empty(k, credentials) for k in credentials):
-        msg = ("Missing entries in all fields in the credentials file. "
-             "Please enter your credentials in the credentials file")
+        msg = (
+            "Missing entries in all fields in the credentials file. "
+            "Please enter your credentials in the credentials file"
+        )
         raise RuntimeError(msg)
     empty_fields_per_entry: dict[str, list[str]] = {}
     for k1, d in credentials.items():
@@ -73,8 +75,10 @@ def check_empty_field(credentials: Credentials) -> None:
         all_empty_fields.append("".join(fields))
 
     if all_empty_fields:
-        msg = ("Missing fields for the following entries in the credentials"
-                " file:\n" + "".join(all_empty_fields))
+        msg = (
+            "Missing fields for the following entries in the credentials"
+            " file:\n" + "".join(all_empty_fields)
+        )
         raise RuntimeError(msg)
 
 

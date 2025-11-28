@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 _KB = 1024
 _MB = _KB * _KB
 
+
 class HCPHandler:
     """
     Class for handling HCP requests.
@@ -90,11 +91,13 @@ class HCPHandler:
             self.username = (
                 parsed_credentials["username"]
                 if parsed_credentials.get("username")
-                else parsed_credentials["aws_access_key_id"])
+                else parsed_credentials["aws_access_key_id"]
+            )
             self.password = (
                 parsed_credentials["password"]
                 if parsed_credentials.get("password")
-                else parsed_credentials["aws_secret_access_key"])
+                else parsed_credentials["aws_secret_access_key"]
+            )
         elif type(credentials) is dict:
             self.endpoint = "https://" + credentials["endpoint"]
             self.username = (
@@ -191,11 +194,13 @@ class HCPHandler:
 
             self.transfer_config = TransferConfig(
                 multipart_threshold=ini_config.getint(
-                    "hcp", "multipart_threshold",
+                    "hcp",
+                    "multipart_threshold",
                 ),
                 max_concurrency=ini_config.getint("hcp", "max_concurrency"),
                 multipart_chunksize=ini_config.getint(
-                    "hcp", "multipart_chunksize",
+                    "hcp",
+                    "multipart_chunksize",
                 ),
                 use_threads=ini_config.getboolean("hcp", "use_threads"),
             )
@@ -257,9 +262,11 @@ class HCPHandler:
         elif bucket_name:
             pass
         else:
-            msg = ("No bucket selected. Either use `mount_bucket` first or "
-                   "supply the optional `bucket_name` parameter for "
-                   "`test_connection`")
+            msg = (
+                "No bucket selected. Either use `mount_bucket` first or "
+                "supply the optional `bucket_name` parameter for "
+                "`test_connection`"
+            )
             raise NoBucketMountedError(msg)
 
         response = {}
@@ -269,7 +276,8 @@ class HCPHandler:
             raise
         except ClientError as e:
             status_code = e.response["ResponseMetadata"].get(
-                "HTTPStatusCode", -1,
+                "HTTPStatusCode",
+                -1,
             )
             match status_code:
                 case 404:
@@ -329,7 +337,7 @@ class HCPHandler:
         MINIMAL = "minimal"
 
     @check_mounted
-    def list_objects( # noqa: C901
+    def list_objects(  # noqa: C901
         self,
         path_key: str = "",
         output_mode: ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
@@ -358,12 +366,13 @@ class HCPHandler:
 
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
-        """ # noqa: D400, D415
+        """  # noqa: D400, D415
+
         def _format_output_dictionary(
             key: str,
-            object_metadata : dict,
-            is_file : bool,
-            output_mode : HCPHandler.ListObjectsOutputMode
+            object_metadata: dict,
+            is_file: bool,
+            output_mode: HCPHandler.ListObjectsOutputMode,
         ) -> dict[str, Any]:
             base = {
                 "Key": key,
@@ -377,19 +386,21 @@ class HCPHandler:
                 case HCPHandler.ListObjectsOutputMode.SIMPLE:
                     return base | {
                         "LastModified": object_metadata["LastModified"],
-                        "Size": object_metadata.get("Size", "")
+                        "Size": object_metadata.get("Size", ""),
                     }
 
                 case HCPHandler.ListObjectsOutputMode.EXTENDED:
                     return base | {
                         "LastModified": object_metadata["LastModified"],
                         "Size": object_metadata.get("Size", ""),
-                        "ETag": object_metadata["ETag"]
+                        "ETag": object_metadata["ETag"],
                     }
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
-            Bucket=self.bucket_name, Prefix=path_key, Delimiter="/",
+            Bucket=self.bucket_name,
+            Prefix=path_key,
+            Delimiter="/",
         )
 
         for page in pages:
@@ -409,10 +420,7 @@ class HCPHandler:
                         key,
                     )
                     yield _format_output_dictionary(
-                        key,
-                        folder_object_metadata,
-                        False,
-                        output_mode
+                        key, folder_object_metadata, False, output_mode
                     )
 
             # Handle file objects
@@ -421,10 +429,7 @@ class HCPHandler:
                 key = file_object_metadata["Key"]
                 if key != path_key:
                     yield _format_output_dictionary(
-                        key,
-                        file_object_metadata,
-                        True,
-                        output_mode
+                        key, file_object_metadata, True, output_mode
                     )
 
     @check_mounted
@@ -458,13 +463,16 @@ class HCPHandler:
         """
         try:
             response = self.get_object(key)
-            return response["ResponseMetadata"]["HTTPStatusCode"] == 200 # noqa: PLR2004
-        except Exception: # noqa: BLE001  # pragma: no cover
+            return response["ResponseMetadata"]["HTTPStatusCode"] == 200  # noqa: PLR2004
+        except Exception:  # noqa: BLE001  # pragma: no cover
             return False
 
     @check_mounted
     def download_file(
-        self, key: str, local_file_path: str, show_progress_bar: bool = True,
+        self,
+        key: str,
+        local_file_path: str,
+        show_progress_bar: bool = True,
     ) -> None:
         """
         Download one object file from the mounted bucket.
@@ -491,16 +499,22 @@ class HCPHandler:
         """
         try:
             self.get_object(key)
-        except: # noqa: E722
-            msg = ('Could not find object "' + key + '" in bucket "'
-                   + str(self.bucket_name) + '"')
+        except:  # noqa: E722
+            msg = (
+                'Could not find object "'
+                + key
+                + '" in bucket "'
+                + str(self.bucket_name)
+                + '"'
+            )
             raise ObjectDoesNotExistError(
                 msg,
             ) from None
 
         if show_progress_bar:
             file_size: int = self.s3_client.head_object(
-                Bucket=self.bucket_name, Key=key,
+                Bucket=self.bucket_name,
+                Key=key,
             )["ContentLength"]
             with tqdm(
                 total=file_size,
@@ -531,7 +545,7 @@ class HCPHandler:
         folder_key: str,
         local_folder_path: str,
         use_download_limit: bool = False,
-        download_limit_in_bytes: Byte = TiB(1).to_Byte(), # noqa: B008
+        download_limit_in_bytes: Byte = TiB(1).to_Byte(),  # noqa: B008
         show_progress_bar: bool = True,
     ) -> None:
         """
@@ -568,9 +582,14 @@ class HCPHandler:
         """
         try:
             self.get_object(folder_key)
-        except: # noqa: E722
-            msg = ('Could not find object "' + folder_key + '" in bucket "'
-                + str(self.bucket_name) + '"')
+        except:  # noqa: E722
+            msg = (
+                'Could not find object "'
+                + folder_key
+                + '" in bucket "'
+                + str(self.bucket_name)
+                + '"'
+            )
             raise ObjectDoesNotExistError(
                 msg,
             ) from None
@@ -814,8 +833,7 @@ class HCPHandler:
         if does_not_exist:
             result += (
                 "The following could not be deleted because they didn't "
-                 "exist:\n"
-                + "\n".join(does_not_exist)
+                "exist:\n" + "\n".join(does_not_exist)
             )
 
         return result
@@ -850,7 +868,7 @@ class HCPHandler:
 
         :return: The result of the deletion
         :rtype: str
-        """ # noqa: D400, D415
+        """  # noqa: D400, D415
         if key[-1] != "/":
             key += "/"
 
@@ -925,7 +943,7 @@ class HCPHandler:
 
         :return: A generator of objects based on the search string
         :rtype: Generator
-        """ # noqa: D400, D415
+        """  # noqa: D400, D415
         return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
 
     @check_mounted
@@ -1003,7 +1021,10 @@ class HCPHandler:
 
     @check_mounted
     def modify_single_object_acl(
-        self, key: str, user_ID: str, permission: str,
+        self,
+        key: str,
+        user_ID: str,
+        permission: str,
     ) -> None:
         r"""
         Modify permissions for a user in the Access Control List (ACL) for one
@@ -1059,7 +1080,8 @@ class HCPHandler:
 
     @check_mounted
     def modify_object_acl(
-        self, key_user_ID_permissions: dict[str, dict[str, str]],
+        self,
+        key_user_ID_permissions: dict[str, dict[str, str]],
     ) -> None:
         r"""
         Modifies  permissions to multiple objects, see below.
