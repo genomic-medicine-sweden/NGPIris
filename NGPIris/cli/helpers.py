@@ -4,6 +4,8 @@ import sys
 import click
 from click.core import Context
 from boto3 import set_stream_logger
+from pathlib import Path
+from bitmath import Byte, TiB
 
 from NGPIris import HCPHandler
 
@@ -17,7 +19,7 @@ def add_trailing_slash(path: str) -> str:
     :return: Arbitrary string with `"/"` at the end
     :rtype: str
     """
-    if not path[-1] == "/":
+    if not path.endswith("/"):
         path += "/"
     return path
 
@@ -82,3 +84,55 @@ def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
         click.echo(hcp_h.transfer_config.__dict__)
 
     return hcp_h
+
+def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
+    return (object_path.endswith("/")) and (
+        hcp_h.get_object(object_path)["ContentLength"] == 0
+    )
+
+def ensure_destination_dir(destination: str) -> Path:
+    dest_path = Path(destination)
+    dest_path.mkdir(parents=True, exist_ok=True)
+    return dest_path
+
+def prompt_large_download() -> None:
+    click.echo(
+        """
+        WARNING: You are about to download more than 1 TB
+        of data. Is this your intention? [y/N]: 
+        """,  # noqa: W291
+        nl=False,
+    )
+    inp = click.getchar(echo=True)
+    if inp not in ["y", "Y"]:
+        sys.exit("\nAborting download")
+
+def download_folder(source : str, destination_path : Path, ignore_warning : bool, hcp_h : HCPHandler):
+    prefix = "" if source == "/" else source
+
+    cumulative_download_size = Byte(0)
+    if not ignore_warning:
+        click.echo("Computing download size...")
+        for hcp_object in hcp_h.list_objects(prefix):
+            hcp_object: dict
+            cumulative_download_size += Byte(hcp_object["Size"])
+            if cumulative_download_size >= TiB(1):
+                prompt_large_download()
+
+    hcp_h.download_folder(prefix, destination_path.as_posix())
+
+def download_file(source : str, destination_path : Path, ignore_warning : bool, force : bool, hcp_h : HCPHandler):
+    check_size_and_ignore_warning_flag = (
+        (Byte(hcp_h.get_object(source)["ContentLength"]) >= TiB(1)) and
+        (not ignore_warning)
+    )
+    if check_size_and_ignore_warning_flag:
+        prompt_large_download()
+
+    downloaded_source = Path(destination_path) / Path(source).name
+    if downloaded_source.exists() and not force:
+        sys.exit(
+            """Object already exists. If you wish to overwrite the
+            existing file, use the -f / --force option"""
+        )
+    hcp_h.download_file(source, downloaded_source.as_posix())

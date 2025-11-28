@@ -11,7 +11,7 @@ from click.core import Context
 
 from NGPIris import HCPHandler
 
-from NGPIris.cli.helpers import add_trailing_slash, create_HCPHandler
+from NGPIris.cli.helpers import add_trailing_slash, create_HCPHandler, object_is_folder, ensure_destination_dir, prompt_large_download, download_folder, download_file
 
 @click.group()
 @click.option(
@@ -251,78 +251,36 @@ def download(  # noqa: PLR0913
     be stored locally.
     """
 
-    def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
-        return (object_path[-1] == "/") and (
-            hcp_h.get_object(object_path)["ContentLength"] == 0
-        )
-
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
-    if not Path(destination).exists():
-        Path(destination).mkdir()
 
-    if not dry_run:
-        if object_is_folder(source, hcp_h):
-            if source == "/":
-                source = ""
+    destination_path = ensure_destination_dir(destination)
 
-            cumulative_download_size = Byte(0)
-            if not ignore_warning:
-                click.echo("Computing download size...")
-                for hcp_object in hcp_h.list_objects(source):
-                    hcp_object: dict
-                    cumulative_download_size += Byte(hcp_object["Size"])
-                    if cumulative_download_size >= TiB(1):
-                        click.echo(
-                            """
-                            WARNING: You are about to download more than 1 TB
-                            of data. Is this your intention? [y/N]: 
-                            """,  # noqa: W291
-                            nl=False,
-                        )
-                        inp = click.getchar(echo=True)
-                        if inp in ["y", "Y"]:
-                            break
-                        # inp == "n" or inp == "N" or something else
-                        sys.exit("\nAborting download")
+    is_folder = object_is_folder(source, hcp_h)
 
-            hcp_h.download_folder(source, Path(destination).as_posix())
-        else:
-            if Byte(hcp_h.get_object(source)["ContentLength"]) >= TiB(1):
+    if dry_run:
+        if hcp_h.object_exists(source):
+            if is_folder:
                 click.echo(
-                    """
-                    WARNING: You are about to download more than 1 TB
-                    of data. Is this your intention? [y/N]: 
-                    """,  # noqa: W291
-                    nl=False,
+                    'This command would have downloaded the folder "'
+                    + source
+                    + '". If you wish to know the contents of this folder, '
+                    + "use the 'list-objects' command",
                 )
-                inp = click.getchar(echo=True)
-                if inp in ["y", "Y"]:
-                    pass
-                else:  # inp == "n" or inp == "N" or something else
-                    sys.exit("\nAborting download")
+            else:
+                click.echo(
+                    'This command would have downloaded the object "' + source + '"',
+                )
+        else:
+            click.echo(
+                '"' + source + '" does not exist',
+            )
+        return
 
-            downloaded_source = Path(destination) / Path(source).name
-            if downloaded_source.exists() and not force:
-                sys.exit(
-                    """Object already exists. If you wish to overwrite the
-                    existing file, use the -f, --force option""",
-                )
-            hcp_h.download_file(source, downloaded_source.as_posix())
-    elif object_is_folder(source, hcp_h):
-        click.echo(
-            'This command would have downloaded the folder "'
-            + source
-            + '". If you wish to know the contents of this folder, '
-            + "use the 'list-objects' command",
-        )
+    if is_folder:
+        download_folder(source, destination_path, ignore_warning, hcp_h)
     else:
-        click.echo(
-            'This command would have downloaded the object "' + source + '":',
-        )
-        click.echo(
-            next(iter(hcp_h.list_objects(source))),
-        )
+        download_file(source, destination_path, ignore_warning, force, hcp_h)
 
 
 @cli.command()
