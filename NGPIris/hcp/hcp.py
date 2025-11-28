@@ -82,7 +82,6 @@ class HCPHandler:
 
         :raise UnableToParseEndpointError: The endpoint could not be parsed
         """
-
         # Determine type of `credentials`
         if type(credentials) is str:
             parsed_credentials = CredentialsHandler(credentials).hcp
@@ -330,7 +329,7 @@ class HCPHandler:
         MINIMAL = "minimal"
 
     @check_mounted
-    def list_objects(
+    def list_objects( # noqa: C901
         self,
         path_key: str = "",
         output_mode: ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
@@ -402,6 +401,7 @@ class HCPHandler:
             page: dict | None
             # Check if `page` is None
             if not page:
+                # Defensive: paginator shouldn't normally yield falsy pages
                 continue
 
             if not files_only:
@@ -421,13 +421,13 @@ class HCPHandler:
                     )
 
             # Handle file objects
-            for file_object in page.get("Contents", []):
-                file_object: dict
-                key = file_object["Key"]
+            for file_object_metadata in page.get("Contents", []):
+                file_object_metadata: dict
+                key = file_object_metadata["Key"]
                 if key != path_key:
                     yield _format_output_dictionary(
                         key,
-                        file_object,
+                        file_object_metadata,
                         True,
                         output_mode
                     )
@@ -469,7 +469,7 @@ class HCPHandler:
 
     @check_mounted
     def download_file(
-        self, key: str, local_file_path: str, show_progress_bar: bool = True, # noqa: FBT001, FBT002
+        self, key: str, local_file_path: str, show_progress_bar: bool = True,
     ) -> None:
         """
         Download one object file from the mounted bucket.
