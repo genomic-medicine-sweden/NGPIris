@@ -120,7 +120,7 @@ def prompt_large_download() -> None:
 
 def download_folder(
     source: str, destination_path: Path, ignore_warning: bool, hcp_h: HCPHandler
-):
+) -> None:
     """
     Helper function to `download` for downloading a folder.
     """
@@ -144,7 +144,7 @@ def download_file(
     ignore_warning: bool,
     force: bool,
     hcp_h: HCPHandler,
-):
+) -> None:
     """
     Helper function to `download` for downloading a file.
     """
@@ -157,7 +157,7 @@ def download_file(
     downloaded_source = Path(destination_path) / Path(source).name
     if downloaded_source.exists() and not force:
         sys.exit(
-            "Object already exists. If you wish to overwrite the existing file, "
-            "use the -f / --force option"
+            "Object already exists. If you wish to overwrite the existing file,"
+            " use the -f / --force option"
         )
     hcp_h.download_file(source, downloaded_source.as_posix())
