@@ -1,13 +1,15 @@
 
 import os
 import sys
-import click
-from click.core import Context
-from boto3 import set_stream_logger
 from pathlib import Path
+
+import click
 from bitmath import Byte, TiB
+from boto3 import set_stream_logger
+from click.core import Context
 
 from NGPIris import HCPHandler
+
 
 def add_trailing_slash(path: str) -> str:
     """
@@ -38,9 +40,8 @@ def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
     else:
         # Should never happen
         click.echo(
-            """
-            Something went wrong with the subcommand and parent command relation
-            """,
+            ("Something went wrong with the subcommand and parent"
+             "command relation"),
             err=True,
         )
         sys.exit(1)
@@ -97,7 +98,7 @@ def ensure_destination_dir(destination: str) -> Path:
 
 def prompt_large_download() -> None:
     if not click.confirm(
-        "WARNING: You are about to download more than 1 TB of data. " +
+        "WARNING: You are about to download more than 1 TB of data. "
         "Is this your intention?"
     ):
         sys.exit("\nAborting download")
@@ -128,6 +129,6 @@ def download_file(source : str, destination_path : Path, ignore_warning : bool, 
     if downloaded_source.exists() and not force:
         sys.exit(
             "Object already exists. If you wish to overwrite the existing file, "
-            + "use the -f / --force option"
+             "use the -f / --force option"
         )
     hcp_h.download_file(source, downloaded_source.as_posix())

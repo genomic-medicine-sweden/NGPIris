@@ -10,8 +10,16 @@ from bitmath import Byte, TiB
 from click.core import Context
 
 from NGPIris import HCPHandler
+from NGPIris.cli.helpers import (
+    add_trailing_slash,
+    create_HCPHandler,
+    download_file,
+    download_folder,
+    ensure_destination_dir,
+    object_is_folder,
+    prompt_large_download,
+)
 
-from NGPIris.cli.helpers import add_trailing_slash, create_HCPHandler, object_is_folder, ensure_destination_dir, prompt_large_download, download_folder, download_file
 
 @click.group()
 @click.option(
@@ -250,7 +258,6 @@ def download(  # noqa: PLR0913
     DESTINATION is the folder where the downloaded object or object folder is to
     be stored locally.
     """
-
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
 
