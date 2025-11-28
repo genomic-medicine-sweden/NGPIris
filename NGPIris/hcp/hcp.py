@@ -496,43 +496,39 @@ class HCPHandler:
         """
         try:
             self.get_object(key)
-        except:
+        except: # noqa: E722
             msg = ('Could not find object "' + key + '" in bucket "'
                    + str(self.bucket_name) + '"')
             raise ObjectDoesNotExistError(
                 msg,
             ) from None
-        try:
-            if show_progress_bar:
-                file_size: int = self.s3_client.head_object(
-                    Bucket=self.bucket_name, Key=key,
-                )["ContentLength"]
-                with tqdm(
-                    total=file_size,
-                    unit="B",
-                    unit_scale=True,
-                    desc=key,
-                ) as pbar:
-                    self.s3_client.download_file(
-                        Bucket=self.bucket_name,
-                        Key=key,
-                        Filename=local_file_path,
-                        Config=self.transfer_config,
-                        Callback=lambda bytes_transferred: pbar.update(
-                            bytes_transferred,
-                        ),
-                    )
-            else:
+
+        if show_progress_bar:
+            file_size: int = self.s3_client.head_object(
+                Bucket=self.bucket_name, Key=key,
+            )["ContentLength"]
+            with tqdm(
+                total=file_size,
+                unit="B",
+                unit_scale=True,
+                desc=key,
+            ) as pbar:
                 self.s3_client.download_file(
                     Bucket=self.bucket_name,
                     Key=key,
                     Filename=local_file_path,
                     Config=self.transfer_config,
+                    Callback=lambda bytes_transferred: pbar.update(
+                        bytes_transferred,
+                    ),
                 )
-        except ClientError:
-            raise
-        except Exception:  # pragma: no cover
-            raise
+        else:
+            self.s3_client.download_file(
+                Bucket=self.bucket_name,
+                Key=key,
+                Filename=local_file_path,
+                Config=self.transfer_config,
+            )
 
     @check_mounted
     def download_folder(
@@ -540,7 +536,7 @@ class HCPHandler:
         folder_key: str,
         local_folder_path: str,
         use_download_limit: bool = False,
-        download_limit_in_bytes: Byte = TiB(1).to_Byte(),
+        download_limit_in_bytes: Byte = TiB(1).to_Byte(), # noqa: B008
         show_progress_bar: bool = True,
     ) -> None:
         """
@@ -577,7 +573,7 @@ class HCPHandler:
         """
         try:
             self.get_object(folder_key)
-        except:
+        except: # noqa: E722
             msg = ('Could not find object "' + folder_key + '" in bucket "'
                 + str(self.bucket_name) + '"')
             raise ObjectDoesNotExistError(
