@@ -96,15 +96,10 @@ def ensure_destination_dir(destination: str) -> Path:
     return dest_path
 
 def prompt_large_download() -> None:
-    click.echo(
-        """
-        WARNING: You are about to download more than 1 TB
-        of data. Is this your intention? [y/N]: 
-        """,  # noqa: W291
-        nl=False,
-    )
-    inp = click.getchar(echo=True)
-    if inp not in ["y", "Y"]:
+    if not click.confirm(
+        "WARNING: You are about to download more than 1 TB of data. " +
+        "Is this your intention?"
+    ):
         sys.exit("\nAborting download")
 
 def download_folder(source : str, destination_path : Path, ignore_warning : bool, hcp_h : HCPHandler):
