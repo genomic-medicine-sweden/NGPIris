@@ -1,22 +1,39 @@
+
 from json import load
+from pathlib import Path
 
 from requests import Response, post
 from urllib3 import disable_warnings
 
-from NGPIris.hci.exceptions import *
 from NGPIris.hci.helpers import get_index_response, get_query_response
 from NGPIris.parse_credentials import CredentialsHandler
 
 
 class HCIHandler:
+    """
+    Class for handling HCI requests.
+    """
+
     def __init__(
         self, credentials: str | dict[str, str], use_ssl: bool = False,
     ) -> None:
         """
         Class for handling HCI requests.
 
-        :param credentials_path: If `credentials` is a `str`, then it will be interpreted as a path to the JSON credentials file. If `credentials` is a `dict`, then a dictionary with the appropriate HCI credentials is expected: ```{"username" : "", "password" : "", "address" : "", "auth_port" : "", "api_port" : ""}```
-        :type credentials_path: str | dict[str, str]
+        :param credentials:
+            If `credentials` is a `str`, then it will be interpreted as a path
+            to the JSON credentials file. If `credentials` is a `dict`, then a
+            dictionary with the appropriate HCI credentials is expected:
+            ```
+            {
+                "username" : "",
+                "password" : "",
+                "address" : "",
+                "auth_port" : "",
+                "api_port" : ""
+            }
+            ```
+        :type credentials: str | dict[str, str]
 
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
@@ -50,7 +67,8 @@ class HCIHandler:
         The token is used for every operation that needs to send a request to
         HCI.
 
-        :raises VPNConnectionError: If there was a problem when requesting a token, a runtime error will be raised
+        :raises ConnectionError:
+            If there was a problem when requesting a token
         """
         url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
         data = {
@@ -63,14 +81,19 @@ class HCIHandler:
             "realm": "LOCAL",
         }
         try:
-            response: Response = post(url, data=data, verify=self.use_ssl)
-        except:  # pragma: no cover
+            response: Response = post(
+                url,
+                data=data,
+                verify=self.use_ssl,
+                timeout=15
+            )
+        except:  # noqa: E722  # pragma: no cover
             error_msg: str = (
                 "The token request made at "
                 + url
-                + " failed. Please check your connection and that you have your VPN enabled"
+                + " failed. Please check your connection."
             )
-            raise VPNConnectionError(error_msg) from None
+            raise ConnectionError(error_msg) from None
 
         token: str = response.json()["access_token"]
         self.token = token
@@ -128,7 +151,7 @@ class HCIHandler:
             ).json(),
         )
 
-    def raw_query_from_JSON(self, query_path: str) -> dict:
+    def raw_query_from_JSON(self, query_path: str) -> dict: # noqa: N802
         """
         Make query to an HCI index, with prewritten query in a JSON file
 
@@ -138,7 +161,7 @@ class HCIHandler:
         :return: Dictionary containing the raw query
         :rtype: dict
         """
-        with open(query_path) as inp:
+        with Path(query_path).open() as inp:
             return dict(
                 get_query_response(
                     dict(load(inp)),
@@ -150,7 +173,7 @@ class HCIHandler:
             )
 
     def query(
-        self, index_name: str, query_string: str = "", facets: list[str] = [],
+        self, index_name: str, query_string: str = "", facets: list[str] = [], # noqa: B006
     ) -> dict:
         """
         Make a query to the HCI based on the parameters of this method
@@ -161,7 +184,9 @@ class HCIHandler:
         :param query_string: The Solr query string. Defaults to the empty string
         :type query_string: str, optional
 
-        :param facets: List of facets that should be returned included in the response. Defaults to []
+        :param facets:
+            List of facets that should be returned included in the response.
+            Defaults to []
         :type facets: list[str], optional
 
         :return: The response in the form of a dictionary
