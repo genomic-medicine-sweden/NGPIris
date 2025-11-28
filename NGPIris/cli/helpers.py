@@ -87,16 +87,25 @@ def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
     return hcp_h
 
 def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
+    """
+    Predicate for checking if an HCP object is a folder or not.
+    """
     return (object_path.endswith("/")) and (
         hcp_h.get_object(object_path)["ContentLength"] == 0
     )
 
 def ensure_destination_dir(destination: str) -> Path:
+    """
+    Ensure that `destination` exists and return it as a `Path`.
+    """
     dest_path = Path(destination)
     dest_path.mkdir(parents=True, exist_ok=True)
     return dest_path
 
 def prompt_large_download() -> None:
+    """
+    Prompt for large downloads.
+    """
     if not click.confirm(
         "WARNING: You are about to download more than 1 TB of data. "
         "Is this your intention?"
@@ -104,6 +113,9 @@ def prompt_large_download() -> None:
         sys.exit("\nAborting download")
 
 def download_folder(source : str, destination_path : Path, ignore_warning : bool, hcp_h : HCPHandler):
+    """
+    Helper function to `download` for downloading a folder.
+    """
     prefix = "" if source == "/" else source
 
     cumulative_download_size = Byte(0)
@@ -118,6 +130,9 @@ def download_folder(source : str, destination_path : Path, ignore_warning : bool
     hcp_h.download_folder(prefix, destination_path.as_posix())
 
 def download_file(source : str, destination_path : Path, ignore_warning : bool, force : bool, hcp_h : HCPHandler):
+    """
+    Helper function to `download` for downloading a file.
+    """
     check_size_and_ignore_warning_flag = (
         (Byte(hcp_h.get_object(source)["ContentLength"]) >= TiB(1)) and
         (not ignore_warning)
