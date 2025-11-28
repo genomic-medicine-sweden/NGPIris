@@ -34,6 +34,7 @@ def get_index_response(
         url,
         headers=headers,
         verify=use_ssl,
+        timeout=15
     )
 
     response.raise_for_status()
@@ -41,7 +42,7 @@ def get_index_response(
     return response
 
 
-def get_query_response(
+def get_query_response( # noqa: PLR0913
     query_dict: dict[str, str | list | dict],
     address: str,
     api_port: str,
@@ -67,14 +68,17 @@ def get_query_response(
     :param use_ssl: Boolean choice of using SSL
     :type use_ssl: bool
 
-    :param path_extension: possibly extend the request URL. Used for example when making SQL requests. Defaults to ""
+    :param path_extension:
+        Possibly extend the request URL. Used for example when making SQL
+        requests. Defaults to ""
     :type path_extension: str, optional
 
     :return: A response containing information about the query
     :rtype: requests.Response
     """
     if "indexName" not in query_dict:
-        raise RuntimeError("Field indexName is missing in the query dictionary")
+        msg = "Field indexName is missing in the query dictionary"
+        raise RuntimeError(msg)
 
     url: str = (
         "https://"
@@ -95,6 +99,7 @@ def get_query_response(
         dumps(query),
         headers=headers,
         verify=use_ssl,
+        timeout=15
     )
 
     response.raise_for_status()
