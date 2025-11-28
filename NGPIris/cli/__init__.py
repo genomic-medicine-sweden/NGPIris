@@ -121,7 +121,7 @@ def cli(
 @cli.command(
     short_help="""
     This command returns a shell command that sets the
-    `NGPIRIS_CREDENTIALS_PATH` enviroment variable depending on your shell.
+    `NGPIRIS_CREDENTIALS_PATH` environment variable depending on your shell.
     """,
 )
 @click.argument(
@@ -475,7 +475,7 @@ def delete(
                     'By deleting "'
                     + hcp_object
                     + '", the following file objects would have been deleted '
-                    + "(this list exludes any potential sub-folders):",
+                    + "(this list excludes any potential sub-folders):",
                 )
                 lt.stream(
                     hcp_h.list_objects(
@@ -553,7 +553,7 @@ def list_buckets(context: Context) -> None:
 @click.option(
     "-e",
     "--extended-information",
-    help="Output the fully exteded information for each object",
+    help="Output the fully extended information for each object",
     default=False,
     is_flag=True,
 )
