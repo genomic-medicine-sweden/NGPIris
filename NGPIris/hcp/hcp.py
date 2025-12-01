@@ -454,7 +454,6 @@ class HCPHandler:
                     )
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
-
                     output_list.append(
                         base | {
                             "Ingested volume (Bytes)" : (
