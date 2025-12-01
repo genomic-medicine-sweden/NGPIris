@@ -17,6 +17,8 @@ from requests.exceptions import HTTPError
 from tqdm import tqdm
 from urllib3 import disable_warnings
 
+import re
+
 from NGPIris.hcp.exceptions import (
     BucketForbiddenError,
     BucketNotFoundError,
@@ -371,7 +373,16 @@ class HCPHandler:
             Bucket=bucket_name,
         )
 
-    def list_buckets(self) -> list[dict[str, Any]]:
+    class ListBucketsOutputMode(Enum):
+        FULL = "full"
+        EXTENDED = "extended"
+        SIMPLE = "simple"
+        MINIMAL = "minimal"
+
+    def list_buckets(
+        self,
+        output_mode: ListBucketsOutputMode = ListBucketsOutputMode.EXTENDED
+    ) -> list[dict[str, Any]]:
         """
         List all available buckets at endpoint along with statistics for each
         bucket.
@@ -389,19 +400,75 @@ class HCPHandler:
             bucket_information = self.get_response(
                 "/namespaces/" + bucket
             )
-            output_list.append({"bucket" : bucket} | stats | {
-                "hardQuota" : bitmath_parse(
-                    # TODO(EB): This value is written as being decimal
-                    # (MB, GB, TB, etc), but it is probably binary
-                    # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
-                    # be 100% correct, and should be corrected soon, but that is
-                    # annoying so I won't right now :/
-                    bucket_information["hardQuota"]
-                ).to_Byte(),
-                # `softQuota` written as a percentage
-                "softQuota" : bucket_information["softQuota"],
-                "owner" : bucket_information["owner"]
-            })
+
+            base = {"Bucket" : bucket}
+
+            # Turn headers from camelCase to human readable text
+            stats = {
+                re.sub(
+                    r'(?<=[a-z])([A-Z])', r' \1', k
+                ).capitalize() : _ for k, _ in stats.items()
+            }
+            bucket_information = {
+                re.sub(
+                    r'(?<=[a-z])([A-Z])', r' \1', k
+                ).capitalize() : _ for k, _ in bucket_information.items()
+            }
+
+            # Parse `"Hard quota"` value to be just a number
+            bucket_information["Hard quota (Bytes)"] = int(bitmath_parse(
+                # TODO(EB): `"Hard quota"` is written as being decimal
+                # (MB, GB, TB, etc), but it is probably binary
+                # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
+                # be 100% correct, and should be corrected soon, but that is
+                # annoying so I won't right now :/
+                bucket_information["Hard quota"]
+            ).to_Byte())
+
+            bucket_information["Soft quota (%)"] = bucket_information["Soft quota"]
+            del bucket_information["Soft quota"]
+
+            for col in ["Ingested volume", "Storage capacity used"]:
+                stats[col + " (Bytes)"] = stats[col]
+                del stats[col]
+
+            match output_mode:
+                case HCPHandler.ListBucketsOutputMode.FULL:
+                    output_list.append(
+                        base | stats | bucket_information
+                    )
+
+                case HCPHandler.ListBucketsOutputMode.EXTENDED:
+                    output_list.append(
+                        base | stats | {
+                            "Hard quota (Bytes)" : bucket_information["Hard quota (Bytes)"],
+                            "Soft quota (%)" : bucket_information["Soft quota (%)"],
+                            "Owner" : bucket_information["Owner"]
+                        }
+                    )
+
+                case HCPHandler.ListBucketsOutputMode.SIMPLE:
+
+                    output_list.append(
+                        base | {
+                            "Ingested volume (Bytes)" : stats["Ingested volume (Bytes)"],
+                            "Storage capacity used (Bytes)" : stats["Storage capacity used (Bytes)"],
+                            "Object count" : stats["Object count"],
+                        } | {
+                            "Hard quota (Bytes)" : bucket_information["Hard quota (Bytes)"],
+                            "Soft quota (%)" : bucket_information["Soft quota (%)"],
+                            "Owner" : bucket_information["Owner"]
+                        })
+                case HCPHandler.ListBucketsOutputMode.MINIMAL:
+                    output_list.append(
+                        base | {
+                            "Object count" : stats["Object count"],
+                        } | {
+                            "Hard quota (Bytes)" : bucket_information["Hard quota (Bytes)"],
+                            "Soft quota (%)" : bucket_information["Soft quota (%)"],
+                            "Owner" : bucket_information["Owner"]
+                        }
+                    )
 
         return output_list
 
