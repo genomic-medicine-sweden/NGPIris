@@ -1,10 +1,12 @@
+import re
 from collections.abc import Generator
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from bitmath import Byte, TiB, parse_string as bitmath_parse
+from bitmath import Byte, TiB
+from bitmath import parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.client import Config
@@ -16,8 +18,6 @@ from requests import get
 from requests.exceptions import HTTPError
 from tqdm import tqdm
 from urllib3 import disable_warnings
-
-import re
 
 from NGPIris.hcp.exceptions import (
     BucketForbiddenError,
@@ -406,12 +406,12 @@ class HCPHandler:
             # Turn headers from camelCase to human readable text
             stats = {
                 re.sub(
-                    r'(?<=[a-z])([A-Z])', r' \1', k
+                    r"(?<=[a-z])([A-Z])", r" \1", k
                 ).capitalize() : _ for k, _ in stats.items()
             }
             bucket_information = {
                 re.sub(
-                    r'(?<=[a-z])([A-Z])', r' \1', k
+                    r"(?<=[a-z])([A-Z])", r" \1", k
                 ).capitalize() : _ for k, _ in bucket_information.items()
             }
 
@@ -425,7 +425,9 @@ class HCPHandler:
                 bucket_information["Hard quota"]
             ).to_Byte())
 
-            bucket_information["Soft quota (%)"] = bucket_information["Soft quota"]
+            bucket_information["Soft quota (%)"] = (
+                bucket_information["Soft quota"]
+            )
             del bucket_information["Soft quota"]
 
             for col in ["Ingested volume", "Storage capacity used"]:
@@ -441,8 +443,12 @@ class HCPHandler:
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
                     output_list.append(
                         base | stats | {
-                            "Hard quota (Bytes)" : bucket_information["Hard quota (Bytes)"],
-                            "Soft quota (%)" : bucket_information["Soft quota (%)"],
+                            "Hard quota (Bytes)" : (
+                                bucket_information["Hard quota (Bytes)"]
+                            ),
+                            "Soft quota (%)" : (
+                                bucket_information["Soft quota (%)"]
+                            ),
                             "Owner" : bucket_information["Owner"]
                         }
                     )
@@ -451,12 +457,20 @@ class HCPHandler:
 
                     output_list.append(
                         base | {
-                            "Ingested volume (Bytes)" : stats["Ingested volume (Bytes)"],
-                            "Storage capacity used (Bytes)" : stats["Storage capacity used (Bytes)"],
+                            "Ingested volume (Bytes)" : (
+                                stats["Ingested volume (Bytes)"]
+                            ),
+                            "Storage capacity used (Bytes)" : (
+                                stats["Storage capacity used (Bytes)"]
+                            ),
                             "Object count" : stats["Object count"],
                         } | {
-                            "Hard quota (Bytes)" : bucket_information["Hard quota (Bytes)"],
-                            "Soft quota (%)" : bucket_information["Soft quota (%)"],
+                            "Hard quota (Bytes)" : (
+                                bucket_information["Hard quota (Bytes)"]
+                            ),
+                            "Soft quota (%)" : (
+                                bucket_information["Soft quota (%)"]
+                            ),
                             "Owner" : bucket_information["Owner"]
                         })
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
@@ -464,8 +478,12 @@ class HCPHandler:
                         base | {
                             "Object count" : stats["Object count"],
                         } | {
-                            "Hard quota (Bytes)" : bucket_information["Hard quota (Bytes)"],
-                            "Soft quota (%)" : bucket_information["Soft quota (%)"],
+                            "Hard quota (Bytes)" : (
+                                bucket_information["Hard quota (Bytes)"]
+                            ),
+                            "Soft quota (%)" : (
+                                bucket_information["Soft quota (%)"]
+                            ),
                             "Owner" : bucket_information["Owner"]
                         }
                     )
