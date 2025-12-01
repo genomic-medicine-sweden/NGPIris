@@ -13,6 +13,7 @@ from more_itertools import peekable
 from parse import Result, parse
 from rapidfuzz import fuzz, process, utils
 from requests import get
+from requests.exceptions import HTTPError
 from tqdm import tqdm
 from urllib3 import disable_warnings
 
@@ -28,6 +29,8 @@ from NGPIris.hcp.exceptions import (
     SubfolderError,
     UnableToParseEndpointError,
     UnallowedCharacterError,
+    NotSufficientPermissionsError,
+    NotFoundError,
 )
 from NGPIris.hcp.helpers import (
     check_mounted,
@@ -236,7 +239,20 @@ class HCPHandler:
             timeout=15,
         )
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError as http_e:
+            if response.status_code == 403:
+                msg = (
+                    "You lack the sufficient permissions needed for your "
+                    "request"
+                )
+                raise NotSufficientPermissionsError(msg) from http_e
+            elif response.status_code == 404:
+                msg = "The request URL " + str(url) + " could not be found"
+                raise NotFoundError(msg) from http_e
+            else:
+                raise
 
         return dict(response.json())
 
