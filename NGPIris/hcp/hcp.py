@@ -249,21 +249,32 @@ class HCPHandler:
         """
         return self.get_response("/userAccounts").get("username", [])
 
-    def get_user_roles(self, user_name: str) -> list[str]:
+    def get_user_roles(self, username: str) -> list[str]:
         """
         Get the user roles for a given user on the tenant.
 
-        :param user_name: A user name on the tenant
-        :type user_name: str
+        :param username: A username on the tenant
+        :type username: str
 
         :return: List of roles the user has
         :rtype: list[str]
         """
         return (
-            self.get_response("/userAccounts/" + user_name)
+            self.get_response("/userAccounts/" + username)
             .get("roles", {})
             .get("role")
         )
+
+    def is_user_admin(self, username: str) -> bool:
+        """
+        Predicate for checking if a given user has the admin role.
+
+        :param username: The user name
+        :type username: str
+
+        :rtype: bool
+        """
+        return "ADMINISTRATOR" in self.get_user_roles(username)
 
     def test_connection(self, bucket_name: str = "") -> dict:
         """
