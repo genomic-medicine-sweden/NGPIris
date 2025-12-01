@@ -240,6 +240,31 @@ class HCPHandler:
 
         return dict(response.json())
 
+    def get_users(self) -> list[str]:
+        """
+        Get a list of users on the tenant.
+
+        :return: List of users on the tenant
+        :rtype: list[str]
+        """
+        return self.get_response("/userAccounts").get("username")
+
+    def get_user_roles(self, user_name: str) -> list[str]:
+        """
+        Get the user roles for a given user on the tenant.
+
+        :param user_name: A user name on the tenant
+        :type user_name: str
+
+        :return: List of roles the user has
+        :rtype: list[str]
+        """
+        return (
+            self.get_response("/userAccounts/" + user_name)
+            .get("roles")
+            .get("role")
+        )
+
     def test_connection(self, bucket_name: str = "") -> dict:
         """
         Test the connection to the mounted bucket or another bucket which is
