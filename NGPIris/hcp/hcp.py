@@ -441,52 +441,45 @@ class HCPHandler:
                     )
 
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
+                    bi_fields = ["Hard quota (Bytes)", "Soft quota (%)", "Owner"]
                     output_list.append(
-                        base | stats | {
-                            "Hard quota (Bytes)" : (
-                                bucket_information["Hard quota (Bytes)"]
-                            ),
-                            "Soft quota (%)" : (
-                                bucket_information["Soft quota (%)"]
-                            ),
-                            "Owner" : bucket_information["Owner"]
-                        }
+                        base | stats | {f : bucket_information[f] for f in bi_fields}
                     )
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
+                    stats_fields = [
+                        "Ingested volume (Bytes)",
+                        "Storage capacity used (Bytes)",
+                        "Object count"
+                    ]
+                    bi_fields = [
+                        "Hard quota (Bytes)",
+                        "Soft quota (%)",
+                        "Owner"
+                    ]
+
                     output_list.append(
                         base | {
-                            "Ingested volume (Bytes)" : (
-                                stats["Ingested volume (Bytes)"]
-                            ),
-                            "Storage capacity used (Bytes)" : (
-                                stats["Storage capacity used (Bytes)"]
-                            ),
-                            "Object count" : stats["Object count"],
+                            f : stats[f] for f in stats_fields
                         } | {
-                            "Hard quota (Bytes)" : (
-                                bucket_information["Hard quota (Bytes)"]
-                            ),
-                            "Soft quota (%)" : (
-                                bucket_information["Soft quota (%)"]
-                            ),
-                            "Owner" : bucket_information["Owner"]
+                            f : bucket_information[f] for f in bi_fields
                         })
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
+                    stats_fields = [
+                        "Object count"
+                    ]
+                    bi_fields = [
+                        "Hard quota (Bytes)",
+                        "Soft quota (%)",
+                        "Owner"
+                    ]
+
                     output_list.append(
                         base | {
-                            "Object count" : stats["Object count"],
+                            f : stats[f] for f in stats_fields
                         } | {
-                            "Hard quota (Bytes)" : (
-                                bucket_information["Hard quota (Bytes)"]
-                            ),
-                            "Soft quota (%)" : (
-                                bucket_information["Soft quota (%)"]
-                            ),
-                            "Owner" : bucket_information["Owner"]
-                        }
-                    )
-
+                            f : bucket_information[f] for f in bi_fields
+                        })
         return output_list
 
     class ListObjectsOutputMode(Enum):
