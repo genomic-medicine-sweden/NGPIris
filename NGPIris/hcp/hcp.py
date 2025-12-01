@@ -470,6 +470,7 @@ class HCPHandler:
                         {f : stats[f] for f in stats_fields} |
                         {f : bucket_information[f] for f in bi_fields}
                     )
+
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
                     stats_fields = [
                         "Object count"
