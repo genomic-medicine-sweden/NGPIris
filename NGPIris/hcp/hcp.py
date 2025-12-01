@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from bitmath import Byte, TiB
+from bitmath import Byte, TiB, parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.client import Config
@@ -236,19 +236,19 @@ class HCPHandler:
             url,
             headers=headers,
             verify=self.use_ssl,
-            timeout=15,
+            timeout=60,
         )
 
         try:
             response.raise_for_status()
         except HTTPError as http_e:
-            if response.status_code == 403:
+            if response.status_code == 403: # noqa: PLR2004
                 msg = (
                     "You lack the sufficient permissions needed for your "
                     "request"
                 )
                 raise NotSufficientPermissionsError(msg) from http_e
-            if response.status_code == 404:
+            if response.status_code == 404: # noqa: PLR2004
                 msg = "The request URL " + str(url) + " could not be found"
                 raise NotFoundError(msg) from http_e
             raise
@@ -371,16 +371,39 @@ class HCPHandler:
             Bucket=bucket_name,
         )
 
-    def list_buckets(self) -> list[str]:
+    def list_buckets(self) -> list[dict[str, Any]]:
         """
-        List all available buckets at endpoint.
+        List all available buckets at endpoint along with statistics for each
+        bucket.
 
-        :return: A list of buckets
-        :rtype: list[str]
+        :return: A list of buckets and their statistics
+        :rtype: list[dict[str, Any]]
         """
         response = self.get_response("/namespaces")
-        list_of_buckets: list[str] = response["name"]
-        return list_of_buckets
+        buckets: list[str] = response["name"]
+        output_list = []
+        for bucket in buckets:
+            stats = self.get_response(
+                "/namespaces/" + bucket + "/statistics"
+            )
+            bucket_information = self.get_response(
+                "/namespaces/" + bucket
+            )
+            output_list.append({"bucket" : bucket} | stats | {
+                "hardQuota" : bitmath_parse(
+                    # TODO(EB): This value is written as being decimal
+                    # (MB, GB, TB, etc), but it is probably binary
+                    # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
+                    # be 100% correct, and should be corrected soon, but that is
+                    # annoying so I won't right now :/
+                    bucket_information["hardQuota"]
+                ).to_Byte(),
+                # `softQuota` written as a percentage
+                "softQuota" : bucket_information["softQuota"],
+                "owner" : bucket_information["owner"]
+            })
+
+        return output_list
 
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
