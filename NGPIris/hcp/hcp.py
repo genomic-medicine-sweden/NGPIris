@@ -247,7 +247,7 @@ class HCPHandler:
         :return: List of users on the tenant
         :rtype: list[str]
         """
-        return self.get_response("/userAccounts").get("username")
+        return self.get_response("/userAccounts").get("username", [])
 
     def get_user_roles(self, user_name: str) -> list[str]:
         """
@@ -261,7 +261,7 @@ class HCPHandler:
         """
         return (
             self.get_response("/userAccounts/" + user_name)
-            .get("roles")
+            .get("roles", {})
             .get("role")
         )
 
