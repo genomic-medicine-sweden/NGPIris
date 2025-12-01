@@ -6,8 +6,8 @@ from typing import Any
 
 import click
 import lazy_table as lt
-from tabulate import tabulate
 from click.core import Context
+from tabulate import tabulate
 
 from NGPIris import HCPHandler
 from NGPIris.cli.helpers import (
@@ -417,7 +417,10 @@ def delete_bucket(
     default=HCPHandler.ListBucketsOutputMode.SIMPLE,
 )
 @click.pass_context
-def list_buckets(context: Context, output_mode: HCPHandler.ListBucketsOutputMode) -> None:
+def list_buckets(
+    context: Context,
+    output_mode: HCPHandler.ListBucketsOutputMode
+) -> None:
     """
     List the available buckets/namespaces on the HCP.
     """
