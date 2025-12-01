@@ -24,13 +24,13 @@ from NGPIris.hcp.exceptions import (
     IsFolderObjectError,
     NoBucketMountedError,
     NotAValidTenantError,
+    NotFoundError,
+    NotSufficientPermissionsError,
     ObjectAlreadyExistError,
     ObjectDoesNotExistError,
     SubfolderError,
     UnableToParseEndpointError,
     UnallowedCharacterError,
-    NotSufficientPermissionsError,
-    NotFoundError,
 )
 from NGPIris.hcp.helpers import (
     check_mounted,
@@ -248,11 +248,10 @@ class HCPHandler:
                     "request"
                 )
                 raise NotSufficientPermissionsError(msg) from http_e
-            elif response.status_code == 404:
+            if response.status_code == 404:
                 msg = "The request URL " + str(url) + " could not be found"
                 raise NotFoundError(msg) from http_e
-            else:
-                raise
+            raise
 
         return dict(response.json())
 
