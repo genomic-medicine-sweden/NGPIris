@@ -441,9 +441,16 @@ class HCPHandler:
                     )
 
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
-                    bi_fields = ["Hard quota (Bytes)", "Soft quota (%)", "Owner"]
+                    bi_fields = [
+                        "Hard quota (Bytes)",
+                        "Soft quota (%)",
+                        "Description",
+                        "Owner",
+                    ]
                     output_list.append(
-                        base | stats | {f : bucket_information[f] for f in bi_fields}
+                        base |
+                        stats |
+                        {f : bucket_information[f] for f in bi_fields}
                     )
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
@@ -459,11 +466,10 @@ class HCPHandler:
                     ]
 
                     output_list.append(
-                        base | {
-                            f : stats[f] for f in stats_fields
-                        } | {
-                            f : bucket_information[f] for f in bi_fields
-                        })
+                        base |
+                        {f : stats[f] for f in stats_fields} |
+                        {f : bucket_information[f] for f in bi_fields}
+                    )
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
                     stats_fields = [
                         "Object count"
@@ -475,11 +481,10 @@ class HCPHandler:
                     ]
 
                     output_list.append(
-                        base | {
-                            f : stats[f] for f in stats_fields
-                        } | {
-                            f : bucket_information[f] for f in bi_fields
-                        })
+                        base |
+                        {f : stats[f] for f in stats_fields} |
+                        {f : bucket_information[f] for f in bi_fields}
+                    )
         return output_list
 
     class ListObjectsOutputMode(Enum):
