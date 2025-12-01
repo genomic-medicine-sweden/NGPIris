@@ -13,10 +13,20 @@ class UnableToParseEndpointError(Exception):
     """
 
 
+# -------------- MAPI request exceptions --------------
+class NotSufficientPermissionsError(Exception):
+    """
+    The given permissions where not sufficient when making a MAPI request (403).
+    """
+
+class NotFoundError(Exception):
+    """
+    The given request path was not found when making a MAPI request (404).
+    """
+
 # -------------- Bucket exceptions --------------
 class NoBucketMountedError(Exception):
     """
-    "
     No bucket has been mounted before using a method that require it.
     """
 
