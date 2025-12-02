@@ -18,6 +18,7 @@ from NGPIris.cli.helpers import (
     ensure_destination_dir,
     object_is_folder,
 )
+from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
 
 
 @click.group()
@@ -339,7 +340,7 @@ def delete(
             case "files":
                 try:
                     click.echo(hcp_h.delete_object(hcp_object))
-                except RuntimeError:
+                except IsFolderObjectError:
                     click.echo(
                         'The object "'
                         + hcp_object
@@ -349,7 +350,18 @@ def delete(
                     )
                     sys.exit(1)
             case "folder":
-                click.echo(hcp_h.delete_folder(hcp_object))
+                try:
+                    click.echo(hcp_h.delete_folder(hcp_object))
+                except ObjectDoesNotExistError:
+                    click.echo(
+                        'The object "'
+                        + hcp_object
+                        + '" does not exist as folder. If your intention was to'
+                        + "delete a single file object, please use `-m file`"
+                        + "for this object",
+                        err=True,
+                    )
+                    sys.exit(1)
     else:
         match mode:
             case "files":
