@@ -257,6 +257,8 @@ class HCPHandler:
 
         return dict(response.json())
 
+# ---------------------------- User methods ----------------------------
+
     def get_users(self) -> list[str]:
         """
         Get a list of users on the tenant.
@@ -292,6 +294,8 @@ class HCPHandler:
         :rtype: bool
         """
         return "ADMINISTRATOR" in self.get_user_roles(username)
+
+# ---------------------------- Util methods ----------------------------
 
     def test_connection(self, bucket_name: str = "") -> dict:
         """
@@ -347,6 +351,8 @@ class HCPHandler:
             raise
 
         return response
+
+# ---------------------------- Bucket methods ----------------------------
 
     def mount_bucket(self, bucket_name: str) -> None:
         """
@@ -510,6 +516,8 @@ class HCPHandler:
                         base
                     )
         return output_list
+
+# ---------------------------- Object methods ----------------------------
 
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
@@ -1110,6 +1118,8 @@ class HCPHandler:
         """  # noqa: D400, D415
         return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
 
+# ---------------------------- Search methods ----------------------------
+
     @check_mounted
     def fuzzy_search_in_bucket(
         self,
@@ -1154,6 +1164,8 @@ class HCPHandler:
         ):
             if score >= threshold:
                 yield full_list[index]
+
+# ---------------------------- ACL methods ----------------------------
 
     @check_mounted
     def get_object_acl(self, key: str) -> dict:
