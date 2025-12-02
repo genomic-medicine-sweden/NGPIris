@@ -378,6 +378,7 @@ class HCPHandler:
         EXTENDED = "extended"
         SIMPLE = "simple"
         MINIMAL = "minimal"
+        BUCKET_ONLY = "bucket_only"
 
     def list_buckets(
         self,
@@ -485,6 +486,11 @@ class HCPHandler:
                         base |
                         {f : stats[f] for f in stats_fields} |
                         {f : bucket_information[f] for f in bi_fields}
+                    )
+
+                case HCPHandler.ListBucketsOutputMode.BUCKET_ONLY:
+                    output_list.append(
+                        base
                     )
         return output_list
 
