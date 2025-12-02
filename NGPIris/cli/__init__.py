@@ -409,7 +409,7 @@ def delete_bucket(
 @click.option(
     "-o",
     "--output_mode",
-    help="",
+    help="Choose how verbose the output should",
     type=click.Choice(
         HCPHandler.ListBucketsOutputMode,
         case_sensitive=False,
