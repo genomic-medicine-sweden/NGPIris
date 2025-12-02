@@ -373,6 +373,23 @@ class HCPHandler:
             Bucket=bucket_name,
         )
 
+    def delete_bucket(self, bucket: str) -> str:
+        """
+        Delete a specified bucket.
+
+        :param bucket: The bucket to be deleted
+        :type bucket: str
+
+        :return: The result of the deletion
+        :rtype: str
+        """
+        self.s3_client.delete_bucket(
+            Bucket=bucket,
+        )
+        # If the deletion was not successful, `self.s3_client.delete_bucket`
+        # would have thrown an error
+        return bucket + " was successfully deleted"
+
     class ListBucketsOutputMode(Enum):
         FULL = "full"
         EXTENDED = "extended"
@@ -1071,22 +1088,6 @@ class HCPHandler:
         )
 
         return result
-
-    def delete_bucket(self, bucket: str) -> str:
-        """
-        Delete a specified bucket.
-
-        :param bucket: The bucket to be deleted
-        :type bucket: str
-        :return: The result of the deletion
-        :rtype: str
-        """
-        self.s3_client.delete_bucket(
-            Bucket=bucket,
-        )
-        # If the deletion was not successful, `self.s3_client.delete_bucket`
-        # would have thrown an error
-        return bucket + " was successfully deleted"
 
     @check_mounted
     def search_in_bucket(
