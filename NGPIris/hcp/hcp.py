@@ -1097,6 +1097,8 @@ class HCPHandler:
 
         return result
 
+# ---------------------------- Search methods ----------------------------
+
     @check_mounted
     def search_in_bucket(
         self,
@@ -1117,8 +1119,6 @@ class HCPHandler:
         :rtype: Generator
         """  # noqa: D400, D415
         return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
-
-# ---------------------------- Search methods ----------------------------
 
     @check_mounted
     def fuzzy_search_in_bucket(
