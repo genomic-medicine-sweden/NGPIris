@@ -217,9 +217,9 @@ class HCPHandler:
                 use_threads=True,
             )
 
-    def get_response(self, path_extension: str = "") -> dict:
+    def get_MAPI_request(self, path_extension: str = "") -> dict:
         """
-        Make a request to the HCP in order to use the builtin MAPI.
+        Make a GET request to the HCP in order to use the builtin MAPI.
 
         :param path_extension:
             Extension for the base request URL, defaults to the empty string
@@ -266,7 +266,7 @@ class HCPHandler:
         :return: List of users on the tenant
         :rtype: list[str]
         """
-        return self.get_response("/userAccounts").get("username", [])
+        return self.get_MAPI_request("/userAccounts").get("username", [])
 
     def get_user_roles(self, username: str) -> list[str]:
         """
@@ -279,7 +279,7 @@ class HCPHandler:
         :rtype: list[str]
         """
         return (
-            self.get_response("/userAccounts/" + username)
+            self.get_MAPI_request("/userAccounts/" + username)
             .get("roles", {})
             .get("role")
         )
@@ -414,14 +414,14 @@ class HCPHandler:
         :return: A list of buckets and their statistics
         :rtype: list[dict[str, Any]]
         """
-        response = self.get_response("/namespaces")
+        response = self.get_MAPI_request("/namespaces")
         buckets: list[str] = response["name"]
         output_list = []
         for bucket in buckets:
-            stats = self.get_response(
+            stats = self.get_MAPI_request(
                 "/namespaces/" + bucket + "/statistics"
             )
-            bucket_information = self.get_response(
+            bucket_information = self.get_MAPI_request(
                 "/namespaces/" + bucket
             )
 
