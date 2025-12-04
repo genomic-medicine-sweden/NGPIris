@@ -1,10 +1,21 @@
+from collections.abc import Callable
+
 import click
 
 
 class SectionedGroup(click.Group):
-    """A click.Group that prints commands grouped into sections."""
+    """
+    A click.Group that prints commands grouped into sections.
+    """
 
-    def format_commands(self, ctx, formatter):
+    def format_commands(
+        self,
+        ctx : click.Context,
+        formatter: click.HelpFormatter
+    ) -> None:
+        """
+        Format commands such that commands are grouped in sections.
+        """
         # Collect all visible commands
         commands = []
         for name in self.list_commands(ctx):
@@ -30,9 +41,13 @@ class SectionedGroup(click.Group):
                     rows.append((name, cmd.get_short_help_str()))
                 formatter.write_dl(rows)
 
-    def command(self, *args, **kwargs):
+    def command(
+        self,
+        *args,
+        **kwargs
+    ) -> Callable[[Callable], click.Command] | click.Command:
         """
-        Override Group.command to accept a 'section' kwarg:
+        Override Group.command to accept a 'section' kwarg.
 
             @cli.command(section="User Commands")
             def add():
@@ -40,10 +55,10 @@ class SectionedGroup(click.Group):
         """
         section = kwargs.pop("section", None)
 
-        def decorator(f):
+        def decorator(f: Callable) -> click.Command:
             cmd = super(SectionedGroup, self).command(*args, **kwargs)(f)
             if section is not None:
-                cmd.section = section
+                cmd.section = section # pyright: ignore[reportAttributeAccessIssue]
             return cmd
 
         return decorator
