@@ -49,19 +49,8 @@ def cli(
     NGP Intelligence and Repository Interface Software, IRIS.
     """
 
-def section_command(section_name: str, *dargs, **dkwargs):
-    """
-    Helper decorator: @section_command("User Commands") instead of @cli.command(...)
-    """
-    def decorator(f):
-        cmd = click.command(*dargs, **dkwargs)(f)
-        cmd.section = section_name
-        cli.add_command(cmd)
-        return cmd
-    return decorator
-
-@section_command(
-    "Object commands",
+@cli.command(
+    section="Object commands",
     short_help="Upload a file or folder from a bucket/namespace on the HCP."
 )
 @click.argument("bucket")
@@ -167,8 +156,8 @@ def upload(  # noqa: PLR0913
             )
 
 
-@section_command(
-    "Object commands",
+@cli.command(
+    section="Object commands",
     short_help="Download a file or folder from a bucket/namespace on the HCP."
 )
 @click.argument("bucket")
@@ -251,8 +240,8 @@ def download(  # noqa: PLR0913
         download_file(source, destination_path, ignore_warning, force, hcp_h)
 
 
-@section_command(
-    "Object commands",
+@cli.command(
+    section="Object commands",
     short_help="Delete objects in a bucket/namespace on the HCP."
 )
 @click.argument("bucket")
@@ -348,8 +337,8 @@ def delete(
                 )
 
 
-@section_command(
-    "Bucket commands",
+@cli.command(
+    section="Bucket commands",
     short_help="Delete a bucket/namespace on the HCP."
 )
 @click.argument("bucket")
@@ -382,8 +371,8 @@ def delete_bucket(
         )
 
 
-@section_command(
-    "Bucket commands",
+@cli.command(
+    section="Bucket commands",
     short_help="List the available buckets/namespaces on the HCP."
 )
 @click.option(
@@ -415,8 +404,8 @@ def list_buckets(
 
 
 
-@section_command(
-    "Object commands",
+@cli.command(
+    section="Object commands",
     short_help="List the objects in a certain bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
@@ -514,8 +503,8 @@ def list_objects(  # noqa: PLR0913
             headers="keys",
         )
 
-@section_command(
-    "Search commands",
+@cli.command(
+    section="Search commands",
     short_help=(
         "Make a simple search using substrings in a bucket/namespace on"
         "the HCP."
@@ -560,8 +549,8 @@ def simple_search(
     )
 
 
-@section_command(
-    "Search commands",
+@cli.command(
+    section="Search commands",
     short_help=(
         "Make a fuzzy search using a search string in a bucket/namespace"
         "on the HCP."
@@ -615,8 +604,8 @@ def fuzzy_search(
     )
 
 
-@section_command(
-    "Utility commands"
+@cli.command(
+    section="Utility commands"
 )
 @click.argument("bucket")
 @click.pass_context

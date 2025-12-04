@@ -2,9 +2,7 @@ import click
 
 
 class SectionedGroup(click.Group):
-    """
-    A click.Group that prints commands grouped into sections.
-    """
+    """A click.Group that prints commands grouped into sections."""
 
     def format_commands(self, ctx, formatter):
         # Collect all visible commands
@@ -31,3 +29,21 @@ class SectionedGroup(click.Group):
                 for name, cmd in items:
                     rows.append((name, cmd.get_short_help_str()))
                 formatter.write_dl(rows)
+
+    def command(self, *args, **kwargs):
+        """
+        Override Group.command to accept a 'section' kwarg:
+
+            @cli.command(section="User Commands")
+            def add():
+                ...
+        """
+        section = kwargs.pop("section", None)
+
+        def decorator(f):
+            cmd = super(SectionedGroup, self).command(*args, **kwargs)(f)
+            if section is not None:
+                cmd.section = section
+            return cmd
+
+        return decorator
