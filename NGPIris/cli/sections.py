@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from typing import Any
 
 import click
 
@@ -41,11 +42,11 @@ class SectionedGroup(click.Group):
                     rows.append((name, cmd.get_short_help_str()))
                 formatter.write_dl(rows)
 
-    def command(
+    def command( # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         *args,
         **kwargs
-    ) -> Callable[[Callable], click.Command] | click.Command:
+    ) -> Callable[[Callable[..., Any]], click.Command] | click.Command:
         """
         Override Group.command to accept a 'section' kwarg.
 
