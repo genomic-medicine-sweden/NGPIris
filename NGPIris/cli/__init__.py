@@ -18,8 +18,9 @@ from NGPIris.cli.helpers import (
     ensure_destination_dir,
     object_is_folder,
 )
-from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
 from NGPIris.cli.sections import SectionedGroup
+from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
+
 
 @click.group(cls=SectionedGroup)
 @click.option(
