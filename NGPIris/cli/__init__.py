@@ -19,9 +19,9 @@ from NGPIris.cli.helpers import (
     object_is_folder,
 )
 from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
+from NGPIris.cli.sections import SectionedGroup
 
-
-@click.group()
+@click.group(cls=SectionedGroup)
 @click.option(
     "-c",
     "--credentials",
@@ -49,63 +49,18 @@ def cli(
     NGP Intelligence and Repository Interface Software, IRIS.
     """
 
-
-@cli.command(
-    short_help="""
-    This command returns a shell command that sets the
-    `NGPIRIS_CREDENTIALS_PATH` environment variable depending on your shell.
-    """,
-)
-@click.argument(
-    "credentials_path",
-    required=False,
-)
-@click.option(
-    "-s",
-    "--shell",
-    type=click.Choice(
-        ["bash", "fish", "zsh"],
-        case_sensitive=False,
-    ),
-    help="""
-    Allows for selection of shell that the produced command should support
-    """,
-    default="bash",
-)
-@click.pass_context
-def shell_env(_: Context, credentials_path: str, shell: str) -> None:
+def section_command(section_name: str, *dargs, **dkwargs):
     """
-    NGP IRIS will look for an environment variable called
-    `NGPIRIS_CREDENTIALS_PATH` when authenticating. This command returns a
-    shell command that sets the `NGPIRIS_CREDENTIALS_PATH` environment variable
-    depending on your shell.
-
-    NOTE: The environment variable will only last for this
-    shell session, but you could set the value of `NGPIRIS_CREDENTIALS_PATH`
-    permanently via other commands if you wish to do so.
-
-    CREDENTIALS PATH is the either absolute or relative path to your credentials
-    JSON file
+    Helper decorator: @section_command("User Commands") instead of @cli.command(...)
     """
-    if not credentials_path:
-        click.prompt("Please enter the path to your credentials file")
+    def decorator(f):
+        cmd = click.command(*dargs, **dkwargs)(f)
+        cmd.section = section_name
+        cli.add_command(cmd)
+        return cmd
+    return decorator
 
-    click.echo(
-        """
-        Copy and paste the following command in order to set your environment
-        variable:
-        """,
-    )
-    match shell:
-        case "bash":
-            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
-        case "fish":
-            click.echo("set -x NGPIRIS_CREDENTIALS_PATH " + credentials_path)
-        case "zsh":
-            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
-
-
-@cli.command()
+@section_command("Object commands")
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
@@ -209,8 +164,9 @@ def upload(  # noqa: PLR0913
             )
 
 
-@cli.command(
-    short_help="Download a file or folder from a bucket/namespace on the HCP.",
+@section_command(
+    "Object commands",
+    short_help="Download a file or folder from a bucket/namespace on the HCP."
 )
 @click.argument("bucket")
 @click.argument("source")
