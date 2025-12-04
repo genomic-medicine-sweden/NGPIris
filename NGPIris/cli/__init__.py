@@ -60,7 +60,10 @@ def section_command(section_name: str, *dargs, **dkwargs):
         return cmd
     return decorator
 
-@section_command("Object commands")
+@section_command(
+    "Object commands",
+    short_help="Upload a file or folder from a bucket/namespace on the HCP."
+)
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
@@ -248,7 +251,10 @@ def download(  # noqa: PLR0913
         download_file(source, destination_path, ignore_warning, force, hcp_h)
 
 
-@cli.command()
+@section_command(
+    "Object commands",
+    short_help="Delete objects in a bucket/namespace on the HCP."
+)
 @click.argument("bucket")
 @click.argument("hcp_object")
 @click.option(
@@ -342,7 +348,10 @@ def delete(
                 )
 
 
-@cli.command()
+@section_command(
+    "Bucket commands",
+    short_help="Delete a bucket/namespace on the HCP."
+)
 @click.argument("bucket")
 @click.option(
     "-dr",
@@ -373,7 +382,10 @@ def delete_bucket(
         )
 
 
-@cli.command()
+@section_command(
+    "Bucket commands",
+    short_help="List the available buckets/namespaces on the HCP."
+)
 @click.option(
     "-o",
     "--output_mode",
@@ -403,7 +415,8 @@ def list_buckets(
 
 
 
-@cli.command(
+@section_command(
+    "Object commands",
     short_help="List the objects in a certain bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
@@ -501,11 +514,12 @@ def list_objects(  # noqa: PLR0913
             headers="keys",
         )
 
-
-@cli.command(
-    short_help="""
-    Make a simple search using substrings in a bucket/namespace on the HCP.
-    """,
+@section_command(
+    "Search commands",
+    short_help=(
+        "Make a simple search using substrings in a bucket/namespace on"
+        "the HCP."
+    ),
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -546,10 +560,12 @@ def simple_search(
     )
 
 
-@cli.command(
-    short_help="""
-    Make a fuzzy search using a search string in a bucket/namespace on the HCP.
-    """,
+@section_command(
+    "Search commands",
+    short_help=(
+        "Make a fuzzy search using a search string in a bucket/namespace"
+        "on the HCP."
+    ),
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -599,7 +615,9 @@ def fuzzy_search(
     )
 
 
-@cli.command()
+@section_command(
+    "Utility commands"
+)
 @click.argument("bucket")
 @click.pass_context
 def test_connection(context: Context, bucket: str) -> None:
