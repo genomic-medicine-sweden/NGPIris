@@ -385,9 +385,6 @@ class HCPHandler:
 
         :param bucket: The bucket to be deleted
         :type bucket: str
-
-        :return: The result of the deletion
-        :rtype: str
         """
         # If the deletion was not successful, `self.s3_client.delete_bucket`
         # would have thrown an error
