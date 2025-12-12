@@ -61,10 +61,8 @@ def cli(
 @click.option(
     "-dr",
     "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes.
-    Useful for testing and verification
-    """,
+    help=("Simulate the command execution without making actual changes. "
+         "Useful for testing and verification"),
     is_flag=True,
 )
 @click.option(
@@ -173,10 +171,8 @@ def delete(
 @click.option(
     "-dr",
     "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes.
-    Useful for testing and verification
-    """,
+    help=("Simulate the command execution without making actual changes. "
+         "Useful for testing and verification"),
     is_flag=True,
 )
 @click.pass_context
@@ -341,10 +337,8 @@ def list_objects(  # noqa: PLR0913
 @click.option(
     "-dr",
     "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes. Useful for
-    testing and verification
-    """,
+    help=("Simulate the command execution without making actual changes. "
+         "Useful for testing and verification"),
     is_flag=True,
 )
 @click.option(
@@ -470,10 +464,8 @@ def create_bucket(
 @click.option(
     "-dr",
     "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes.
-    Useful for testing and verification
-    """,
+    help=("Simulate the command execution without making actual changes. "
+         "Useful for testing and verification"),
     is_flag=True,
 )
 @click.pass_context
