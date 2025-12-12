@@ -379,7 +379,7 @@ class HCPHandler:
             Bucket=bucket_name,
         )
 
-    def delete_bucket(self, bucket: str) -> str:
+    def delete_bucket(self, bucket: str) -> None:
         """
         Delete a specified bucket.
 
@@ -389,12 +389,12 @@ class HCPHandler:
         :return: The result of the deletion
         :rtype: str
         """
+        # If the deletion was not successful, `self.s3_client.delete_bucket`
+        # would have thrown an error
         self.s3_client.delete_bucket(
             Bucket=bucket,
         )
-        # If the deletion was not successful, `self.s3_client.delete_bucket`
-        # would have thrown an error
-        return bucket + " was successfully deleted"
+
 
     class ListBucketsOutputMode(Enum):
         FULL = "full"
