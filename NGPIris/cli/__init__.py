@@ -507,7 +507,7 @@ def list_objects(  # noqa: PLR0913
 @cli.command(
     section="Search commands",
     short_help=(
-        "Make a simple search using substrings in a bucket/namespace on"
+        "Make a simple search using substrings in a bucket/namespace on "
         "the HCP."
     ),
 )
