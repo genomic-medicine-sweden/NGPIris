@@ -452,8 +452,19 @@ def create_bucket(
     bucket: str,
     dry_run: bool,
 ) -> None:
-    
-    pass
+    """
+    Create a bucket/namespace on the HCP.
+    """
+    hcp_h: HCPHandler = create_HCPHandler(context)
+    if not dry_run:
+        hcp_h.create_bucket(bucket)
+        click.echo(bucket + " was successfully created")
+    else:
+        click.echo(
+            'This command would have created a bucket called "'
+            + bucket
+            + '"',
+        )
 
 
 @cli.command(
@@ -479,7 +490,8 @@ def delete_bucket(
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     if not dry_run:
-        click.echo(hcp_h.delete_bucket(bucket))
+        hcp_h.delete_bucket(bucket)
+        click.echo(bucket + " was successfully deleted")
     else:
         click.echo(
             'This command would have deleted the bucket called "'
