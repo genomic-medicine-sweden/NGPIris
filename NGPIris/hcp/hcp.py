@@ -1094,6 +1094,47 @@ class HCPHandler:
 
         return result
 
+    def copy_file(
+        self,
+        source_key: str,
+        destination_key: str,
+        destination_bucket: str = ""
+    ) -> None:
+        """
+        Copy a file object within the HCP.
+
+        :param source_key: The key to the object to be copied
+        :type source_key: str
+
+        :param destination_key: The key to where the object will be copied to
+        :type destination_key: str
+
+        :param destination_bucket:
+            The destination bucket, defaults to the mounted bucket
+        :type destination_bucket: str
+        """
+        file_size: int = self.s3_client.head_object(
+            Bucket=self.bucket_name,
+            Key=source_key,
+        )["ContentLength"]
+        with tqdm(
+            total=file_size,
+            unit="B",
+            unit_scale=True,
+            desc=source_key,
+        ) as pbar:
+            self.s3_client.copy(
+            {
+                "Bucket" : self.bucket_name,
+                "Key" : source_key
+            },
+            destination_bucket if destination_bucket else self.bucket_name,
+            destination_key,
+            Callback = lambda bytes_transferred: pbar.update(
+                bytes_transferred,
+            )
+        )
+
 # ---------------------------- Search methods ----------------------------
 
     @check_mounted
