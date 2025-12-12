@@ -18,10 +18,11 @@ from NGPIris.cli.helpers import (
     ensure_destination_dir,
     object_is_folder,
 )
+from NGPIris.cli.sections import SectionedGroup
 from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
 
 
-@click.group()
+@click.group(cls=SectionedGroup)
 @click.option(
     "-c",
     "--credentials",
@@ -49,63 +50,10 @@ def cli(
     NGP Intelligence and Repository Interface Software, IRIS.
     """
 
-
 @cli.command(
-    short_help="""
-    This command returns a shell command that sets the
-    `NGPIRIS_CREDENTIALS_PATH` environment variable depending on your shell.
-    """,
+    section="Object commands",
+    short_help="Upload a file or folder from a bucket/namespace on the HCP."
 )
-@click.argument(
-    "credentials_path",
-    required=False,
-)
-@click.option(
-    "-s",
-    "--shell",
-    type=click.Choice(
-        ["bash", "fish", "zsh"],
-        case_sensitive=False,
-    ),
-    help="""
-    Allows for selection of shell that the produced command should support
-    """,
-    default="bash",
-)
-@click.pass_context
-def shell_env(_: Context, credentials_path: str, shell: str) -> None:
-    """
-    NGP IRIS will look for an environment variable called
-    `NGPIRIS_CREDENTIALS_PATH` when authenticating. This command returns a
-    shell command that sets the `NGPIRIS_CREDENTIALS_PATH` environment variable
-    depending on your shell.
-
-    NOTE: The environment variable will only last for this
-    shell session, but you could set the value of `NGPIRIS_CREDENTIALS_PATH`
-    permanently via other commands if you wish to do so.
-
-    CREDENTIALS PATH is the either absolute or relative path to your credentials
-    JSON file
-    """
-    if not credentials_path:
-        click.prompt("Please enter the path to your credentials file")
-
-    click.echo(
-        """
-        Copy and paste the following command in order to set your environment
-        variable:
-        """,
-    )
-    match shell:
-        case "bash":
-            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
-        case "fish":
-            click.echo("set -x NGPIRIS_CREDENTIALS_PATH " + credentials_path)
-        case "zsh":
-            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
-
-
-@cli.command()
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
@@ -210,7 +158,8 @@ def upload(  # noqa: PLR0913
 
 
 @cli.command(
-    short_help="Download a file or folder from a bucket/namespace on the HCP.",
+    section="Object commands",
+    short_help="Download a file or folder from a bucket/namespace on the HCP."
 )
 @click.argument("bucket")
 @click.argument("source")
@@ -292,7 +241,10 @@ def download(  # noqa: PLR0913
         download_file(source, destination_path, ignore_warning, force, hcp_h)
 
 
-@cli.command()
+@cli.command(
+    section="Object commands",
+    short_help="Delete objects in a bucket/namespace on the HCP."
+)
 @click.argument("bucket")
 @click.argument("hcp_object")
 @click.option(
@@ -386,7 +338,10 @@ def delete(
                 )
 
 
-@cli.command()
+@cli.command(
+    section="Bucket commands",
+    short_help="Delete a bucket/namespace on the HCP."
+)
 @click.argument("bucket")
 @click.option(
     "-dr",
@@ -417,7 +372,10 @@ def delete_bucket(
         )
 
 
-@cli.command()
+@cli.command(
+    section="Bucket commands",
+    short_help="List the available buckets/namespaces on the HCP."
+)
 @click.option(
     "-o",
     "--output_mode",
@@ -448,6 +406,7 @@ def list_buckets(
 
 
 @cli.command(
+    section="Object commands",
     short_help="List the objects in a certain bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
@@ -545,11 +504,12 @@ def list_objects(  # noqa: PLR0913
             headers="keys",
         )
 
-
 @cli.command(
-    short_help="""
-    Make a simple search using substrings in a bucket/namespace on the HCP.
-    """,
+    section="Search commands",
+    short_help=(
+        "Make a simple search using substrings in a bucket/namespace on"
+        "the HCP."
+    ),
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -591,9 +551,11 @@ def simple_search(
 
 
 @cli.command(
-    short_help="""
-    Make a fuzzy search using a search string in a bucket/namespace on the HCP.
-    """,
+    section="Search commands",
+    short_help=(
+        "Make a fuzzy search using a search string in a bucket/namespace"
+        "on the HCP."
+    ),
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -643,7 +605,9 @@ def fuzzy_search(
     )
 
 
-@cli.command()
+@cli.command(
+    section="Utility commands"
+)
 @click.argument("bucket")
 @click.pass_context
 def test_connection(context: Context, bucket: str) -> None:
