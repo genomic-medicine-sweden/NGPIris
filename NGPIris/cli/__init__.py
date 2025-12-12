@@ -303,8 +303,8 @@ def list_objects(  # noqa: PLR0913
         path_with_slash = add_trailing_slash(path)
 
         if not hcp_h.object_exists(path_with_slash):
-            msg = "Path does not exist"
-            raise RuntimeError(msg)
+            msg = path_with_slash + " does not exist"
+            raise ObjectDoesNotExistError(msg)
     else:
         path_with_slash = ""
 
