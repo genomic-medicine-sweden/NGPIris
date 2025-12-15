@@ -68,12 +68,6 @@ def cli(
     default="",
 )
 @click.option(
-    "-f",
-    "--force",
-    help="Overwrite existing file with the same name",
-    is_flag=True,
-)
-@click.option(
     "-dr",
     "--dry_run",
     help=(
@@ -123,12 +117,6 @@ def copy(  # noqa: PLR0913
     "--destination_bucket",
     help="Choose another destination bucket than the source bucket",
     default="",
-)
-@click.option(
-    "-f",
-    "--force",
-    help="Overwrite existing file with the same name",
-    is_flag=True,
 )
 @click.option(
     "-dr",
