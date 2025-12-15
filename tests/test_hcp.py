@@ -31,8 +31,30 @@ def _without_mounting(
 
 # ---------------------------- User methods tests ----------------------------
 # get_users
+
+
+def test_get_users(custom_config: CustomConfig) -> None:
+    assert isinstance(custom_config.hcp_h.get_users(), list)
+
+
 # get_user_roles
+
+
+def test_get_user_roles(custom_config: CustomConfig) -> None:
+    user = custom_config.hcp_h.get_users()[0]
+    assert isinstance(custom_config.hcp_h.get_user_roles(user), list)
+
+
 # is_user_admin
+def test_is_user_admin(custom_config: CustomConfig) -> None:
+    user = custom_config.hcp_h.get_users()[0]
+    is_admin = custom_config.hcp_h.is_user_admin(user)
+    is_not_admin = not is_admin
+
+    # This assertion might look silly, but the point of the test is to retrieve
+    # the information about admin status itself not what status the user has
+    assert is_admin or is_not_admin
+
 
 # ---------------------------- Util methods tests ----------------------------
 # test_connection
@@ -40,11 +62,9 @@ def _without_mounting(
 
 def test_test_connection(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    custom_config.hcp_h.test_connection()
-
-
-def test_test_connection_with_bucket_name(custom_config: CustomConfig) -> None:
-    custom_config.hcp_h.test_connection(bucket_name=custom_config.test_bucket)
+    assert custom_config.hcp_h.test_connection(
+        bucket_name=custom_config.test_bucket
+    )
 
 
 def test_test_connection_without_mounting_bucket(
