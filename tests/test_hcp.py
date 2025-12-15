@@ -8,6 +8,8 @@ from icecream import ic
 
 from NGPIris import HCPHandler
 
+# ruff: noqa: S101
+
 # --------------------------- Helper functions ---------------------------------
 
 
