@@ -92,7 +92,19 @@ def test_mount_nonexisting_bucket(custom_config: CustomConfig) -> None:
 
 
 # create_bucket
+
+
+def test_create_bucket(custom_config: CustomConfig) -> None:
+    custom_config.hcp_h.create_bucket("IRISTestSuiteBucket")
+
+
 # delete_bucket
+
+
+def test_delete_bucket(custom_config: CustomConfig) -> None:
+    custom_config.hcp_h.delete_bucket("IRISTestSuiteBucket")
+
+
 # list_buckets
 
 
