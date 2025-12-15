@@ -50,7 +50,9 @@ def cli(
     NGP Intelligence and Repository Interface Software, IRIS.
     """
 
+
 # ---------------------------- Object commands ----------------------------
+
 
 @cli.command(
     section="Object commands",
@@ -61,8 +63,10 @@ def cli(
 @click.option(
     "-dr",
     "--dry_run",
-    help=("Simulate the command execution without making actual changes. "
-         "Useful for testing and verification"),
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
     is_flag=True,
 )
 @click.option(
@@ -149,7 +153,7 @@ def delete(
 
 @cli.command(
     section="Object commands",
-    short_help="Download a file or folder from a bucket/namespace on the HCP."
+    short_help="Download a file or folder from a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.argument("source")
@@ -157,9 +161,9 @@ def delete(
 @click.option(
     "-f",
     "--force",
-    help="""
-    Overwrite existing file with the same name (single file download only)
-    """,
+    help=(
+        "Overwrite existing file with the same name (single file download only)"
+    ),
     is_flag=True,
 )
 @click.option(
@@ -171,8 +175,10 @@ def delete(
 @click.option(
     "-dr",
     "--dry_run",
-    help=("Simulate the command execution without making actual changes. "
-         "Useful for testing and verification"),
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
     is_flag=True,
 )
 @click.pass_context
@@ -227,6 +233,7 @@ def download(  # noqa: PLR0913
         download_folder(source, destination_path, ignore_warning, hcp_h)
     else:
         download_file(source, destination_path, ignore_warning, force, hcp_h)
+
 
 @cli.command(
     section="Object commands",
@@ -327,9 +334,10 @@ def list_objects(  # noqa: PLR0913
             headers="keys",
         )
 
+
 @cli.command(
     section="Object commands",
-    short_help="Upload a file or folder from a bucket/namespace on the HCP."
+    short_help="Upload a file or folder from a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.argument("source")
@@ -337,8 +345,10 @@ def list_objects(  # noqa: PLR0913
 @click.option(
     "-dr",
     "--dry_run",
-    help=("Simulate the command execution without making actual changes. "
-         "Useful for testing and verification"),
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
     is_flag=True,
 )
 @click.option(
@@ -434,16 +444,19 @@ def upload(  # noqa: PLR0913
 
 # ---------------------------- Bucket commands ----------------------------
 
+
 @cli.command(
     section="Bucket commands",
-    short_help="Create a bucket/namespace on the HCP."
+    short_help="Create a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.option(
     "-dr",
     "--dry_run",
-    help=("Simulate the command execution without making actual changes. "
-         "Useful for testing and verification"),
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
     is_flag=True,
 )
 @click.pass_context
@@ -461,22 +474,22 @@ def create_bucket(
         click.echo(bucket + " was successfully created")
     else:
         click.echo(
-            'This command would have created a bucket called "'
-            + bucket
-            + '"',
+            'This command would have created a bucket called "' + bucket + '"',
         )
 
 
 @cli.command(
     section="Bucket commands",
-    short_help="Delete a bucket/namespace on the HCP."
+    short_help="Delete a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
 @click.option(
     "-dr",
     "--dry_run",
-    help=("Simulate the command execution without making actual changes. "
-         "Useful for testing and verification"),
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
     is_flag=True,
 )
 @click.pass_context
@@ -499,9 +512,10 @@ def delete_bucket(
             + '"',
         )
 
+
 @cli.command(
     section="Bucket commands",
-    short_help="List the available buckets/namespaces on the HCP."
+    short_help="List the available buckets/namespaces on the HCP.",
 )
 @click.option(
     "-o",
@@ -515,8 +529,7 @@ def delete_bucket(
 )
 @click.pass_context
 def list_buckets(
-    context: Context,
-    output_mode: HCPHandler.ListBucketsOutputMode
+    context: Context, output_mode: HCPHandler.ListBucketsOutputMode
 ) -> None:
     """
     List the available buckets/namespaces on the HCP.
@@ -526,11 +539,13 @@ def list_buckets(
         tabulate(
             hcp_h.list_buckets(output_mode),
             headers="keys",
-            disable_numparse=True
+            disable_numparse=True,
         )
     )
 
+
 # ---------------------------- Search commands ----------------------------
+
 
 @cli.command(
     section="Search commands",
@@ -632,11 +647,11 @@ def fuzzy_search(
         headers="keys",
     )
 
+
 # ---------------------------- Utility commands ----------------------------
 
-@cli.command(
-    section="Utility commands"
-)
+
+@cli.command(section="Utility commands")
 @click.argument("bucket")
 @click.pass_context
 def test_connection(context: Context, bucket: str) -> None:
@@ -648,7 +663,9 @@ def test_connection(context: Context, bucket: str) -> None:
     hcp_h: HCPHandler = create_HCPHandler(context)
     click.echo(hcp_h.test_connection(bucket))
 
+
 # -------------------- Generate credentials command --------------------
+
 
 @click.command()
 @click.option(
