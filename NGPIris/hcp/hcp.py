@@ -1085,6 +1085,7 @@ class HCPHandler:
 
         return result
 
+    @check_mounted
     def copy_file(
         self,
         source_key: str,
@@ -1123,6 +1124,7 @@ class HCPHandler:
                 ),
             )
 
+    @check_mounted
     def move_file(
         self,
         source_key: str,
