@@ -1129,6 +1129,19 @@ class HCPHandler:
         destination_key: str,
         destination_bucket: str = "",
     ) -> None:
+        """
+        Move a file `source_key` to `destination_key`.
+
+        :param source_key: The key to the object to be moved
+        :type source_key: str
+
+        :param destination_key: The key to where the object will be moved to
+        :type destination_key: str
+
+        :param destination_bucket:
+            The destination bucket, defaults to the mounted bucket
+        :type destination_bucket: str
+        """
         self.copy_file(source_key, destination_key, destination_bucket)
         self.delete_object(source_key)
 
