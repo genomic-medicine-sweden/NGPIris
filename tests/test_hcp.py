@@ -94,6 +94,89 @@ def test_list_objects_without_mounting(custom_config: CustomConfig) -> None:
     _without_mounting(_hcp_h, HCPHandler.list_objects)
 
 
+# upload_file
+
+
+def test_upload_file(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+
+    # With progress bar
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
+
+    # Without progress bar
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path + "_no_progress_bar",
+        show_progress_bar=False,
+    )
+
+    # Test every upload mode
+    for mode in HCPHandler.UploadMode:
+        ic(
+            mode,
+            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
+        )
+        custom_config.hcp_h.upload_file(
+            custom_config.test_file_path,
+            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
+            upload_mode=mode,
+        )
+
+
+def test_upload_file_without_mounting(custom_config: CustomConfig) -> None:
+    _hcp_h = custom_config.hcp_h
+    _without_mounting(_hcp_h, HCPHandler.upload_file)
+
+
+def test_upload_file_in_sub_directory(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        "a_sub_directory/a_file",
+    )
+
+
+def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    try:
+        custom_config.hcp_h.upload_file("tests/data/aTestFileThatDoesNotExist")
+    except:
+        assert True
+    else:  # pragma: no cover
+        fail("Test failed")
+
+
+# upload_folder
+
+
+def test_upload_folder(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_folder(
+        "tests/data/a folder of data/",
+        "a folder of data/",
+    )
+
+
+def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
+    _hcp_h = custom_config.hcp_h
+    _without_mounting(_hcp_h, HCPHandler.upload_folder)
+
+
+def test_upload_nonexisting_folder(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    try:
+        custom_config.hcp_h.upload_folder(
+            "tests/data/aFolderOfFilesThatDoesNotExist",
+        )
+    except:
+        assert True
+    else:  # pragma: no cover
+        fail("Test failed")
+
+
 # get_object
 
 
@@ -196,89 +279,6 @@ def test_download_folder(custom_config: CustomConfig) -> None:
         "a folder of data/",
         custom_config.result_path,
     )
-
-
-# upload_file
-
-
-def test_upload_file(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-
-    # With progress bar
-    custom_config.hcp_h.upload_file(
-        custom_config.test_file_path,
-        custom_config.test_file_path,
-    )
-
-    # Without progress bar
-    custom_config.hcp_h.upload_file(
-        custom_config.test_file_path,
-        custom_config.test_file_path + "_no_progress_bar",
-        show_progress_bar=False,
-    )
-
-    # Test every upload mode
-    for mode in HCPHandler.UploadMode:
-        ic(
-            mode,
-            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
-        )
-        custom_config.hcp_h.upload_file(
-            custom_config.test_file_path,
-            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
-            upload_mode=mode,
-        )
-
-
-def test_upload_file_without_mounting(custom_config: CustomConfig) -> None:
-    _hcp_h = custom_config.hcp_h
-    _without_mounting(_hcp_h, HCPHandler.upload_file)
-
-
-def test_upload_file_in_sub_directory(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    custom_config.hcp_h.upload_file(
-        custom_config.test_file_path,
-        "a_sub_directory/a_file",
-    )
-
-
-def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    try:
-        custom_config.hcp_h.upload_file("tests/data/aTestFileThatDoesNotExist")
-    except:
-        assert True
-    else:  # pragma: no cover
-        fail("Test failed")
-
-
-# upload_folder
-
-
-def test_upload_folder(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    custom_config.hcp_h.upload_folder(
-        "tests/data/a folder of data/",
-        "a folder of data/",
-    )
-
-
-def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
-    _hcp_h = custom_config.hcp_h
-    _without_mounting(_hcp_h, HCPHandler.upload_folder)
-
-
-def test_upload_nonexisting_folder(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    try:
-        custom_config.hcp_h.upload_folder(
-            "tests/data/aFolderOfFilesThatDoesNotExist",
-        )
-    except:
-        assert True
-    else:  # pragma: no cover
-        fail("Test failed")
 
 
 # delete_objects
