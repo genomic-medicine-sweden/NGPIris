@@ -29,9 +29,17 @@ def _without_mounting(
 
 # --------------------------- Test suite ---------------------------------------
 
+# ---------------------------- User methods tests ----------------------------
+# get_users
+# get_user_roles
+# is_user_admin
 
-def test_list_buckets(custom_config: CustomConfig) -> None:
-    assert custom_config.hcp_h.list_buckets()
+# ---------------------------- Util methods tests ----------------------------
+# test_connection
+
+
+# ---------------------------- Bucket methods tests ----------------------------
+# mount_bucket
 
 
 def test_mount_bucket(custom_config: CustomConfig) -> None:
@@ -45,6 +53,32 @@ def test_mount_nonexisting_bucket(custom_config: CustomConfig) -> None:
         assert True
     else:  # pragma: no cover
         fail("Test failed")
+
+
+# create_bucket
+# delete_bucket
+# list_buckets
+
+# ---------------------------- Object methods tests ----------------------------
+# list_objects
+# get_object
+# object_exists
+# download_file
+# download_folder
+# upload_file
+# upload_folder
+# delete_objects
+# delete_object
+# delete_folder
+# copy_file
+# move_file
+
+# ---------------------------- Search methods tests ----------------------------
+# N/A
+
+
+def test_list_buckets(custom_config: CustomConfig) -> None:
+    assert custom_config.hcp_h.list_buckets()
 
 
 def test_test_connection(custom_config: CustomConfig) -> None:
