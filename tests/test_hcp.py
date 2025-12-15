@@ -372,7 +372,46 @@ def test_delete_folder_without_mounting(custom_config: CustomConfig) -> None:
 
 
 # copy_file
+
+
+def test_copy_file(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    custom_config.hcp_h.copy_file(
+        custom_config.test_file_path, custom_config.test_file_path + "_copy"
+    )
+
+
+def test_copy_file_to_other_bucket(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    custom_config.hcp_h.create_bucket("TempBucket")
+    custom_config.hcp_h.copy_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path + "_copy",
+        "TempBucket",
+    )
+    custom_config.hcp_h.delete_bucket("TempBucket")
+
+
 # move_file
+
+
+def test_move_file(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    custom_config.hcp_h.move_file(
+        custom_config.test_file_path, "test/" + custom_config.test_file_path
+    )
+
+
+def test_move_file_to_other_bucket(custom_config: CustomConfig) -> None:
+    test_mount_bucket(custom_config)
+    custom_config.hcp_h.create_bucket("TempBucket")
+    custom_config.hcp_h.move_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path + "_copy",
+        "TempBucket",
+    )
+    custom_config.hcp_h.delete_bucket("TempBucket")
+
 
 # ---------------------------- Search methods tests ----------------------------
 # N/A
