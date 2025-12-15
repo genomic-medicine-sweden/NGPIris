@@ -6,8 +6,7 @@ from typing import Any
 
 from pytest import Config, UsageError, fixture
 
-from NGPIris import HCIHandler
-from NGPIris import HCPHandler
+from NGPIris import HCIHandler, HCPHandler
 
 
 class CustomConfig:
