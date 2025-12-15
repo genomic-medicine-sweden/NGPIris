@@ -12,7 +12,8 @@ from NGPIris import HCPHandler
 
 
 def _without_mounting(
-    hcp_h: HCPHandler, hcp_h_method: Callable[..., Any],
+    hcp_h: HCPHandler,
+    hcp_h_method: Callable[..., Any],
 ) -> None:
     hcp_h.bucket_name = None
     try:
@@ -106,7 +107,8 @@ def test_upload_file_without_mounting(custom_config: CustomConfig) -> None:
 def test_upload_file_in_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
-        custom_config.test_file_path, "a_sub_directory/a_file",
+        custom_config.test_file_path,
+        "a_sub_directory/a_file",
     )
 
 
@@ -123,7 +125,8 @@ def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
 def test_upload_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_folder(
-        "tests/data/a folder of data/", "a folder of data/",
+        "tests/data/a folder of data/",
+        "a folder of data/",
     )
 
 
@@ -170,7 +173,8 @@ def test_download_file(custom_config: CustomConfig) -> None:
         str(custom_config.test_file_path).rsplit("/", maxsplit=1)[0] + "/"
     )
     Path(custom_config.result_path + test_folder_path).mkdir(
-        parents=True, exist_ok=True,
+        parents=True,
+        exist_ok=True,
     )
 
     # With progress bar
@@ -218,7 +222,8 @@ def test_download_nonexistent_file(custom_config: CustomConfig) -> None:
 def test_download_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.download_folder(
-        "a folder of data/", custom_config.result_path,
+        "a folder of data/",
+        custom_config.result_path,
     )
 
 
@@ -309,7 +314,8 @@ def test_delete_file_without_mounting(custom_config: CustomConfig) -> None:
 def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
-        custom_config.test_file_path, "a folder of data/a sub dir/a file",
+        custom_config.test_file_path,
+        "a folder of data/a sub dir/a file",
     )
     try:
         custom_config.hcp_h.delete_folder("a folder of data/")
