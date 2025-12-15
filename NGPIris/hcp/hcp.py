@@ -1123,7 +1123,16 @@ class HCPHandler:
                 ),
             )
 
-# ---------------------------- Search methods ----------------------------
+    def move_file(
+        self,
+        source_key: str,
+        destination_key: str,
+        destination_bucket: str = "",
+    ) -> None:
+        self.copy_file(source_key, destination_key, destination_bucket)
+        self.delete_object(source_key)
+
+    # ---------------------------- Search methods ----------------------------
 
     @check_mounted
     def search_in_bucket(
