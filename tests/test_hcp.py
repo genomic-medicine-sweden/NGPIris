@@ -5,10 +5,11 @@ from typing import Any
 
 from conftest import CustomConfig
 from icecream import ic
+from pytest import fail
 
 from NGPIris import HCPHandler
 
-# ruff: noqa: S101
+# ruff: noqa: S101, D103, E722, PT013, INP001
 
 # --------------------------- Helper functions ---------------------------------
 
@@ -23,7 +24,7 @@ def _without_mounting(
     except:
         assert True
     else:  # pragma: no cover
-        assert False
+        fail("Test failed")
 
 
 # --------------------------- Test suite ---------------------------------------
@@ -43,7 +44,7 @@ def test_mount_nonexisting_bucket(custom_config: CustomConfig) -> None:
     except:
         assert True
     else:  # pragma: no cover
-        assert False
+        fail("Test failed")
 
 
 def test_test_connection(custom_config: CustomConfig) -> None:
@@ -64,7 +65,7 @@ def test_test_connection_without_mounting_bucket(
 
 def test_list_objects(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    assert type(list(custom_config.hcp_h.list_objects())) == list
+    assert isinstance(list(custom_config.hcp_h.list_objects()), list)
 
 
 def test_list_objects_without_mounting(custom_config: CustomConfig) -> None:
@@ -121,7 +122,7 @@ def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
     except:
         assert True
     else:  # pragma: no cover
-        assert False
+        fail("Test failed")
 
 
 def test_upload_folder(custom_config: CustomConfig) -> None:
@@ -146,7 +147,7 @@ def test_upload_nonexisting_folder(custom_config: CustomConfig) -> None:
     except:
         assert True
     else:  # pragma: no cover
-        assert False
+        fail("Test failed")
 
 
 def test_get_file(custom_config: CustomConfig) -> None:
@@ -218,7 +219,7 @@ def test_download_nonexistent_file(custom_config: CustomConfig) -> None:
     except:
         assert True
     else:  # pragma: no cover
-        assert False
+        fail("Test failed")
 
 
 def test_download_folder(custom_config: CustomConfig) -> None:
@@ -273,27 +274,6 @@ def test_get_bucket_acl_without_mounting(custom_config: CustomConfig) -> None:
     _without_mounting(_hcp_h, HCPHandler.get_bucket_acl)
 
 
-# ------------------ Possibly future ACL tests ---------------------------------
-
-# def test_modify_single_object_acl(custom_config : CustomConfig) -> None:
-#    test_mount_bucket(custom_config)
-#    custom_config.hcp_h.modify_single_object_acl()
-#
-# def test_modify_single_bucket_acl(custom_config : CustomConfig) -> None:
-#    test_mount_bucket(custom_config)
-#    custom_config.hcp_h.modify_single_bucket_acl()
-#
-# def test_modify_object_acl(custom_config : CustomConfig) -> None:
-#    test_mount_bucket(custom_config)
-#    custom_config.hcp_h.modify_object_acl()
-#
-# def test_modify_bucket_acl(custom_config : CustomConfig) -> None:
-#    test_mount_bucket(custom_config)
-#    custom_config.hcp_h.modify_bucket_acl()
-
-# ------------------------------------------------------------------------------
-
-
 def test_delete_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.delete_object(custom_config.test_file_path)
@@ -324,7 +304,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
     except:
         assert True
     else:  # pragma: no cover
-        assert False
+        fail("Test failed")
     custom_config.hcp_h.delete_folder("a folder of data/a sub dir/")
 
 
