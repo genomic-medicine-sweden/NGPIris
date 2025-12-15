@@ -244,20 +244,20 @@ class HCPHandler:
         try:
             response.raise_for_status()
         except HTTPError as http_e:
-            if response.status_code == 403: # noqa: PLR2004
+            if response.status_code == 403:  # noqa: PLR2004
                 msg = (
                     "You lack the sufficient permissions needed for your "
                     "request"
                 )
                 raise NotSufficientPermissionsError(msg) from http_e
-            if response.status_code == 404: # noqa: PLR2004
+            if response.status_code == 404:  # noqa: PLR2004
                 msg = "The request URL " + str(url) + " could not be found"
                 raise NotFoundError(msg) from http_e
             raise
 
         return dict(response.json())
 
-# ---------------------------- User methods ----------------------------
+    # ---------------------------- User methods ----------------------------
 
     def get_users(self) -> list[str]:
         """
@@ -295,7 +295,7 @@ class HCPHandler:
         """
         return "ADMINISTRATOR" in self.get_user_roles(username)
 
-# ---------------------------- Util methods ----------------------------
+    # ---------------------------- Util methods ----------------------------
 
     def test_connection(self, bucket_name: str = "") -> dict:
         """
@@ -352,7 +352,7 @@ class HCPHandler:
 
         return response
 
-# ---------------------------- Bucket methods ----------------------------
+    # ---------------------------- Bucket methods ----------------------------
 
     def mount_bucket(self, bucket_name: str) -> None:
         """
@@ -392,7 +392,6 @@ class HCPHandler:
             Bucket=bucket,
         )
 
-
     class ListBucketsOutputMode(Enum):
         FULL = "full"
         EXTENDED = "extended"
@@ -402,7 +401,7 @@ class HCPHandler:
 
     def list_buckets(
         self,
-        output_mode: ListBucketsOutputMode = ListBucketsOutputMode.EXTENDED
+        output_mode: ListBucketsOutputMode = ListBucketsOutputMode.EXTENDED,
     ) -> list[dict[str, Any]]:
         """
         List all available buckets at endpoint along with statistics for each
@@ -418,37 +417,35 @@ class HCPHandler:
             stats = self.get_MAPI_request(
                 "/namespaces/" + bucket + "/statistics"
             )
-            bucket_information = self.get_MAPI_request(
-                "/namespaces/" + bucket
-            )
+            bucket_information = self.get_MAPI_request("/namespaces/" + bucket)
 
-            base = {"Bucket" : bucket}
+            base = {"Bucket": bucket}
 
             # Turn headers from camelCase to human readable text
             stats = {
-                re.sub(
-                    r"(?<=[a-z])([A-Z])", r" \1", k
-                ).capitalize() : _ for k, _ in stats.items()
+                re.sub(r"(?<=[a-z])([A-Z])", r" \1", k).capitalize(): _
+                for k, _ in stats.items()
             }
             bucket_information = {
-                re.sub(
-                    r"(?<=[a-z])([A-Z])", r" \1", k
-                ).capitalize() : _ for k, _ in bucket_information.items()
+                re.sub(r"(?<=[a-z])([A-Z])", r" \1", k).capitalize(): _
+                for k, _ in bucket_information.items()
             }
 
             # Parse `"Hard quota"` value to be just a number
-            bucket_information["Hard quota (Bytes)"] = int(bitmath_parse(
-                # TODO(EB): `"Hard quota"` is written as being decimal
-                # (MB, GB, TB, etc), but it is probably binary
-                # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
-                # be 100% correct, and should be corrected soon, but that is
-                # annoying so I won't right now :/
-                bucket_information["Hard quota"]
-            ).to_Byte())
-
-            bucket_information["Soft quota (%)"] = (
-                bucket_information["Soft quota"]
+            bucket_information["Hard quota (Bytes)"] = int(
+                bitmath_parse(
+                    # TODO(EB): `"Hard quota"` is written as being decimal
+                    # (MB, GB, TB, etc), but it is probably binary
+                    # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
+                    # be 100% correct, and should be corrected soon, but that is
+                    # annoying so I won't right now :/
+                    bucket_information["Hard quota"]
+                ).to_Byte()
             )
+
+            bucket_information["Soft quota (%)"] = bucket_information[
+                "Soft quota"
+            ]
             del bucket_information["Soft quota"]
 
             for col in ["Ingested volume", "Storage capacity used"]:
@@ -457,9 +454,7 @@ class HCPHandler:
 
             match output_mode:
                 case HCPHandler.ListBucketsOutputMode.FULL:
-                    output_list.append(
-                        base | stats | bucket_information
-                    )
+                    output_list.append(base | stats | bucket_information)
 
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
                     bi_fields = [
@@ -469,52 +464,48 @@ class HCPHandler:
                         "Owner",
                     ]
                     output_list.append(
-                        base |
-                        stats |
-                        {f : bucket_information[f] for f in bi_fields}
+                        base
+                        | stats
+                        | {f: bucket_information[f] for f in bi_fields}
                     )
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
                     stats_fields = [
                         "Ingested volume (Bytes)",
                         "Storage capacity used (Bytes)",
-                        "Object count"
+                        "Object count",
                     ]
                     bi_fields = [
                         "Hard quota (Bytes)",
                         "Soft quota (%)",
-                        "Owner"
+                        "Owner",
                     ]
 
                     output_list.append(
-                        base |
-                        {f : stats[f] for f in stats_fields} |
-                        {f : bucket_information[f] for f in bi_fields}
+                        base
+                        | {f: stats[f] for f in stats_fields}
+                        | {f: bucket_information[f] for f in bi_fields}
                     )
 
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
-                    stats_fields = [
-                        "Object count"
-                    ]
+                    stats_fields = ["Object count"]
                     bi_fields = [
                         "Hard quota (Bytes)",
                         "Soft quota (%)",
-                        "Owner"
+                        "Owner",
                     ]
 
                     output_list.append(
-                        base |
-                        {f : stats[f] for f in stats_fields} |
-                        {f : bucket_information[f] for f in bi_fields}
+                        base
+                        | {f: stats[f] for f in stats_fields}
+                        | {f: bucket_information[f] for f in bi_fields}
                     )
 
                 case HCPHandler.ListBucketsOutputMode.BUCKET_ONLY:
-                    output_list.append(
-                        base
-                    )
+                    output_list.append(base)
         return output_list
 
-# ---------------------------- Object methods ----------------------------
+    # ---------------------------- Object methods ----------------------------
 
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
@@ -1098,7 +1089,7 @@ class HCPHandler:
         self,
         source_key: str,
         destination_key: str,
-        destination_bucket: str = ""
+        destination_bucket: str = "",
     ) -> None:
         """
         Copy a file object within the HCP.
@@ -1124,16 +1115,13 @@ class HCPHandler:
             desc=source_key,
         ) as pbar:
             self.s3_client.copy(
-            {
-                "Bucket" : self.bucket_name,
-                "Key" : source_key
-            },
-            destination_bucket if destination_bucket else self.bucket_name,
-            destination_key,
-            Callback = lambda bytes_transferred: pbar.update(
-                bytes_transferred,
+                {"Bucket": self.bucket_name, "Key": source_key},
+                destination_bucket if destination_bucket else self.bucket_name,
+                destination_key,
+                Callback=lambda bytes_transferred: pbar.update(
+                    bytes_transferred,
+                ),
             )
-        )
 
 # ---------------------------- Search methods ----------------------------
 
@@ -1203,7 +1191,7 @@ class HCPHandler:
             if score >= threshold:
                 yield full_list[index]
 
-# ---------------------------- ACL methods ----------------------------
+    # ---------------------------- ACL methods ----------------------------
 
     @check_mounted
     def get_object_acl(self, key: str) -> dict:
