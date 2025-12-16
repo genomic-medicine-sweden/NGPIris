@@ -8,6 +8,8 @@ from pytest import Config, UsageError, fixture
 
 from NGPIris import HCIHandler, HCPHandler
 
+# ruff: noqa: D103, PT013, INP001
+
 
 class CustomConfig:
     """A typed wrapper around pytest.Config for dynamic attributes."""
@@ -70,14 +72,32 @@ def pytest_configure(config: Config) -> None:
 
 @fixture(scope="session")
 def hcp_result_path(pytestconfig: Config) -> str:
-    return pytestconfig.parser.get("HCP_tests", "result_path")  # type: ignore
+    return pytestconfig.parser.get("HCP_tests", "result_path")  # pyright: ignore[reportAttributeAccessIssue]
+
+
+@fixture(scope="session")
+def hcp_handler(pytestconfig: Config) -> HCPHandler:
+    return pytestconfig.hcp_h  # pyright: ignore[reportAttributeAccessIssue]
+
+
+@fixture(scope="session")
+def custom_config_test_bucket(pytestconfig: Config) -> str:
+    return pytestconfig.test_bucket  # pyright: ignore[reportAttributeAccessIssue]
 
 
 @fixture(scope="session", autouse=True)
-def clean_up_after_tests(hcp_result_path: str) -> Generator[None, Any, None]:
-    # Setup code can go here if needed
+def clean_up_after_tests(
+    hcp_result_path: str,
+    hcp_handler: HCPHandler,
+    custom_config_test_bucket: str,
+) -> Generator[None, Any, None]:
+    # Setup code
+    hcp_handler.create_bucket(custom_config_test_bucket)
+
     yield
+
     # Teardown code
+    hcp_handler.delete_bucket(custom_config_test_bucket)
     if Path(hcp_result_path).exists():
         rmtree(hcp_result_path)
 
