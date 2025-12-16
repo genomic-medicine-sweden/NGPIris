@@ -29,17 +29,14 @@ def _without_mounting(
 
 # --------------------------- Test suite ---------------------------------------
 
+
 # ---------------------------- User methods tests ----------------------------
 # get_users
-
-
 def test_get_users(custom_config: CustomConfig) -> None:
     assert isinstance(custom_config.hcp_h.get_users(), list)
 
 
 # get_user_roles
-
-
 def test_get_user_roles(custom_config: CustomConfig) -> None:
     user = custom_config.hcp_h.get_users()[0]
     assert isinstance(custom_config.hcp_h.get_user_roles(user), list)
@@ -58,8 +55,6 @@ def test_is_user_admin(custom_config: CustomConfig) -> None:
 
 # ---------------------------- Util methods tests ----------------------------
 # test_connection
-
-
 def test_test_connection(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     assert custom_config.hcp_h.test_connection(
@@ -76,8 +71,6 @@ def test_test_connection_without_mounting_bucket(
 
 # ---------------------------- Bucket methods tests ----------------------------
 # mount_bucket
-
-
 def test_mount_bucket(custom_config: CustomConfig) -> None:
     custom_config.hcp_h.mount_bucket(custom_config.test_bucket)
 
@@ -92,30 +85,22 @@ def test_mount_nonexisting_bucket(custom_config: CustomConfig) -> None:
 
 
 # create_bucket
-
-
 def test_create_bucket(custom_config: CustomConfig) -> None:
     custom_config.hcp_h.create_bucket("IRISTestSuiteBucket")
 
 
 # delete_bucket
-
-
 def test_delete_bucket(custom_config: CustomConfig) -> None:
     custom_config.hcp_h.delete_bucket("IRISTestSuiteBucket")
 
 
 # list_buckets
-
-
 def test_list_buckets(custom_config: CustomConfig) -> None:
     assert custom_config.hcp_h.list_buckets()
 
 
 # ---------------------------- Object methods tests ----------------------------
 # list_objects
-
-
 def test_list_objects(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     assert isinstance(list(custom_config.hcp_h.list_objects()), list)
@@ -127,8 +112,6 @@ def test_list_objects_without_mounting(custom_config: CustomConfig) -> None:
 
 
 # upload_file
-
-
 def test_upload_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
 
@@ -182,8 +165,6 @@ def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
 
 
 # upload_folder
-
-
 def test_upload_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_folder(
@@ -210,8 +191,6 @@ def test_upload_nonexisting_folder(custom_config: CustomConfig) -> None:
 
 
 # get_object
-
-
 def test_get_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     assert custom_config.hcp_h.get_object("a_sub_directory/a_file")
@@ -228,8 +207,6 @@ def test_get_file_in_sub_directory(custom_config: CustomConfig) -> None:
 
 
 # object_exists
-
-
 def test_object_exists(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     assert custom_config.hcp_h.object_exists("a_sub_directory/a_file")
@@ -246,8 +223,6 @@ def test_object_exists_in_sub_directory(custom_config: CustomConfig) -> None:
 
 
 # download_file
-
-
 def test_download_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     Path(custom_config.result_path).mkdir()
@@ -303,8 +278,6 @@ def test_download_nonexistent_file(custom_config: CustomConfig) -> None:
 
 
 # download_folder
-
-
 def test_download_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.download_folder(
@@ -314,8 +287,6 @@ def test_download_folder(custom_config: CustomConfig) -> None:
 
 
 # delete_objects
-
-
 def test_delete_nonexistent_files(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.delete_objects(
@@ -344,8 +315,6 @@ def test_delete_object_without_mounting(custom_config: CustomConfig) -> None:
 
 
 # delete_folder
-
-
 def test_delete_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.delete_folder("a folder of data/")
@@ -372,8 +341,6 @@ def test_delete_folder_without_mounting(custom_config: CustomConfig) -> None:
 
 
 # copy_file
-
-
 def test_copy_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.copy_file(
@@ -393,8 +360,6 @@ def test_copy_file_to_other_bucket(custom_config: CustomConfig) -> None:
 
 
 # move_file
-
-
 def test_move_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.move_file(
