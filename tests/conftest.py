@@ -103,7 +103,7 @@ def clean_up_after_tests(
     yield
 
     # Teardown code
-    if bucket_does_not_exist:
+    if bucket_does_not_exist:  # Will have the same value as in setup code
         hcp_handler.delete_bucket(custom_config_test_bucket)
     if Path(hcp_result_path).exists():
         rmtree(hcp_result_path)
