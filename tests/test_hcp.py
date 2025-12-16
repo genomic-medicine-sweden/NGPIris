@@ -135,13 +135,14 @@ def test_upload_file(custom_config: CustomConfig) -> None:
 
     # Test every upload mode
     for mode in HCPHandler.UploadMode:
+        key = custom_config.test_file_path + "_" + str(mode).replace(".", "_")
         ic(
             mode,
-            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
+            key,
         )
         custom_config.hcp_h.upload_file(
             custom_config.test_file_path,
-            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
+            key,
             upload_mode=mode,
         )
 
@@ -198,7 +199,7 @@ def test_upload_nonexisting_folder(custom_config: CustomConfig) -> None:
 # get_object
 def test_get_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    assert custom_config.hcp_h.get_object(SUBDIR_W_A_FILE)
+    assert custom_config.hcp_h.get_object(custom_config.test_file_path)
 
 
 def test_get_file_without_mounting(custom_config: CustomConfig) -> None:
@@ -214,7 +215,7 @@ def test_get_file_in_sub_directory(custom_config: CustomConfig) -> None:
 # object_exists
 def test_object_exists(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    assert custom_config.hcp_h.object_exists(SUBDIR_W_A_FILE)
+    assert custom_config.hcp_h.object_exists(custom_config.test_file_path)
 
 
 def test_object_exists_without_mounting(custom_config: CustomConfig) -> None:
@@ -329,7 +330,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
-        "a folder of data/a sub dir/a file",
+        SUBDIR + "/a_new_file",
     )
     try:
         custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
