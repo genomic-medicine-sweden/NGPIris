@@ -4,6 +4,7 @@ from pathlib import Path
 from shutil import rmtree
 from typing import Any
 
+from icecream import ic
 from pytest import Config, UsageError, fixture
 
 from NGPIris import HCIHandler, HCPHandler
@@ -91,13 +92,19 @@ def clean_up_after_tests(
     hcp_handler: HCPHandler,
     custom_config_test_bucket: str,
 ) -> Generator[None, Any, None]:
+    buckets = hcp_handler.list_buckets()
+    bucket_does_not_exist = custom_config_test_bucket not in buckets
+    ic("Test bucket:", custom_config_test_bucket)
+
     # Setup code
-    hcp_handler.create_bucket(custom_config_test_bucket)
+    if bucket_does_not_exist:
+        hcp_handler.create_bucket(custom_config_test_bucket)
 
     yield
 
     # Teardown code
-    hcp_handler.delete_bucket(custom_config_test_bucket)
+    if bucket_does_not_exist:
+        hcp_handler.delete_bucket(custom_config_test_bucket)
     if Path(hcp_result_path).exists():
         rmtree(hcp_result_path)
 
