@@ -11,6 +11,11 @@ from NGPIris import HCPHandler
 
 # ruff: noqa: S101, D103, E722, PT013, INP001
 
+# --------------------------- Constants ---------------------------
+
+SUBDIR = "a_sub_directory"
+SUBDIR_W_A_FILE = SUBDIR + "/a_file"
+
 # --------------------------- Helper functions ---------------------------------
 
 
@@ -86,12 +91,12 @@ def test_mount_nonexisting_bucket(custom_config: CustomConfig) -> None:
 
 # create_bucket
 def test_create_bucket(custom_config: CustomConfig) -> None:
-    custom_config.hcp_h.create_bucket("IRISTestSuiteBucket")
+    custom_config.hcp_h.create_bucket(custom_config.test_bucket + "2")
 
 
 # delete_bucket
 def test_delete_bucket(custom_config: CustomConfig) -> None:
-    custom_config.hcp_h.delete_bucket("IRISTestSuiteBucket")
+    custom_config.hcp_h.delete_bucket(custom_config.test_bucket + "2")
 
 
 # list_buckets
@@ -150,7 +155,7 @@ def test_upload_file_in_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
-        "a_sub_directory/a_file",
+        SUBDIR_W_A_FILE,
     )
 
 
@@ -168,8 +173,8 @@ def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
 def test_upload_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_folder(
-        "tests/data/a folder of data/",
-        "a folder of data/",
+        custom_config.test_folder_path,
+        custom_config.test_folder_path,
     )
 
 
@@ -193,7 +198,7 @@ def test_upload_nonexisting_folder(custom_config: CustomConfig) -> None:
 # get_object
 def test_get_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    assert custom_config.hcp_h.get_object("a_sub_directory/a_file")
+    assert custom_config.hcp_h.get_object(SUBDIR_W_A_FILE)
 
 
 def test_get_file_without_mounting(custom_config: CustomConfig) -> None:
@@ -209,7 +214,7 @@ def test_get_file_in_sub_directory(custom_config: CustomConfig) -> None:
 # object_exists
 def test_object_exists(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    assert custom_config.hcp_h.object_exists("a_sub_directory/a_file")
+    assert custom_config.hcp_h.object_exists(SUBDIR_W_A_FILE)
 
 
 def test_object_exists_without_mounting(custom_config: CustomConfig) -> None:
@@ -281,7 +286,7 @@ def test_download_nonexistent_file(custom_config: CustomConfig) -> None:
 def test_download_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.download_folder(
-        "a folder of data/",
+        custom_config.test_folder_path,
         custom_config.result_path,
     )
 
@@ -305,8 +310,8 @@ def test_delete_object(custom_config: CustomConfig) -> None:
         custom_config.hcp_h.delete_object(
             custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
         )
-    custom_config.hcp_h.delete_object("a_sub_directory/a_file")
-    custom_config.hcp_h.delete_object("a_sub_directory")
+    custom_config.hcp_h.delete_object(SUBDIR_W_A_FILE)
+    custom_config.hcp_h.delete_object(SUBDIR)
 
 
 def test_delete_object_without_mounting(custom_config: CustomConfig) -> None:
@@ -317,7 +322,7 @@ def test_delete_object_without_mounting(custom_config: CustomConfig) -> None:
 # delete_folder
 def test_delete_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    custom_config.hcp_h.delete_folder("a folder of data/")
+    custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
 
 
 def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
@@ -327,7 +332,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
         "a folder of data/a sub dir/a file",
     )
     try:
-        custom_config.hcp_h.delete_folder("a folder of data/")
+        custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
     except:
         assert True
     else:  # pragma: no cover
