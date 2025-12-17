@@ -257,7 +257,7 @@ def test_download_file(custom_config: CustomConfig) -> None:
 
     # Without progress bar
     custom_config.hcp_h.download_file(
-        custom_config.test_file_path + "_no_progress_bar",
+        custom_config.test_file_path,
         custom_config.result_path
         + custom_config.test_file_path
         + "_no_progress_bar",
