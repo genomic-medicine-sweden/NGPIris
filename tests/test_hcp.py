@@ -184,11 +184,13 @@ def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
 # upload_folder
 def test_upload_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    key = str(custom_config.test_folder_path).split("/")[-2] + "/"
+    ic(key)
     custom_config.hcp_h.upload_folder(
         custom_config.test_folder_path,
-        custom_config.test_folder_path,
+        key,
     )
-    custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
+    custom_config.hcp_h.delete_folder(key)
 
 
 def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
@@ -297,15 +299,16 @@ def test_download_nonexistent_file(custom_config: CustomConfig) -> None:
 # download_folder
 def test_download_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    key = str(custom_config.test_folder_path).split("/")[-2] + "/"
     custom_config.hcp_h.upload_folder(
         custom_config.test_folder_path,
-        custom_config.test_folder_path,
+        key,
     )
     custom_config.hcp_h.download_folder(
-        custom_config.test_folder_path,
+        key,
         custom_config.result_path,
     )
-    custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
+    custom_config.hcp_h.delete_folder(key)
 
 
 # delete_objects
@@ -335,11 +338,12 @@ def test_delete_object_without_mounting(custom_config: CustomConfig) -> None:
 # delete_folder
 def test_delete_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    key = str(custom_config.test_folder_path).split("/")[-2] + "/"
     custom_config.hcp_h.upload_folder(
         custom_config.test_folder_path,
-        custom_config.test_folder_path,
+        key,
     )
-    custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
+    custom_config.hcp_h.delete_folder(key)
 
 
 def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
@@ -373,6 +377,7 @@ def test_copy_file(custom_config: CustomConfig) -> None:
     )
     custom_config.hcp_h.copy_file(key, key + "_copy")
     custom_config.hcp_h.delete_object(key)
+    custom_config.hcp_h.delete_object(key + "_copy")
 
 
 def test_copy_file_to_other_bucket(custom_config: CustomConfig) -> None:
