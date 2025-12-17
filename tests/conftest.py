@@ -100,6 +100,14 @@ def clean_up_after_tests(
     if bucket_does_not_exist:
         hcp_handler.create_bucket(custom_config_test_bucket)
 
+    Path(hcp_result_path).mkdir(exist_ok=True)
+
+    test_folder_path = str(hcp_result_path).rsplit("/", maxsplit=1)[0] + "/"
+    Path(hcp_result_path + test_folder_path).mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     yield
 
     # Teardown code

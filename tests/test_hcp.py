@@ -239,15 +239,6 @@ def test_object_exists_without_mounting(custom_config: CustomConfig) -> None:
 # download_file
 def test_download_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    Path(custom_config.result_path).mkdir()
-
-    test_folder_path = (
-        str(custom_config.test_file_path).rsplit("/", maxsplit=1)[0] + "/"
-    )
-    Path(custom_config.result_path + test_folder_path).mkdir(
-        parents=True,
-        exist_ok=True,
-    )
 
     # With progress bar
     custom_config.hcp_h.upload_file(
@@ -349,7 +340,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
-        SUBDIR + "another_dir/a_new_file",
+        SUBDIR + "/another_dir/a_new_file",
     )
     try:
         custom_config.hcp_h.delete_folder(SUBDIR)
@@ -357,7 +348,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
         assert True
     else:  # pragma: no cover
         fail("Test failed")
-    custom_config.hcp_h.delete_folder(SUBDIR + "another_dir/a_new_file")
+    custom_config.hcp_h.delete_folder(SUBDIR + "/another_dir/a_new_file")
     custom_config.hcp_h.delete_folder(SUBDIR)
 
 
@@ -408,10 +399,10 @@ def test_move_file(custom_config: CustomConfig) -> None:
     )
 
     custom_config.hcp_h.move_file(
-        custom_config.test_file_path, "test/" + custom_config.test_file_path
+        custom_config.test_file_path, custom_config.test_file_path + "_moved"
     )
 
-    custom_config.hcp_h.delete_object("test/" + custom_config.test_file_path)
+    custom_config.hcp_h.delete_object(custom_config.test_file_path + "_moved")
 
 
 def test_move_file_to_other_bucket(custom_config: CustomConfig) -> None:
