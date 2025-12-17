@@ -348,7 +348,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
         assert True
     else:  # pragma: no cover
         fail("Test failed")
-    custom_config.hcp_h.delete_folder(SUBDIR + "/another_dir/a_new_file")
+    custom_config.hcp_h.delete_folder(SUBDIR + "/another_dir/")
     custom_config.hcp_h.delete_folder(SUBDIR)
 
 
