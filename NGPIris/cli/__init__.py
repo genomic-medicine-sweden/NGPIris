@@ -175,7 +175,7 @@ def move(  # noqa: PLR0913
     "-m",
     "--mode",
     type=click.Choice(
-        ["files", "folder"],
+        ["file", "folder"],
         case_sensitive=False,
     ),
     default="folder",
