@@ -14,7 +14,6 @@ from NGPIris import HCPHandler
 # --------------------------- Constants ---------------------------
 
 SUBDIR = "a_sub_directory"
-SUBDIR_W_A_FILE = SUBDIR + "/a_file"
 
 # --------------------------- Helper functions ---------------------------------
 
@@ -126,11 +125,17 @@ def test_upload_file(custom_config: CustomConfig) -> None:
         custom_config.test_file_path,
     )
 
+    custom_config.hcp_h.delete_object(custom_config.test_file_path)
+
     # Without progress bar
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
         custom_config.test_file_path + "_no_progress_bar",
         show_progress_bar=False,
+    )
+
+    custom_config.hcp_h.delete_object(
+        custom_config.test_file_path + "_no_progress_bar"
     )
 
     # Test every upload mode
@@ -145,6 +150,7 @@ def test_upload_file(custom_config: CustomConfig) -> None:
             key,
             upload_mode=mode,
         )
+        custom_config.hcp_h.delete_object(key)
 
 
 def test_upload_file_without_mounting(custom_config: CustomConfig) -> None:
@@ -156,8 +162,9 @@ def test_upload_file_in_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
-        SUBDIR_W_A_FILE,
+        SUBDIR + "/a_file",
     )
+    custom_config.hcp_h.delete_object(SUBDIR + "/a_file")
 
 
 def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
@@ -177,6 +184,7 @@ def test_upload_folder(custom_config: CustomConfig) -> None:
         custom_config.test_folder_path,
         custom_config.test_folder_path,
     )
+    custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
 
 
 def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
@@ -199,7 +207,12 @@ def test_upload_nonexisting_folder(custom_config: CustomConfig) -> None:
 # get_object
 def test_get_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
     assert custom_config.hcp_h.get_object(custom_config.test_file_path)
+    custom_config.hcp_h.delete_object(custom_config.test_file_path)
 
 
 def test_get_file_without_mounting(custom_config: CustomConfig) -> None:
@@ -207,25 +220,20 @@ def test_get_file_without_mounting(custom_config: CustomConfig) -> None:
     _without_mounting(_hcp_h, HCPHandler.get_object)
 
 
-def test_get_file_in_sub_directory(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    assert custom_config.hcp_h.get_object(custom_config.test_file_path)
-
-
 # object_exists
 def test_object_exists(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
     assert custom_config.hcp_h.object_exists(custom_config.test_file_path)
+    custom_config.hcp_h.delete_object(custom_config.test_file_path)
 
 
 def test_object_exists_without_mounting(custom_config: CustomConfig) -> None:
     _hcp_h = custom_config.hcp_h
     _without_mounting(_hcp_h, HCPHandler.object_exists)
-
-
-def test_object_exists_in_sub_directory(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    assert custom_config.hcp_h.object_exists(custom_config.test_file_path)
 
 
 # download_file
@@ -242,6 +250,11 @@ def test_download_file(custom_config: CustomConfig) -> None:
     )
 
     # With progress bar
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
+
     custom_config.hcp_h.download_file(
         custom_config.test_file_path,
         custom_config.result_path + custom_config.test_file_path,
@@ -263,6 +276,8 @@ def test_download_file(custom_config: CustomConfig) -> None:
         custom_config.result_path + custom_config.test_file_path,
         custom_config.test_file_path,
     )
+
+    custom_config.hcp_h.delete_object(custom_config.test_file_path)
 
 
 def test_download_file_without_mounting(custom_config: CustomConfig) -> None:
@@ -286,10 +301,15 @@ def test_download_nonexistent_file(custom_config: CustomConfig) -> None:
 # download_folder
 def test_download_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_folder(
+        custom_config.test_folder_path,
+        custom_config.test_folder_path,
+    )
     custom_config.hcp_h.download_folder(
         custom_config.test_folder_path,
         custom_config.result_path,
     )
+    custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
 
 
 # delete_objects
@@ -303,16 +323,11 @@ def test_delete_nonexistent_files(custom_config: CustomConfig) -> None:
 # delete_object
 def test_delete_object(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
-    custom_config.hcp_h.delete_object(custom_config.test_file_path)
-    custom_config.hcp_h.delete_object(
-        custom_config.test_file_path + "_no_progress_bar",
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
     )
-    for mode in HCPHandler.UploadMode:
-        custom_config.hcp_h.delete_object(
-            custom_config.test_file_path + "_" + str(mode).replace(".", "_"),
-        )
-    custom_config.hcp_h.delete_object(SUBDIR_W_A_FILE)
-    custom_config.hcp_h.delete_object(SUBDIR)
+    custom_config.hcp_h.delete_object(custom_config.test_file_path)
 
 
 def test_delete_object_without_mounting(custom_config: CustomConfig) -> None:
@@ -323,6 +338,10 @@ def test_delete_object_without_mounting(custom_config: CustomConfig) -> None:
 # delete_folder
 def test_delete_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_folder(
+        custom_config.test_folder_path,
+        custom_config.test_folder_path,
+    )
     custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
 
 
@@ -330,15 +349,16 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
-        SUBDIR + "/a_new_file",
+        SUBDIR + "another_dir/a_new_file",
     )
     try:
-        custom_config.hcp_h.delete_folder(custom_config.test_folder_path)
+        custom_config.hcp_h.delete_folder(SUBDIR)
     except:
         assert True
     else:  # pragma: no cover
         fail("Test failed")
-    custom_config.hcp_h.delete_folder("a folder of data/a sub dir/")
+    custom_config.hcp_h.delete_folder(SUBDIR + "another_dir/a_new_file")
+    custom_config.hcp_h.delete_folder(SUBDIR)
 
 
 def test_delete_folder_without_mounting(custom_config: CustomConfig) -> None:
@@ -349,38 +369,67 @@ def test_delete_folder_without_mounting(custom_config: CustomConfig) -> None:
 # copy_file
 def test_copy_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
     custom_config.hcp_h.copy_file(
         custom_config.test_file_path, custom_config.test_file_path + "_copy"
     )
+    custom_config.hcp_h.delete_object(custom_config.test_file_path)
 
 
 def test_copy_file_to_other_bucket(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.create_bucket("TempBucket")
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
+
     custom_config.hcp_h.copy_file(
         custom_config.test_file_path,
         custom_config.test_file_path + "_copy",
         "TempBucket",
     )
+    custom_config.hcp_h.delete_object(custom_config.test_file_path)
+
+    custom_config.hcp_h.mount_bucket("TempBucket")
+    custom_config.hcp_h.delete_object(custom_config.test_file_path + "_copy")
     custom_config.hcp_h.delete_bucket("TempBucket")
 
 
 # move_file
 def test_move_file(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
+
     custom_config.hcp_h.move_file(
         custom_config.test_file_path, "test/" + custom_config.test_file_path
     )
+
+    custom_config.hcp_h.delete_object("test/" + custom_config.test_file_path)
 
 
 def test_move_file_to_other_bucket(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.create_bucket("TempBucket")
+    custom_config.hcp_h.upload_file(
+        custom_config.test_file_path,
+        custom_config.test_file_path,
+    )
+
     custom_config.hcp_h.move_file(
         custom_config.test_file_path,
-        custom_config.test_file_path + "_copy",
+        custom_config.test_file_path + "_moved",
         "TempBucket",
     )
+
+    custom_config.hcp_h.mount_bucket("TempBucket")
+    custom_config.hcp_h.delete_object(custom_config.test_file_path + "_moved")
     custom_config.hcp_h.delete_bucket("TempBucket")
 
 
