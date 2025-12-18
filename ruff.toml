@@ -14,8 +14,8 @@ suppress-dummy-args = true
 # adding the rule.
 extend-select = ["ALL"]
 
-# For more information on each rule, see https://docs.astral.sh/ruff/rules/ and 
-# use the search box  
+# For more information on each rule, see https://docs.astral.sh/ruff/rules/ and
+# use the search box
 ignore = [
     "UP006",
     "T201",
@@ -36,6 +36,7 @@ ignore = [
     "SIM201",
     "ANN002",
     "ANN003",
+    "N802",
     "N803",
     "N806",
     "COM812",
