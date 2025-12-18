@@ -153,7 +153,7 @@ class HCIHandler:
             ).json(),
         )
 
-    def raw_query_from_JSON(self, query_path: str) -> dict:  # noqa: N802
+    def raw_query_from_JSON(self, query_path: str) -> dict:
         """
         Make query to an HCI index, with prewritten query in a JSON file.
 

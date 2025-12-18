@@ -25,7 +25,7 @@ def add_trailing_slash(path: str) -> str:
     return path
 
 
-def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
+def create_HCPHandler(context: Context) -> HCPHandler:
     """
     Returns a `HCPHandler` based on the given command `context`.
 

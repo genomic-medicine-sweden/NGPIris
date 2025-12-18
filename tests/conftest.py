@@ -4,10 +4,12 @@ from pathlib import Path
 from shutil import rmtree
 from typing import Any
 
+from icecream import ic
 from pytest import Config, UsageError, fixture
 
-from NGPIris import HCIHandler
-from NGPIris import HCPHandler
+from NGPIris import HCIHandler, HCPHandler
+
+# ruff: noqa: D103, PT013, INP001
 
 
 class CustomConfig:
@@ -71,14 +73,46 @@ def pytest_configure(config: Config) -> None:
 
 @fixture(scope="session")
 def hcp_result_path(pytestconfig: Config) -> str:
-    return pytestconfig.parser.get("HCP_tests", "result_path")  # type: ignore
+    return pytestconfig.parser.get("HCP_tests", "result_path")  # pyright: ignore[reportAttributeAccessIssue]
+
+
+@fixture(scope="session")
+def hcp_handler(pytestconfig: Config) -> HCPHandler:
+    return pytestconfig.hcp_h  # pyright: ignore[reportAttributeAccessIssue]
+
+
+@fixture(scope="session")
+def custom_config_test_bucket(pytestconfig: Config) -> str:
+    return pytestconfig.test_bucket  # pyright: ignore[reportAttributeAccessIssue]
 
 
 @fixture(scope="session", autouse=True)
-def clean_up_after_tests(hcp_result_path: str) -> Generator[None, Any, None]:
-    # Setup code can go here if needed
+def clean_up_after_tests(
+    hcp_result_path: str,
+    hcp_handler: HCPHandler,
+    custom_config_test_bucket: str,
+) -> Generator[None, Any, None]:
+    buckets = hcp_handler.list_buckets()
+    bucket_does_not_exist = custom_config_test_bucket not in buckets
+    ic("Test bucket:", custom_config_test_bucket)
+
+    # Setup code
+    if bucket_does_not_exist:
+        hcp_handler.create_bucket(custom_config_test_bucket)
+
+    Path(hcp_result_path).mkdir(exist_ok=True)
+
+    test_folder_path = str(hcp_result_path).rsplit("/", maxsplit=1)[0] + "/"
+    Path(hcp_result_path + test_folder_path).mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
     yield
+
     # Teardown code
+    if bucket_does_not_exist:  # Will have the same value as in setup code
+        hcp_handler.delete_bucket(custom_config_test_bucket)
     if Path(hcp_result_path).exists():
         rmtree(hcp_result_path)
 
