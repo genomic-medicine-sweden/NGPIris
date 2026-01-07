@@ -282,7 +282,7 @@ class HCPHandler:
             self.get_MAPI_request("/userAccounts/" + username)
             .get("roles", {})
             .get("role")
-        )
+        )  # pytype: disable=bad-return-type
 
     def is_user_admin(self, username: str) -> bool:
         """
