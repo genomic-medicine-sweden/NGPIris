@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from filecmp import cmp
-from pathlib import Path
 from typing import Any
 
 from conftest import CustomConfig
