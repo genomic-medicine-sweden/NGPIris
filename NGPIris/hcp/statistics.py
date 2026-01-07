@@ -27,7 +27,7 @@ class HCPStatistics(HCPHandler):
         :return: Namespace/bucket settings as a dictionary.
         :rtype: dict
         """
-        return self.get_response("/namespaces/" + self.bucket_name)
+        return self.get_response("/namespaces/" + self.bucket_name) #pyright: ignore[reportOperatorIssue]
 
     @check_mounted
     def get_namespace_statistics(self) -> dict:
@@ -38,7 +38,7 @@ class HCPStatistics(HCPHandler):
         :rtype: dict
         """
         return self.get_response(
-            "/namespaces/" + self.bucket_name + "/statistics",
+            "/namespaces/" + self.bucket_name + "/statistics", #pyright: ignore[reportOperatorIssue]
         )
 
     @check_mounted
@@ -50,5 +50,5 @@ class HCPStatistics(HCPHandler):
         :rtype: dict
         """
         return self.get_response(
-            "/namespaces/" + self.bucket_name + "/permissions",
+            "/namespaces/" + self.bucket_name + "/permissions", #pyright: ignore[reportOperatorIssue]
         )

@@ -92,7 +92,6 @@ def parse_credentials(credentials_path: str) -> Credentials:
     :return: Parsed credentials
     :rtype: Credentials = dict[str, dict[str, str]]
     """
-    credentials: Credentials = {}
     with Path(credentials_path).open() as inp:
         credentials: Credentials = load(inp)
         check_empty_field(credentials)

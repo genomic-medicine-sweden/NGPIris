@@ -62,7 +62,7 @@ def check_mounted(method: Callable[P, T]) -> Callable[P, T]:
 
     def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> T:
         self = args[0]
-        if not self.bucket_name:
+        if not self.bucket_name: # pyright: ignore[reportAttributeAccessIssue]
             msg = "No bucket is mounted"
             raise NoBucketMountedError(msg)
         return method(*args, **kwargs)

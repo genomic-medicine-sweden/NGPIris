@@ -1,3 +1,4 @@
+import re
 from collections.abc import Generator
 from configparser import ConfigParser
 from enum import Enum
@@ -5,6 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from bitmath import Byte, TiB
+from bitmath import parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.client import Config
@@ -13,6 +15,7 @@ from more_itertools import peekable
 from parse import Result, parse
 from rapidfuzz import fuzz, process, utils
 from requests import get
+from requests.exceptions import HTTPError
 from tqdm import tqdm
 from urllib3 import disable_warnings
 
@@ -23,6 +26,8 @@ from NGPIris.hcp.exceptions import (
     IsFolderObjectError,
     NoBucketMountedError,
     NotAValidTenantError,
+    NotFoundError,
+    NotSufficientPermissionsError,
     ObjectAlreadyExistError,
     ObjectDoesNotExistError,
     SubfolderError,
@@ -212,9 +217,9 @@ class HCPHandler:
                 use_threads=True,
             )
 
-    def get_response(self, path_extension: str = "") -> dict:
+    def get_MAPI_request(self, path_extension: str = "") -> dict:
         """
-        Make a request to the HCP in order to use the builtin MAPI.
+        Make a GET request to the HCP in order to use the builtin MAPI.
 
         :param path_extension:
             Extension for the base request URL, defaults to the empty string
@@ -233,12 +238,64 @@ class HCPHandler:
             url,
             headers=headers,
             verify=self.use_ssl,
-            timeout=15,
+            timeout=60,
         )
 
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError as http_e:
+            if response.status_code == 403:  # noqa: PLR2004
+                msg = (
+                    "You lack the sufficient permissions needed for your "
+                    "request"
+                )
+                raise NotSufficientPermissionsError(msg) from http_e
+            if response.status_code == 404:  # noqa: PLR2004
+                msg = "The request URL " + str(url) + " could not be found"
+                raise NotFoundError(msg) from http_e
+            raise
 
         return dict(response.json())
+
+    # ---------------------------- User methods ----------------------------
+
+    def get_users(self) -> list[str]:
+        """
+        Get a list of users on the tenant.
+
+        :return: List of users on the tenant
+        :rtype: list[str]
+        """
+        return self.get_MAPI_request("/userAccounts").get("username", [])
+
+    def get_user_roles(self, username: str) -> list[str]:
+        """
+        Get the user roles for a given user on the tenant.
+
+        :param username: A username on the tenant
+        :type username: str
+
+        :return: List of roles the user has
+        :rtype: list[str]
+        """
+        return (
+            self.get_MAPI_request("/userAccounts/" + username)
+            .get("roles", {})
+            .get("role")
+        )  # pytype: disable=bad-return-type
+
+    def is_user_admin(self, username: str) -> bool:
+        """
+        Predicate for checking if a given user has the admin role.
+
+        :param username: The user name
+        :type username: str
+
+        :rtype: bool
+        """
+        return "ADMINISTRATOR" in self.get_user_roles(username)
+
+    # ---------------------------- Util methods ----------------------------
 
     def test_connection(self, bucket_name: str = "") -> dict:
         """
@@ -295,6 +352,8 @@ class HCPHandler:
 
         return response
 
+    # ---------------------------- Bucket methods ----------------------------
+
     def mount_bucket(self, bucket_name: str) -> None:
         """
         Mount bucket that is to be used. This method needs to executed in order
@@ -320,16 +379,133 @@ class HCPHandler:
             Bucket=bucket_name,
         )
 
-    def list_buckets(self) -> list[str]:
+    def delete_bucket(self, bucket: str) -> None:
         """
-        List all available buckets at endpoint.
+        Delete a specified bucket.
 
-        :return: A list of buckets
-        :rtype: list[str]
+        :param bucket: The bucket to be deleted
+        :type bucket: str
         """
-        response = self.get_response("/namespaces")
-        list_of_buckets: list[str] = response["name"]
-        return list_of_buckets
+        # If the deletion was not successful, `self.s3_client.delete_bucket`
+        # would have thrown an error
+        self.s3_client.delete_bucket(
+            Bucket=bucket,
+        )
+
+    class ListBucketsOutputMode(Enum):
+        FULL = "full"
+        EXTENDED = "extended"
+        SIMPLE = "simple"
+        MINIMAL = "minimal"
+        BUCKET_ONLY = "bucket_only"
+
+    def list_buckets(
+        self,
+        output_mode: ListBucketsOutputMode = ListBucketsOutputMode.EXTENDED,
+    ) -> list[dict[str, Any]]:
+        """
+        List all available buckets at endpoint along with statistics for each
+        bucket.
+
+        :return: A list of buckets and their statistics
+        :rtype: list[dict[str, Any]]
+        """
+        response = self.get_MAPI_request("/namespaces")
+        buckets: list[str] = response["name"]
+        output_list = []
+        for bucket in buckets:
+            stats = self.get_MAPI_request(
+                "/namespaces/" + bucket + "/statistics"
+            )
+            bucket_information = self.get_MAPI_request("/namespaces/" + bucket)
+
+            base = {"Bucket": bucket}
+
+            # Turn headers from camelCase to human readable text
+            stats = {
+                re.sub(r"(?<=[a-z])([A-Z])", r" \1", k).capitalize(): _
+                for k, _ in stats.items()
+            }
+            bucket_information = {
+                re.sub(r"(?<=[a-z])([A-Z])", r" \1", k).capitalize(): _
+                for k, _ in bucket_information.items()
+            }
+
+            # Parse `"Hard quota"` value to be just a number
+            bucket_information["Hard quota (Bytes)"] = int(
+                bitmath_parse(
+                    # TODO(EB): `"Hard quota"` is written as being decimal
+                    # (MB, GB, TB, etc), but it is probably binary
+                    # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
+                    # be 100% correct, and should be corrected soon, but that is
+                    # annoying so I won't right now :/
+                    bucket_information["Hard quota"]
+                ).to_Byte()
+            )
+
+            bucket_information["Soft quota (%)"] = bucket_information[
+                "Soft quota"
+            ]
+            del bucket_information["Soft quota"]
+
+            for col in ["Ingested volume", "Storage capacity used"]:
+                stats[col + " (Bytes)"] = stats[col]
+                del stats[col]
+
+            match output_mode:
+                case HCPHandler.ListBucketsOutputMode.FULL:
+                    output_list.append(base | stats | bucket_information)
+
+                case HCPHandler.ListBucketsOutputMode.EXTENDED:
+                    bi_fields = [
+                        "Hard quota (Bytes)",
+                        "Soft quota (%)",
+                        "Description",
+                        "Owner",
+                    ]
+                    output_list.append(
+                        base
+                        | stats
+                        | {f: bucket_information[f] for f in bi_fields}
+                    )
+
+                case HCPHandler.ListBucketsOutputMode.SIMPLE:
+                    stats_fields = [
+                        "Ingested volume (Bytes)",
+                        "Storage capacity used (Bytes)",
+                        "Object count",
+                    ]
+                    bi_fields = [
+                        "Hard quota (Bytes)",
+                        "Soft quota (%)",
+                        "Owner",
+                    ]
+
+                    output_list.append(
+                        base
+                        | {f: stats[f] for f in stats_fields}
+                        | {f: bucket_information[f] for f in bi_fields}
+                    )
+
+                case HCPHandler.ListBucketsOutputMode.MINIMAL:
+                    stats_fields = ["Object count"]
+                    bi_fields = [
+                        "Hard quota (Bytes)",
+                        "Soft quota (%)",
+                        "Owner",
+                    ]
+
+                    output_list.append(
+                        base
+                        | {f: stats[f] for f in stats_fields}
+                        | {f: bucket_information[f] for f in bi_fields}
+                    )
+
+                case HCPHandler.ListBucketsOutputMode.BUCKET_ONLY:
+                    output_list.append(base)
+        return output_list
+
+    # ---------------------------- Object methods ----------------------------
 
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
@@ -909,21 +1085,69 @@ class HCPHandler:
 
         return result
 
-    def delete_bucket(self, bucket: str) -> str:
+    @check_mounted
+    def copy_file(
+        self,
+        source_key: str,
+        destination_key: str,
+        destination_bucket: str = "",
+    ) -> None:
         """
-        Delete a specified bucket.
+        Copy a file object within the HCP.
 
-        :param bucket: The bucket to be deleted
-        :type bucket: str
-        :return: The result of the deletion
-        :rtype: str
+        :param source_key: The key to the object to be copied
+        :type source_key: str
+
+        :param destination_key: The key to where the object will be copied to
+        :type destination_key: str
+
+        :param destination_bucket:
+            The destination bucket, defaults to the mounted bucket
+        :type destination_bucket: str
         """
-        self.s3_client.delete_bucket(
-            Bucket=bucket,
-        )
-        # If the deletion was not successful, `self.s3_client.delete_bucket`
-        # would have thrown an error
-        return bucket + " was successfully deleted"
+        file_size: int = self.s3_client.head_object(
+            Bucket=self.bucket_name,
+            Key=source_key,
+        )["ContentLength"]
+        with tqdm(
+            total=file_size,
+            unit="B",
+            unit_scale=True,
+            desc=source_key,
+        ) as pbar:
+            self.s3_client.copy(
+                {"Bucket": self.bucket_name, "Key": source_key},
+                destination_bucket if destination_bucket else self.bucket_name,
+                destination_key,
+                Callback=lambda bytes_transferred: pbar.update(
+                    bytes_transferred,
+                ),
+            )
+
+    @check_mounted
+    def move_file(
+        self,
+        source_key: str,
+        destination_key: str,
+        destination_bucket: str = "",
+    ) -> None:
+        """
+        Move a file `source_key` to `destination_key`.
+
+        :param source_key: The key to the object to be moved
+        :type source_key: str
+
+        :param destination_key: The key to where the object will be moved to
+        :type destination_key: str
+
+        :param destination_bucket:
+            The destination bucket, defaults to the mounted bucket
+        :type destination_bucket: str
+        """
+        self.copy_file(source_key, destination_key, destination_bucket)
+        self.delete_object(source_key)
+
+    # ---------------------------- Search methods ----------------------------
 
     @check_mounted
     def search_in_bucket(
@@ -968,9 +1192,11 @@ class HCPHandler:
         :return: A generator of objects based on the search string
         :rtype: Generator
         """
+        msg = "This method is currently not implemented"
+        raise NotImplementedError(msg)
         processor = None if case_sensitive else utils.default_process
 
-        full_list = peekable(self.list_objects(list_all_bucket_objects=True))
+        full_list = peekable(self.list_objects())
 
         full_list_names_only = peekable(
             obj["Key"]
@@ -988,6 +1214,8 @@ class HCPHandler:
         ):
             if score >= threshold:
                 yield full_list[index]
+
+    # ---------------------------- ACL methods ----------------------------
 
     @check_mounted
     def get_object_acl(self, key: str) -> dict:

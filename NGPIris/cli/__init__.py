@@ -1,4 +1,3 @@
-import os
 import sys
 from collections.abc import Generator
 from json import dump
@@ -7,92 +6,23 @@ from typing import Any
 
 import click
 import lazy_table as lt
-from bitmath import Byte, TiB
-from boto3 import set_stream_logger
 from click.core import Context
+from tabulate import tabulate
 
 from NGPIris import HCPHandler
+from NGPIris.cli.helpers import (
+    add_trailing_slash,
+    create_HCPHandler,
+    download_file,
+    download_folder,
+    ensure_destination_dir,
+    object_is_folder,
+)
+from NGPIris.cli.sections import SectionedGroup
+from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
 
 
-def add_trailing_slash(path: str) -> str:
-    """
-    Add a trailing slash ("/") to `path`.
-
-    :param path: Arbitrary string
-    :type path: str
-
-    :return: Arbitrary string with `"/"` at the end
-    :rtype: str
-    """
-    if not path[-1] == "/":
-        path += "/"
-    return path
-
-
-def create_HCPHandler(context: Context) -> HCPHandler:  # noqa: N802
-    """
-    Returns a `HCPHandler` based on the given command `context`.
-
-    :param context: The `click` context from the entered command
-    :type context: Context
-
-    :return: An `HCPHandler` instance based on the given command `context`
-    :rtype: HCPHandler
-    """
-    if context.parent:
-        parent_context = context.parent
-    else:
-        # Should never happen
-        click.echo(
-            """
-            Something went wrong with the subcommand and parent command relation
-            """,
-            err=True,
-        )
-        sys.exit(1)
-
-    credentials: str | None = parent_context.params.get("credentials")
-
-    if credentials:
-        hcp_credentials = credentials
-    elif os.environ.get("NGPIRIS_CREDENTIALS_PATH", None):
-        hcp_credentials = os.environ["NGPIRIS_CREDENTIALS_PATH"]
-    else:
-        endpoint: str = click.prompt(
-            "Please enter your tenant endpoint",
-        )
-
-        aws_access_key_id: str = click.prompt(
-            "Please enter your base64 hashed aws_access_key_id",
-        )
-
-        aws_secret_access_key: str = click.prompt(
-            "Please enter your md5 hashed aws_secret_access_key",
-            hide_input=True,
-            confirmation_prompt=True,
-        )
-
-        hcp_credentials = {
-            "endpoint": endpoint,
-            "aws_access_key_id": aws_access_key_id,
-            "aws_secret_access_key": aws_secret_access_key,
-        }
-
-    debug: bool | None = parent_context.params.get("debug")
-    transfer_config: str | None = parent_context.params.get("transfer_config")
-    if transfer_config:
-        hcp_h = HCPHandler(hcp_credentials, custom_config_path=transfer_config)
-    else:
-        hcp_h = HCPHandler(hcp_credentials)
-
-    if debug:
-        set_stream_logger(name="")
-        click.echo(hcp_h.transfer_config.__dict__)
-
-    return hcp_h
-
-
-@click.group()
+@click.group(cls=SectionedGroup)
 @click.option(
     "-c",
     "--credentials",
@@ -121,72 +51,406 @@ def cli(
     """
 
 
+# ---------------------------- Object commands ----------------------------
+
+
 @cli.command(
-    short_help="""
-    This command returns a shell command that sets the
-    `NGPIRIS_CREDENTIALS_PATH` environment variable depending on your shell.
-    """,
+    section="Object commands",
+    short_help="Copy objects in a bucket/namespace on the HCP.",
 )
-@click.argument(
-    "credentials_path",
-    required=False,
+@click.argument("bucket")
+@click.argument("source")
+@click.argument("destination")
+@click.option(
+    "-db",
+    "--destination_bucket",
+    help="Choose another destination bucket than the source bucket",
+    default="",
 )
 @click.option(
-    "-s",
-    "--shell",
-    type=click.Choice(
-        ["bash", "fish", "zsh"],
-        case_sensitive=False,
+    "-dr",
+    "--dry_run",
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
     ),
-    help="""
-    Allows for selection of shell that the produced command should support
-    """,
-    default="bash",
+    is_flag=True,
 )
 @click.pass_context
-def shell_env(_: Context, credentials_path: str, shell: str) -> None:
+def copy(  # noqa: PLR0913
+    context: Context,
+    bucket: str,
+    source: str,
+    destination: str,
+    destination_bucket: str,
+    dry_run: bool,
+) -> None:
     """
-    NGP IRIS will look for an environment variable called
-    `NGPIRIS_CREDENTIALS_PATH` when authenticating. This command returns a
-    shell command that sets the `NGPIRIS_CREDENTIALS_PATH` environment variable
-    depending on your shell.
+    Copy objects in a bucket/namespace on the HCP.
 
-    NOTE: The environment variable will only last for this
-    shell session, but you could set the value of `NGPIRIS_CREDENTIALS_PATH`
-    permanently via other commands if you wish to do so.
+    BUCKET is the bucket where SOURCE is.
 
-    CREDENTIALS PATH is the either absolute or relative path to your credentials
-    JSON file
+    SOURCE is the object to be copied.
+
+    DESTINATION is the destination path (the path where the object will be
+    copied to).
     """
-    if not credentials_path:
-        click.prompt("Please enter the path to your credentials file")
+    hcp_h: HCPHandler = create_HCPHandler(context)
+    hcp_h.mount_bucket(bucket)
+    if not dry_run:
+        hcp_h.copy_file(source, destination, destination_bucket)
+    else:
+        click.echo(
+            'This command would have copied the file object "' + source + '"',
+        )
 
-    click.echo(
+
+@cli.command(
+    section="Object commands",
+    short_help="Move objects in a bucket/namespace on the HCP.",
+)
+@click.argument("bucket")
+@click.argument("source")
+@click.argument("destination")
+@click.option(
+    "-db",
+    "--destination_bucket",
+    help="Choose another destination bucket than the source bucket",
+    default="",
+)
+@click.option(
+    "-dr",
+    "--dry_run",
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
+    is_flag=True,
+)
+@click.pass_context
+def move(  # noqa: PLR0913
+    context: Context,
+    bucket: str,
+    source: str,
+    destination: str,
+    destination_bucket: str,
+    dry_run: bool,
+) -> None:
+    """
+    Move objects in a bucket/namespace on the HCP.
+
+    BUCKET is the bucket where SOURCE is.
+
+    SOURCE is the object to be moved.
+
+    DESTINATION is the destination path (the path where the object will be
+    moved to).
+    """
+    hcp_h: HCPHandler = create_HCPHandler(context)
+    hcp_h.mount_bucket(bucket)
+    if not dry_run:
+        hcp_h.move_file(source, destination, destination_bucket)
+    else:
+        click.echo(
+            'This command would have moved the file object "' + source + '"',
+        )
+
+
+@cli.command(
+    section="Object commands",
+    short_help="Delete objects in a bucket/namespace on the HCP.",
+)
+@click.argument("bucket")
+@click.argument("hcp_object")
+@click.option(
+    "-dr",
+    "--dry_run",
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
+    is_flag=True,
+)
+@click.option(
+    "-m",
+    "--mode",
+    type=click.Choice(
+        ["file", "folder"],
+        case_sensitive=False,
+    ),
+    default="folder",
+    help=(
+        "Allows for selection of between two modes: `files` or `folder`. "
+        "`files` is for deleting individual files, while `folder` is for "
+        "deleting a folder. `folder` is default mode"
+    ),
+)
+@click.pass_context
+def delete(
+    context: Context,
+    bucket: str,
+    hcp_object: str,
+    dry_run: bool,
+    mode: str,
+) -> None:
+    """
+    Delete objects in a bucket/namespace on the HCP.
+
+    BUCKET is the name of the bucket where the object to be deleted exist.
+
+    HCP_OBJECT is the name of the object to be deleted.
+    """
+    hcp_h: HCPHandler = create_HCPHandler(context)
+    hcp_h.mount_bucket(bucket)
+    if not dry_run:
+        match mode:
+            case "files":
+                try:
+                    click.echo(hcp_h.delete_object(hcp_object))
+                except IsFolderObjectError:
+                    click.echo(
+                        'The object "'
+                        + hcp_object
+                        + '" is a folder object. Please use `-m folder` for '
+                        + "this object",
+                        err=True,
+                    )
+                    sys.exit(1)
+            case "folder":
+                try:
+                    click.echo(hcp_h.delete_folder(hcp_object))
+                except ObjectDoesNotExistError:
+                    click.echo(
+                        'The object "'
+                        + hcp_object
+                        + '" does not exist as folder. If your intention was to'
+                        + "delete a single file object, please use `-m file`"
+                        + "for this object",
+                        err=True,
+                    )
+                    sys.exit(1)
+    else:
+        match mode:
+            case "files":
+                click.echo(
+                    'This command would have deleted the file object "'
+                    + hcp_object
+                    + '"',
+                )
+            case "folder":
+                click.echo(
+                    'By deleting "'
+                    + hcp_object
+                    + '", the following file objects would have been deleted '
+                    + "(this list excludes any potential sub-folders):",
+                )
+                lt.stream(
+                    hcp_h.list_objects(
+                        hcp_object,
+                        files_only=True,
+                    ),
+                    headers="keys",
+                )
+
+
+@cli.command(
+    section="Object commands",
+    short_help="Download a file or folder from a bucket/namespace on the HCP.",
+)
+@click.argument("bucket")
+@click.argument("source")
+@click.argument("destination")
+@click.option(
+    "-f",
+    "--force",
+    help=(
+        "Overwrite existing file with the same name (single file download only)"
+    ),
+    is_flag=True,
+)
+@click.option(
+    "-iw",
+    "--ignore_warning",
+    help="Ignore the download limit",
+    is_flag=True,
+)
+@click.option(
+    "-dr",
+    "--dry_run",
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
+    is_flag=True,
+)
+@click.pass_context
+def download(  # noqa: PLR0913
+    context: Context,
+    bucket: str,
+    source: str,
+    destination: str,
+    force: bool,
+    ignore_warning: bool,
+    dry_run: bool,
+) -> None:
+    """
+    Download a file or folder from a bucket/namespace from the HCP.
+
+    BUCKET is the name of the download source bucket.
+
+    SOURCE is the path to the object or object folder to be downloaded.
+
+    DESTINATION is the folder where the downloaded object or object folder is to
+    be stored locally.
+    """
+    hcp_h: HCPHandler = create_HCPHandler(context)
+    hcp_h.mount_bucket(bucket)
+
+    destination_path = ensure_destination_dir(destination)
+
+    is_folder = object_is_folder(source, hcp_h)
+
+    if dry_run:
+        if hcp_h.object_exists(source):
+            if is_folder:
+                click.echo(
+                    'This command would have downloaded the folder "'
+                    + source
+                    + '". If you wish to know the contents of this folder, '
+                    + "use the 'list-objects' command",
+                )
+            else:
+                click.echo(
+                    'This command would have downloaded the object "'
+                    + source
+                    + '"',
+                )
+        else:
+            click.echo(
+                '"' + source + '" does not exist',
+            )
+        return
+
+    if is_folder:
+        download_folder(source, destination_path, ignore_warning, hcp_h)
+    else:
+        download_file(source, destination_path, ignore_warning, force, hcp_h)
+
+
+@cli.command(
+    section="Object commands",
+    short_help="List the objects in a certain bucket/namespace on the HCP.",
+)
+@click.argument("bucket")
+@click.argument("path", required=False)
+@click.option(
+    "-p",
+    "--pagination",
+    help="Output as a paginator",
+    default=False,
+    is_flag=True,
+)
+@click.option(
+    "-fo",
+    "--files-only",
+    help="Output only file objects",
+    default=False,
+    is_flag=True,
+)
+@click.option(
+    "-e",
+    "--extended-information",
+    help="Output the fully extended information for each object",
+    default=False,
+    is_flag=True,
+)
+@click.pass_context
+def list_objects(  # noqa: PLR0913
+    context: Context,
+    bucket: str,
+    path: str,
+    pagination: bool,
+    files_only: bool,
+    extended_information: bool,
+) -> None:
+    """
+    List the objects in a certain bucket/namespace on the HCP.
+
+    BUCKET is the name of the bucket in which to list its objects.
+
+    PATH is an optional argument for where to list the objects
+    """
+
+    def list_objects_generator(
+        hcp_h: HCPHandler,
+        path: str,
+        files_only: bool,
+        output_mode: HCPHandler.ListObjectsOutputMode,
+    ) -> Generator[str, Any, None]:
         """
-        Copy and paste the following command in order to set your environment
-        variable:
-        """,
+        Handle object list as a paginator that `click` can handle.
+        It works slightly different from `list_objects` in `hcp.py` in order to
+        make the output printable in a terminal
+        """  # noqa: D415, D400
+        objects = hcp_h.list_objects(
+            path,
+            output_mode=output_mode,
+            files_only=files_only,
+        )
+        for obj in objects:
+            yield str(obj) + "\n"
+
+    hcp_h: HCPHandler = create_HCPHandler(context)
+    hcp_h.mount_bucket(bucket)
+    output_mode = (
+        HCPHandler.ListObjectsOutputMode.EXTENDED
+        if extended_information
+        else HCPHandler.ListObjectsOutputMode.SIMPLE
     )
-    match shell:
-        case "bash":
-            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
-        case "fish":
-            click.echo("set -x NGPIRIS_CREDENTIALS_PATH " + credentials_path)
-        case "zsh":
-            click.echo("export NGPIRIS_CREDENTIALS_PATH=" + credentials_path)
+
+    if path:
+        path_with_slash = add_trailing_slash(path)
+
+        if not hcp_h.object_exists(path_with_slash):
+            msg = path_with_slash + " does not exist"
+            raise ObjectDoesNotExistError(msg)
+    else:
+        path_with_slash = ""
+
+    if pagination:
+        click.echo_via_pager(
+            list_objects_generator(
+                hcp_h,
+                path_with_slash,
+                files_only,
+                output_mode,
+            ),
+        )
+    else:
+        lt.stream(
+            hcp_h.list_objects(
+                path_with_slash,
+                output_mode=output_mode,
+                files_only=files_only,
+            ),
+            headers="keys",
+        )
 
 
-@cli.command()
+@cli.command(
+    section="Object commands",
+    short_help="Upload a file or folder from a bucket/namespace on the HCP.",
+)
 @click.argument("bucket")
 @click.argument("source")
 @click.argument("destination")
 @click.option(
     "-dr",
     "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes. Useful for
-    testing and verification
-    """,
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
     is_flag=True,
 )
 @click.option(
@@ -280,222 +544,54 @@ def upload(  # noqa: PLR0913
             )
 
 
+# ---------------------------- Bucket commands ----------------------------
+
+
 @cli.command(
-    short_help="Download a file or folder from a bucket/namespace on the HCP.",
+    section="Bucket commands",
+    short_help="Create a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
-@click.argument("source")
-@click.argument("destination")
-@click.option(
-    "-f",
-    "--force",
-    help="""
-    Overwrite existing file with the same name (single file download only)
-    """,
-    is_flag=True,
-)
-@click.option(
-    "-iw",
-    "--ignore_warning",
-    help="Ignore the download limit",
-    is_flag=True,
-)
 @click.option(
     "-dr",
     "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes.
-    Useful for testing and verification
-    """,
-    is_flag=True,
-)
-@click.pass_context
-def download(  # noqa: PLR0913
-    context: Context,
-    bucket: str,
-    source: str,
-    destination: str,
-    force: bool,
-    ignore_warning: bool,
-    dry_run: bool,
-) -> None:
-    """
-    Download a file or folder from a bucket/namespace from the HCP.
-
-    BUCKET is the name of the download source bucket.
-
-    SOURCE is the path to the object or object folder to be downloaded.
-
-    DESTINATION is the folder where the downloaded object or object folder is to
-    be stored locally.
-    """
-
-    def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
-        return (object_path[-1] == "/") and (
-            hcp_h.get_object(object_path)["ContentLength"] == 0
-        )
-
-    hcp_h: HCPHandler = create_HCPHandler(context)
-    hcp_h.mount_bucket(bucket)
-    if not Path(destination).exists():
-        Path(destination).mkdir()
-
-    if not dry_run:
-        if object_is_folder(source, hcp_h):
-            if source == "/":
-                source = ""
-
-            cumulative_download_size = Byte(0)
-            if not ignore_warning:
-                click.echo("Computing download size...")
-                for hcp_object in hcp_h.list_objects(source):
-                    hcp_object: dict
-                    cumulative_download_size += Byte(hcp_object["Size"])
-                    if cumulative_download_size >= TiB(1):
-                        click.echo(
-                            """
-                            WARNING: You are about to download more than 1 TB
-                            of data. Is this your intention? [y/N]: 
-                            """,  # noqa: W291
-                            nl=False,
-                        )
-                        inp = click.getchar(echo=True)
-                        if inp in ["y", "Y"]:
-                            break
-                        # inp == "n" or inp == "N" or something else
-                        sys.exit("\nAborting download")
-
-            hcp_h.download_folder(source, Path(destination).as_posix())
-        else:
-            if Byte(hcp_h.get_object(source)["ContentLength"]) >= TiB(1):
-                click.echo(
-                    """
-                    WARNING: You are about to download more than 1 TB
-                    of data. Is this your intention? [y/N]: 
-                    """,  # noqa: W291
-                    nl=False,
-                )
-                inp = click.getchar(echo=True)
-                if inp in ["y", "Y"]:
-                    pass
-                else:  # inp == "n" or inp == "N" or something else
-                    sys.exit("\nAborting download")
-
-            downloaded_source = Path(destination) / Path(source).name
-            if downloaded_source.exists() and not force:
-                sys.exit(
-                    """Object already exists. If you wish to overwrite the
-                    existing file, use the -f, --force option""",
-                )
-            hcp_h.download_file(source, downloaded_source.as_posix())
-    elif object_is_folder(source, hcp_h):
-        click.echo(
-            'This command would have downloaded the folder "'
-            + source
-            + '". If you wish to know the contents of this folder, '
-            + "use the 'list-objects' command",
-        )
-    else:
-        click.echo(
-            'This command would have downloaded the object "' + source + '":',
-        )
-        click.echo(
-            next(iter(hcp_h.list_objects(source))),
-        )
-
-
-@cli.command()
-@click.argument("bucket")
-@click.argument("hcp_object")
-@click.option(
-    "-dr",
-    "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes.
-    Useful for testing and verification
-    """,
-    is_flag=True,
-)
-@click.option(
-    "-m",
-    "--mode",
-    type=click.Choice(
-        ["files", "folder"],
-        case_sensitive=False,
-    ),
-    default="folder",
     help=(
-        "Allows for selection of between two modes: `files` or `folder`. "
-        "`files` is for deleting individual files, while `folder` is for "
-        "deleting a folder. `folder` is default mode"
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
     ),
+    is_flag=True,
 )
 @click.pass_context
-def delete(
+def create_bucket(
     context: Context,
     bucket: str,
-    hcp_object: str,
     dry_run: bool,
-    mode: str,
 ) -> None:
     """
-    Delete objects in a bucket/namespace on the HCP.
-
-    BUCKET is the name of the bucket where the object to be deleted exist.
-
-    HCP_OBJECT is the name of the object to be deleted.
+    Create a bucket/namespace on the HCP.
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
-    hcp_h.mount_bucket(bucket)
     if not dry_run:
-        match mode:
-            case "files":
-                try:
-                    click.echo(hcp_h.delete_object(hcp_object))
-                except RuntimeError:
-                    click.echo(
-                        'The object "'
-                        + hcp_object
-                        + '" is a folder object. Please use `-m folder` for '
-                        + "this object",
-                        err=True,
-                    )
-                    sys.exit(1)
-            case "folder":
-                click.echo(hcp_h.delete_folder(hcp_object))
+        hcp_h.create_bucket(bucket)
+        click.echo(bucket + " was successfully created")
     else:
-        match mode:
-            case "files":
-                click.echo(
-                    'This command would have deleted the file object "'
-                    + hcp_object
-                    + '"',
-                )
-            case "folder":
-                click.echo(
-                    'By deleting "'
-                    + hcp_object
-                    + '", the following file objects would have been deleted '
-                    + "(this list excludes any potential sub-folders):",
-                )
-                lt.stream(
-                    hcp_h.list_objects(
-                        hcp_object,
-                        files_only=True,
-                    ),
-                    headers="keys",
-                )
+        click.echo(
+            'This command would have created a bucket called "' + bucket + '"',
+        )
 
 
-@cli.command()
+@cli.command(
+    section="Bucket commands",
+    short_help="Delete a bucket/namespace on the HCP.",
+)
 @click.argument("bucket")
 @click.option(
     "-dr",
     "--dry_run",
-    help="""
-    Simulate the command execution without making actual changes.
-    Useful for testing and verification
-    """,
+    help=(
+        "Simulate the command execution without making actual changes. "
+        "Useful for testing and verification"
+    ),
     is_flag=True,
 )
 @click.pass_context
@@ -509,7 +605,8 @@ def delete_bucket(
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     if not dry_run:
-        click.echo(hcp_h.delete_bucket(bucket))
+        hcp_h.delete_bucket(bucket)
+        click.echo(bucket + " was successfully deleted")
     else:
         click.echo(
             'This command would have deleted the bucket called "'
@@ -518,123 +615,46 @@ def delete_bucket(
         )
 
 
-@cli.command()
+@cli.command(
+    section="Bucket commands",
+    short_help="List the available buckets/namespaces on the HCP.",
+)
+@click.option(
+    "-o",
+    "--output_mode",
+    help="Choose how verbose the output should",
+    type=click.Choice(
+        HCPHandler.ListBucketsOutputMode,
+        case_sensitive=False,
+    ),
+    default=HCPHandler.ListBucketsOutputMode.SIMPLE,
+)
 @click.pass_context
-def list_buckets(context: Context) -> None:
+def list_buckets(
+    context: Context, output_mode: HCPHandler.ListBucketsOutputMode
+) -> None:
     """
     List the available buckets/namespaces on the HCP.
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     click.echo(
-        "".join(
-            [bucket + "\n" for bucket in hcp_h.list_buckets()],
-        ).strip("\n"),
-    )
-
-
-@cli.command(
-    short_help="List the objects in a certain bucket/namespace on the HCP.",
-)
-@click.argument("bucket")
-@click.argument("path", required=False)
-@click.option(
-    "-p",
-    "--pagination",
-    help="Output as a paginator",
-    default=False,
-    is_flag=True,
-)
-@click.option(
-    "-fo",
-    "--files-only",
-    help="Output only file objects",
-    default=False,
-    is_flag=True,
-)
-@click.option(
-    "-e",
-    "--extended-information",
-    help="Output the fully extended information for each object",
-    default=False,
-    is_flag=True,
-)
-@click.pass_context
-def list_objects(  # noqa: PLR0913
-    context: Context,
-    bucket: str,
-    path: str,
-    pagination: bool,
-    files_only: bool,
-    extended_information: bool,
-) -> None:
-    """
-    List the objects in a certain bucket/namespace on the HCP.
-
-    BUCKET is the name of the bucket in which to list its objects.
-
-    PATH is an optional argument for where to list the objects
-    """
-
-    def list_objects_generator(
-        hcp_h: HCPHandler,
-        path: str,
-        files_only: bool,
-        output_mode: HCPHandler.ListObjectsOutputMode,
-    ) -> Generator[str, Any, None]:
-        """
-        Handle object list as a paginator that `click` can handle.
-        It works slightly different from `list_objects` in `hcp.py` in order to
-        make the output printable in a terminal
-        """  # noqa: D415, D400
-        objects = hcp_h.list_objects(
-            path,
-            output_mode=output_mode,
-            files_only=files_only,
-        )
-        for obj in objects:
-            yield str(obj) + "\n"
-
-    hcp_h: HCPHandler = create_HCPHandler(context)
-    hcp_h.mount_bucket(bucket)
-    output_mode = (
-        HCPHandler.ListObjectsOutputMode.EXTENDED
-        if extended_information
-        else HCPHandler.ListObjectsOutputMode.SIMPLE
-    )
-
-    if path:
-        path_with_slash = add_trailing_slash(path)
-
-        if not hcp_h.object_exists(path_with_slash):
-            msg = "Path does not exist"
-            raise RuntimeError(msg)
-    else:
-        path_with_slash = ""
-
-    if pagination:
-        click.echo_via_pager(
-            list_objects_generator(
-                hcp_h,
-                path_with_slash,
-                files_only,
-                output_mode,
-            ),
-        )
-    else:
-        lt.stream(
-            hcp_h.list_objects(
-                path_with_slash,
-                output_mode=output_mode,
-                files_only=files_only,
-            ),
+        tabulate(
+            hcp_h.list_buckets(output_mode),
             headers="keys",
+            disable_numparse=True,
         )
+    )
+
+
+# ---------------------------- Search commands ----------------------------
 
 
 @cli.command(
-    short_help="""
-    Make a simple search using substrings in a bucket/namespace on the HCP.
-    """,
+    section="Search commands",
+    short_help=(
+        "Make a simple search using substrings in a bucket/namespace on "
+        "the HCP."
+    ),
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -676,9 +696,11 @@ def simple_search(
 
 
 @cli.command(
-    short_help="""
-    Make a fuzzy search using a search string in a bucket/namespace on the HCP.
-    """,
+    section="Search commands",
+    short_help=(
+        "Make a fuzzy search using a search string in a bucket/namespace"
+        "on the HCP."
+    ),
 )
 @click.argument("bucket")
 @click.argument("search_string")
@@ -728,7 +750,10 @@ def fuzzy_search(
     )
 
 
-@cli.command()
+# ---------------------------- Utility commands ----------------------------
+
+
+@cli.command(section="Utility commands")
 @click.argument("bucket")
 @click.pass_context
 def test_connection(context: Context, bucket: str) -> None:
@@ -739,6 +764,9 @@ def test_connection(context: Context, bucket: str) -> None:
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     click.echo(hcp_h.test_connection(bucket))
+
+
+# -------------------- Generate credentials command --------------------
 
 
 @click.command()
