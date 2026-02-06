@@ -23,15 +23,6 @@ authors = [
     {name = "Isak Sylvin", email = "isak.sylvin@gu.se"}
 ]
 
-[project.optional-dependencies]
-dev = [
-    "basedpyright >= 1.33.0",
-    "ruff >= 0.14.5",
-    "pytype >= 2024.10.11",
-    "pytest >= 8.3.4",
-    "icecream"
-]
-
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
@@ -51,6 +42,15 @@ testpaths = [
 ]
 addopts = "--strict-markers"  # Adds command-line options
 filterwarnings = "ignore::urllib3.connectionpool.InsecureRequestWarning"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.1",
+    "basedpyright >= 1.33.0",
+    "ruff >= 0.14.5",
+    "pytype >= 2024.10.11",
+    "icecream"
+]
 
 [project.scripts]
 iris = "NGPIris.cli:cli"
