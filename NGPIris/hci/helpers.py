@@ -41,7 +41,7 @@ def get_index_response(
 
 
 def get_query_response(  # noqa: PLR0913
-    query_dict: dict[str, str | list | dict],
+    query_dict: dict[str, str | int | list | dict],
     address: str,
     api_port: str,
     token: str,
@@ -86,14 +86,13 @@ def get_query_response(  # noqa: PLR0913
         + "/api/search/query/"
         + path_extension
     )
-    query: dict[str, str | list | dict] = query_dict
     headers: dict[str, str] = {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "Authorization": "Bearer " + token,
     }
     response: Response = post(
-        url, dumps(query), headers=headers, verify=use_ssl, timeout=15
+        url, dumps(query_dict), headers=headers, verify=use_ssl, timeout=15
     )
 
     response.raise_for_status()
