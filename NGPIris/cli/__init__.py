@@ -419,6 +419,24 @@ def list_objects(  # noqa: PLR0913
                 )
             yield obj
 
+    def _render_objects_table(
+        table_data: Generator[dict[str, Any], Any, None], batch_size: int = 10
+    ):
+        rows = []
+        for row in table_data:
+            rows.append(row)
+            if (
+                not len(rows) % batch_size
+            ):  # Check if len(rows) is a mutliple of batch_size
+                click.echo(tabulate(rows, headers="keys"))
+                click.echo(
+                    "(Press any key to get more rows or ctrl+c to abort...)",
+                    nl=False,
+                )
+                click.getchar()
+                click.clear()
+        click.echo(tabulate(rows, headers="keys"))
+
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
     output_mode = (
@@ -446,14 +464,13 @@ def list_objects(  # noqa: PLR0913
             ),
         )
     else:
-        lt.stream(
+        _render_objects_table(
             list_objects_generator(
                 hcp_h,
                 path_with_slash,
                 output_mode,
                 files_only,
             ),
-            headers="keys",
         )
 
 
