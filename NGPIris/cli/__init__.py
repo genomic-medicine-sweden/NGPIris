@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import click
-import lazy_table as lt
 from bitmath import SI, Byte
 from click.core import Context
 from tabulate import tabulate
@@ -18,6 +17,7 @@ from NGPIris.cli.helpers import (
     download_folder,
     ensure_destination_dir,
     object_is_folder,
+    render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
 from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
@@ -245,12 +245,12 @@ def delete(
                     + '", the following file objects would have been deleted '
                     + "(this list excludes any potential sub-folders):",
                 )
-                lt.stream(
+                render_objects_table(
                     hcp_h.list_objects(
                         hcp_object,
                         files_only=True,
                     ),
-                    headers="keys",
+                    -1,
                 )
 
 
@@ -345,6 +345,14 @@ def download(  # noqa: PLR0913
 @click.argument("bucket")
 @click.argument("path", required=False)
 @click.option(
+    "-bs",
+    "--batch_size",
+    help="Number of rows added to the output at a time. If value is zero or a "
+    "negative number, all rows will be displayed in one go. "
+    "Default value is 25",
+    default=25,
+)
+@click.option(
     "-p",
     "--pagination",
     help="Output as a paginator",
@@ -370,6 +378,7 @@ def list_objects(  # noqa: PLR0913
     context: Context,
     bucket: str,
     path: str,
+    batch_size: int,
     pagination: bool,
     files_only: bool,
     extended_information: bool,
@@ -446,14 +455,14 @@ def list_objects(  # noqa: PLR0913
             ),
         )
     else:
-        lt.stream(
+        render_objects_table(
             list_objects_generator(
                 hcp_h,
                 path_with_slash,
                 output_mode,
                 files_only,
             ),
-            headers="keys",
+            batch_size,
         )
 
 
@@ -709,9 +718,9 @@ def simple_search(
         case_sensitive=case_sensitive,
     )
     click.echo("Search results:")
-    lt.stream(
+    render_objects_table(
         list_of_results,
-        headers="keys",
+        -1,
     )
 
 
@@ -764,9 +773,9 @@ def fuzzy_search(
         threshold=threshold,
     )
     click.echo("Search results:")
-    lt.stream(
+    render_objects_table(
         list_of_results,
-        headers="keys",
+        -1,
     )
 
 
