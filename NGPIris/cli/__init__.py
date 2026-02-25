@@ -6,6 +6,7 @@ from typing import Any
 
 import click
 import lazy_table as lt
+from bitmath import SI, Byte
 from click.core import Context
 from tabulate import tabulate
 
@@ -381,11 +382,11 @@ def list_objects(  # noqa: PLR0913
     PATH is an optional argument for where to list the objects
     """
 
-    def list_objects_generator(
+    def list_objects_pagination_generator(
         hcp_h: HCPHandler,
         path: str,
-        files_only: bool,
         output_mode: HCPHandler.ListObjectsOutputMode,
+        files_only: bool,
     ) -> Generator[str, Any, None]:
         """
         Handle object list as a paginator that `click` can handle.
@@ -399,6 +400,24 @@ def list_objects(  # noqa: PLR0913
         )
         for obj in objects:
             yield str(obj) + "\n"
+
+    def list_objects_generator(
+        hcp_h: HCPHandler,
+        path: str,
+        output_mode: HCPHandler.ListObjectsOutputMode,
+        files_only: bool,
+    ) -> Generator[dict[str, Any], Any, None]:
+        objects = hcp_h.list_objects(
+            path,
+            output_mode=output_mode,
+            files_only=files_only,
+        )
+        for obj in objects:
+            if obj.get("Size", 0):
+                obj["Size"] = str(
+                    Byte(obj.get("Size", 0)).best_prefix(system=SI)
+                )
+            yield obj
 
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
@@ -419,19 +438,20 @@ def list_objects(  # noqa: PLR0913
 
     if pagination:
         click.echo_via_pager(
-            list_objects_generator(
+            list_objects_pagination_generator(
                 hcp_h,
                 path_with_slash,
-                files_only,
                 output_mode,
+                files_only,
             ),
         )
     else:
         lt.stream(
-            hcp_h.list_objects(
+            list_objects_generator(
+                hcp_h,
                 path_with_slash,
-                output_mode=output_mode,
-                files_only=files_only,
+                output_mode,
+                files_only,
             ),
             headers="keys",
         )
