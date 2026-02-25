@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import click
-import lazy_table as lt
 from bitmath import SI, Byte
 from click.core import Context
 from tabulate import tabulate
@@ -347,7 +346,9 @@ def download(  # noqa: PLR0913
 @click.option(
     "-bs",
     "--batch_size",
-    help="Number of rows added to the output at a time. Default value is 25",
+    help="Number of rows added to the output at a time. If value is zero or a "
+    "negative number, all rows will be displayed in one go. "
+    "Default value is 25",
     default=25,
 )
 @click.option(
@@ -430,9 +431,10 @@ def list_objects(  # noqa: PLR0913
         table_data: Generator[dict[str, Any], Any, None], batch_size: int
     ) -> None:
         rows = []
+        positive_batch_size = batch_size > 0
         for row in table_data:
             rows.append(row)
-            if (
+            if positive_batch_size and (
                 not len(rows) % batch_size
             ):  # Check if `len(rows)` is a mutliple of `batch_size`
                 click.echo(tabulate(rows, headers="keys"))
