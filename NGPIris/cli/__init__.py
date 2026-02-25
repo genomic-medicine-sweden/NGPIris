@@ -17,6 +17,7 @@ from NGPIris.cli.helpers import (
     download_folder,
     ensure_destination_dir,
     object_is_folder,
+    render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
 from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
@@ -244,12 +245,12 @@ def delete(
                     + '", the following file objects would have been deleted '
                     + "(this list excludes any potential sub-folders):",
                 )
-                lt.stream(
+                render_objects_table(
                     hcp_h.list_objects(
                         hcp_object,
                         files_only=True,
                     ),
-                    headers="keys",
+                    -1,
                 )
 
 
@@ -427,25 +428,6 @@ def list_objects(  # noqa: PLR0913
                 )
             yield obj
 
-    def _render_objects_table(
-        table_data: Generator[dict[str, Any], Any, None], batch_size: int
-    ) -> None:
-        rows = []
-        positive_batch_size = batch_size > 0
-        for row in table_data:
-            rows.append(row)
-            if positive_batch_size and (
-                not len(rows) % batch_size
-            ):  # Check if `len(rows)` is a mutliple of `batch_size`
-                click.echo(tabulate(rows, headers="keys"))
-                click.echo(
-                    "(Press any key to get more rows or ctrl+c to abort...)",
-                    nl=False,
-                )
-                click.getchar()
-                click.clear()
-        click.echo(tabulate(rows, headers="keys"))
-
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
     output_mode = (
@@ -473,7 +455,7 @@ def list_objects(  # noqa: PLR0913
             ),
         )
     else:
-        _render_objects_table(
+        render_objects_table(
             list_objects_generator(
                 hcp_h,
                 path_with_slash,
@@ -736,9 +718,9 @@ def simple_search(
         case_sensitive=case_sensitive,
     )
     click.echo("Search results:")
-    lt.stream(
+    render_objects_table(
         list_of_results,
-        headers="keys",
+        -1,
     )
 
 
@@ -791,9 +773,9 @@ def fuzzy_search(
         threshold=threshold,
     )
     click.echo("Search results:")
-    lt.stream(
+    render_objects_table(
         list_of_results,
-        headers="keys",
+        -1,
     )
 
 
