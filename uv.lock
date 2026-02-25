@@ -259,18 +259,6 @@ wheels = [
 ]
 
 [[package]]
-name = "lazy-table"
-version = "0.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "tabulate" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/61/c8/444ab09de64d906cca5895caf1b553f4f0e48ed01d3175276153df81e923/lazy-table-0.2.1.tar.gz", hash = "sha256:cc724a895ad55f3b65129a95f4bab58b5787a03d282470c4ddb02ff33386d433", size = 4560, upload-time = "2022-02-02T15:26:04.186Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b5/5d/b71cd562429fd16d698610bebe7e4e8d88ed8222d2e084bcb051e6c6b701/lazy_table-0.2.1-py3-none-any.whl", hash = "sha256:342f19a49befc7fc31c393f6bd665938b75e0f73cef1560c7f228c860fc76a14", size = 5467, upload-time = "2022-02-02T15:26:03.056Z" },
-]
-
-[[package]]
 name = "libcst"
 version = "1.8.6"
 source = { registry = "https://pypi.org/simple" }
@@ -453,13 +441,12 @@ wheels = [
 
 [[package]]
 name = "ngpiris"
-version = "5.6.2"
+version = "5.6.3.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "bitmath" },
     { name = "boto3" },
     { name = "click" },
-    { name = "lazy-table" },
     { name = "more-itertools" },
     { name = "parse" },
     { name = "rapidfuzz" },
@@ -483,7 +470,6 @@ requires-dist = [
     { name = "bitmath", specifier = "==1.3.3.1" },
     { name = "boto3", specifier = "==1.35.81" },
     { name = "click", specifier = ">=8.1.7" },
-    { name = "lazy-table", specifier = "==0.2.1" },
     { name = "more-itertools", specifier = "==10.7.0" },
     { name = "parse", specifier = ">=1.19.1" },
     { name = "rapidfuzz", specifier = ">=3.10.1" },
