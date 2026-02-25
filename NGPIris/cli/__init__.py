@@ -345,6 +345,12 @@ def download(  # noqa: PLR0913
 @click.argument("bucket")
 @click.argument("path", required=False)
 @click.option(
+    "-bs",
+    "--batch_size",
+    help="Number of rows added to the output at a time. Default value is 25",
+    default=25,
+)
+@click.option(
     "-p",
     "--pagination",
     help="Output as a paginator",
@@ -370,6 +376,7 @@ def list_objects(  # noqa: PLR0913
     context: Context,
     bucket: str,
     path: str,
+    batch_size: int,
     pagination: bool,
     files_only: bool,
     extended_information: bool,
@@ -420,8 +427,8 @@ def list_objects(  # noqa: PLR0913
             yield obj
 
     def _render_objects_table(
-        table_data: Generator[dict[str, Any], Any, None], batch_size: int = 25
-    ):
+        table_data: Generator[dict[str, Any], Any, None], batch_size: int
+    ) -> None:
         rows = []
         for row in table_data:
             rows.append(row)
@@ -471,6 +478,7 @@ def list_objects(  # noqa: PLR0913
                 output_mode,
                 files_only,
             ),
+            batch_size,
         )
 
 
