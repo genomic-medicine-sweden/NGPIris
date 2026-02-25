@@ -204,7 +204,7 @@ def delete(
     hcp_h.mount_bucket(bucket)
     if not dry_run:
         match mode:
-            case "files":
+            case "file":
                 try:
                     click.echo(hcp_h.delete_object(hcp_object))
                 except IsFolderObjectError:
@@ -231,7 +231,7 @@ def delete(
                     sys.exit(1)
     else:
         match mode:
-            case "files":
+            case "file":
                 click.echo(
                     'This command would have deleted the file object "'
                     + hcp_object
