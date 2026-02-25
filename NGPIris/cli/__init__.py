@@ -420,14 +420,14 @@ def list_objects(  # noqa: PLR0913
             yield obj
 
     def _render_objects_table(
-        table_data: Generator[dict[str, Any], Any, None], batch_size: int = 10
+        table_data: Generator[dict[str, Any], Any, None], batch_size: int = 25
     ):
         rows = []
         for row in table_data:
             rows.append(row)
             if (
                 not len(rows) % batch_size
-            ):  # Check if len(rows) is a mutliple of batch_size
+            ):  # Check if `len(rows)` is a mutliple of `batch_size`
                 click.echo(tabulate(rows, headers="keys"))
                 click.echo(
                     "(Press any key to get more rows or ctrl+c to abort...)",
