@@ -37,6 +37,7 @@ from NGPIris.hcp.exceptions import (
 from NGPIris.hcp.helpers import (
     check_mounted,
     create_access_control_policy,
+    operation_response_code_handler,
     raise_path_error,
 )
 from NGPIris.parse_credentials import CredentialsHandler
@@ -639,9 +640,13 @@ class HCPHandler:
         """
         try:
             response = self.get_object(key)
-            return response["ResponseMetadata"]["HTTPStatusCode"] == 200  # noqa: PLR2004
-        except Exception:  # noqa: BLE001  # pragma: no cover
+            operation_response_code_handler(response, "Get object")
+        except ObjectDoesNotExistError:
             return False
+        except:
+            raise
+        else:
+            return True
 
     @check_mounted
     def download_file(
@@ -1000,6 +1005,8 @@ class HCPHandler:
                 Bucket=self.bucket_name,
                 Delete=deletion_dict,
             )
+
+            operation_response_code_handler(response, "Delete")
 
             deleted_files: list = [d["Key"] for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
