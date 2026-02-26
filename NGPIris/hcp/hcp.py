@@ -9,7 +9,7 @@ from bitmath import Byte, TiB
 from bitmath import parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
-from botocore.client import Config
+from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
 from more_itertools import peekable
 from parse import Result, parse
