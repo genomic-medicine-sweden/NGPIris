@@ -3,7 +3,15 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import ParamSpec, TypeVar
 
-from NGPIris.hcp.exceptions import NoBucketMountedError
+from icecream.icecream import ic
+
+from NGPIris.hcp.exceptions import (
+    MetadataCouldNotBeFoundError,
+    NoBucketMountedError,
+    NoStatusCodeSuppliedError,
+    OperationNotPermittedError,
+    UnknownStatusCodeError,
+)
 
 
 def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  # noqa: D103
@@ -62,9 +70,52 @@ def check_mounted(method: Callable[P, T]) -> Callable[P, T]:
 
     def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> T:
         self = args[0]
-        if not self.bucket_name: # pyright: ignore[reportAttributeAccessIssue]
+        if not self.bucket_name:  # pyright: ignore[reportAttributeAccessIssue]
             msg = "No bucket is mounted"
             raise NoBucketMountedError(msg)
         return method(*args, **kwargs)
 
     return check_if_mounted
+
+
+def operation_response_code_handler(response: dict, operation: str) -> None:
+    """
+    Check for status codes from response. If it's anything but 200, raise
+    errors.
+
+    :param response: The response dictionary from an S3 operation
+    :type response: dict
+
+    :param operation:
+        The type of operation that will be displayed in the error
+        message.
+    :type operation: str
+
+    :rtype: None
+    """
+    metadata: dict = response.get("ResponseMetadata", {})
+    if metadata:
+        status_code: int | None = metadata.get("HTTPStatusCode")
+        match status_code:
+            case 200:
+                pass
+            case 403:
+                msg = (
+                    "You do not have enough permissions (status code 403) for "
+                    "the followingoperation: " + operation
+                )
+                raise OperationNotPermittedError(msg)
+            case None:
+                msg = "No status code was supplied in the operation response"
+                raise NoStatusCodeSuppliedError(msg)
+            case _:
+                msg = (
+                    "The status code "
+                    + status_code
+                    + " is not among known status codes. Please report this to "
+                    + "the NGP development team"
+                )
+                raise UnknownStatusCodeError(msg)
+    else:
+        msg = "MetadataCouldNotBeFoundError.__doc__"
+        raise MetadataCouldNotBeFoundError(msg)
