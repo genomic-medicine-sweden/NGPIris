@@ -532,6 +532,7 @@ class HCPHandler:
             if e.response["Error"]["Code"] == "NoSuchKey":
                 msg = "The object " + key + " does not exist"
                 raise ObjectDoesNotExistError(msg) from e
+            raise
         else:
             return response
 
