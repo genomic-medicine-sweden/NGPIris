@@ -91,6 +91,12 @@ class IsFolderObjectError(Exception):
     """
 
 
+class IsFileObjectError(Exception):
+    """
+    The object on the mounted bucket is a file.
+    """
+
+
 class SubfolderError(Exception):
     """
     There is at least one subfolder in the given path on the mounted bucket.
