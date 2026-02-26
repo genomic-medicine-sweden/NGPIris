@@ -537,25 +537,40 @@ class HCPHandler:
         else:
             return response
 
-    def check_if_object_is_folder(self, object_path: str) -> None:
+    def _is_object_folder(self, object_path: str) -> bool:
+        return (object_path.endswith("/")) and (
+            self.get_object(object_path)["ContentLength"] == 0
+        )
+
+    def raise_error_if_object_is_file(self, object_path: str) -> None:
         """
         [PRIMITIVE OBJECT METHOD].
 
-        Raises and error if `object_path` is not a folder by checking if
-        it ends with a `/` and has size 0, which determines if the
-        object is a folder or not.
+        Raises an error if `object_path` is a file.
 
         :param object_path: The path to the object
         :type object_path: str
 
-        :raises IsFileObjectError: If `object_path` is not a folder
+        :raises IsFileObjectError: If `object_path` is a file
         """
-        if not (
-            (object_path.endswith("/"))
-            and (self.get_object(object_path)["ContentLength"] == 0)
-        ):
-            msg = "The object " + object_path + " is not a folder"
+        if self._is_object_folder(object_path):
+            msg = "The object " + object_path + " is a file"
             raise IsFileObjectError(msg)
+
+    def raise_error_if_object_is_folder(self, object_path: str) -> None:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Raises an error if `object_path` is a folder.
+
+        :param object_path: The path to the object
+        :type object_path: str
+
+        :raises IsFolderObjectError: If `object_path` is a folder
+        """
+        if not self._is_object_folder(object_path):
+            msg = "The object " + object_path + " is a folder"
+            raise IsFolderObjectError(msg)
 
     @check_mounted
     def object_exists(self, key: str) -> bool:
