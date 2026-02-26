@@ -9,6 +9,7 @@ from NGPIris.hcp.exceptions import (
     MetadataCouldNotBeFoundError,
     NoBucketMountedError,
     NoStatusCodeSuppliedError,
+    ObjectDoesNotExistError,
     OperationNotPermittedError,
     UnknownStatusCodeError,
 )
@@ -105,13 +106,19 @@ def operation_response_code_handler(response: dict, operation: str) -> None:
                     "the followingoperation: " + operation
                 )
                 raise OperationNotPermittedError(msg)
+            case 404:
+                msg = (
+                    "An object that was part of the operation could not be "
+                    "found"
+                )
+                raise ObjectDoesNotExistError(msg)
             case None:
                 msg = "No status code was supplied in the operation response"
                 raise NoStatusCodeSuppliedError(msg)
             case _:
                 msg = (
                     "The status code "
-                    + status_code
+                    + str(status_code)
                     + " is not among known status codes. Please report this to "
                     + "the NGP development team"
                 )
