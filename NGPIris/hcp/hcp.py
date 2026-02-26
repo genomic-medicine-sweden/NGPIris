@@ -521,12 +521,19 @@ class HCPHandler:
         :return: A dictionary containing the object metadata
         :rtype: dict
         """
-        return dict(
-            self.s3_client.get_object(
-                Bucket=self.bucket_name,
-                Key=key,
-            ),
-        )
+        try:
+            response = dict(
+                self.s3_client.get_object(
+                    Bucket=self.bucket_name,
+                    Key=key,
+                ),
+            )
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                msg = "The object " + key + " does not exist"
+                raise ObjectDoesNotExistError(msg) from e
+        else:
+            return response
 
     def object_is_folder(self, object_path: str) -> bool:
         """
@@ -558,8 +565,7 @@ class HCPHandler:
         :rtype: bool
         """
         try:
-            response = self.get_object(key)
-            operation_response_code_handler(response, "Get object")
+            self.get_object(key)
         except ObjectDoesNotExistError:
             return False
         except:
