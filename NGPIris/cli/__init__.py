@@ -20,7 +20,11 @@ from NGPIris.cli.helpers import (
     render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
-from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
+from NGPIris.hcp.exceptions import (
+    IsFileObjectError,
+    IsFolderObjectError,
+    ObjectDoesNotExistError,
+)
 
 
 @click.group(cls=SectionedGroup)
@@ -435,6 +439,10 @@ def list_objects(  # noqa: PLR0913
         if extended_information
         else HCPHandler.ListObjectsOutputMode.SIMPLE
     )
+
+    if not object_is_folder(path, hcp_h):
+        msg = "The provided path is a file, which is not a valid path"
+        raise IsFileObjectError(msg)
 
     if path:
         path_with_slash = add_trailing_slash(path)
