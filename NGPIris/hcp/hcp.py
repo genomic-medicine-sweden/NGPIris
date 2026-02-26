@@ -23,6 +23,7 @@ from NGPIris.hcp.exceptions import (
     BucketForbiddenError,
     BucketNotFoundError,
     DownloadLimitReachedError,
+    IsFileObjectError,
     IsFolderObjectError,
     NoBucketMountedError,
     NotAValidTenantError,
@@ -536,21 +537,25 @@ class HCPHandler:
         else:
             return response
 
-    def object_is_folder(self, object_path: str) -> bool:
+    def check_if_object_is_folder(self, object_path: str) -> None:
         """
         [PRIMITIVE OBJECT METHOD].
 
-        Predicate for checking if `object_path` ends with a `/` and has size 0,
-        which determines if the object is a folder or not.
+        Raises and error if `object_path` is not a folder by checking if
+        it ends with a `/` and has size 0, which determines if the
+        object is a folder or not.
 
         :param object_path: The path to the object
         :type object_path: str
 
-        :rtype: bool
+        :raises IsFileObjectError: If `object_path` is not a folder
         """
-        return (object_path.endswith("/")) and (
-            self.get_object(object_path)["ContentLength"] == 0
-        )
+        if not (
+            (object_path.endswith("/"))
+            and (self.get_object(object_path)["ContentLength"] == 0)
+        ):
+            msg = "The object " + object_path + " is not a folder"
+            raise IsFileObjectError(msg)
 
     @check_mounted
     def object_exists(self, key: str) -> bool:
@@ -640,6 +645,8 @@ class HCPHandler:
                         "Size": object_metadata.get("Size", ""),
                         "ETag": object_metadata["ETag"],
                     }
+
+        self.check_if_object_is_folder(path_key)
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
