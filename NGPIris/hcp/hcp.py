@@ -506,12 +506,73 @@ class HCPHandler:
                     output_list.append(base)
         return output_list
 
-    # ---------------------------- Object methods ----------------------------
+    # ---------------------------- Object primitive methods --------------------
+
+    def object_is_folder(self, object_path: str) -> bool:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Predicate for checking if `object_path` ends with a `/` and has size 0,
+        which determines if the object is a folder or not.
+
+        :param object_path: The path to the object
+        :type object_path: str
+
+        :rtype: bool
+        """
+        return (object_path.endswith("/")) and (
+            self.get_object(object_path)["ContentLength"] == 0
+        )
+
+    @check_mounted
+    def get_object(self, key: str) -> dict:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Retrieve object metadata.
+
+        :param key: The object name
+        :type key: str
+
+        :return: A dictionary containing the object metadata
+        :rtype: dict
+        """
+        return dict(
+            self.s3_client.get_object(
+                Bucket=self.bucket_name,
+                Key=key,
+            ),
+        )
+
+    @check_mounted
+    def object_exists(self, key: str) -> bool:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Check if a given object is in the mounted bucket.
+
+        :param key: The object name
+        :type key: str
+
+        :return: True if the object exist, otherwise False
+        :rtype: bool
+        """
+        try:
+            response = self.get_object(key)
+            operation_response_code_handler(response, "Get object")
+        except ObjectDoesNotExistError:
+            return False
+        except:
+            raise
+        else:
+            return True
 
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
         EXTENDED = "extended"
         MINIMAL = "minimal"
+
+    # ---------------------------- Object methods ----------------------------
 
     @check_mounted
     def list_objects(  # noqa: C901
@@ -608,59 +669,6 @@ class HCPHandler:
                     yield _format_output_dictionary(
                         key, file_object_metadata, True, output_mode
                     )
-
-    def object_is_folder(self, object_path: str) -> bool:
-        """
-        Predicate for checking if `object_path` ends with a `/` and has size 0,
-        which determines if the object is a folder or not.
-
-        :param object_path: The path to the object
-        :type object_path: str
-
-        :rtype: bool
-        """
-        return (object_path.endswith("/")) and (
-            self.get_object(object_path)["ContentLength"] == 0
-        )
-
-    @check_mounted
-    def get_object(self, key: str) -> dict:
-        """
-        Retrieve object metadata.
-
-        :param key: The object name
-        :type key: str
-
-        :return: A dictionary containing the object metadata
-        :rtype: dict
-        """
-        return dict(
-            self.s3_client.get_object(
-                Bucket=self.bucket_name,
-                Key=key,
-            ),
-        )
-
-    @check_mounted
-    def object_exists(self, key: str) -> bool:
-        """
-        Check if a given object is in the mounted bucket.
-
-        :param key: The object name
-        :type key: str
-
-        :return: True if the object exist, otherwise False
-        :rtype: bool
-        """
-        try:
-            response = self.get_object(key)
-            operation_response_code_handler(response, "Get object")
-        except ObjectDoesNotExistError:
-            return False
-        except:
-            raise
-        else:
-            return True
 
     @check_mounted
     def download_file(
