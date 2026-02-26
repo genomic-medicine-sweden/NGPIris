@@ -508,22 +508,6 @@ class HCPHandler:
 
     # ---------------------------- Object primitive methods --------------------
 
-    def object_is_folder(self, object_path: str) -> bool:
-        """
-        [PRIMITIVE OBJECT METHOD].
-
-        Predicate for checking if `object_path` ends with a `/` and has size 0,
-        which determines if the object is a folder or not.
-
-        :param object_path: The path to the object
-        :type object_path: str
-
-        :rtype: bool
-        """
-        return (object_path.endswith("/")) and (
-            self.get_object(object_path)["ContentLength"] == 0
-        )
-
     @check_mounted
     def get_object(self, key: str) -> dict:
         """
@@ -542,6 +526,22 @@ class HCPHandler:
                 Bucket=self.bucket_name,
                 Key=key,
             ),
+        )
+
+    def object_is_folder(self, object_path: str) -> bool:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Predicate for checking if `object_path` ends with a `/` and has size 0,
+        which determines if the object is a folder or not.
+
+        :param object_path: The path to the object
+        :type object_path: str
+
+        :rtype: bool
+        """
+        return (object_path.endswith("/")) and (
+            self.get_object(object_path)["ContentLength"] == 0
         )
 
     @check_mounted
