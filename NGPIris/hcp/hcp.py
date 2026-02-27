@@ -511,17 +511,6 @@ class HCPHandler:
 
     @check_mounted
     def get_object(self, key: str) -> dict:
-        """
-        [PRIMITIVE OBJECT METHOD].
-
-        Retrieve object metadata.
-
-        :param key: The object name
-        :type key: str
-
-        :return: A dictionary containing the object metadata
-        :rtype: dict
-        """
         try:
             response = dict(
                 self.s3_client.get_object(
@@ -536,6 +525,31 @@ class HCPHandler:
             raise
         else:
             return response
+
+    @check_mounted
+    def get_object_metadata(self, key: str) -> dict:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Retrieve object metadata.
+
+        :param key: The object name
+        :type key: str
+
+        :return: A dictionary containing the object metadata
+        :rtype: dict
+        """
+        try:
+            metadata_response = dict(
+                self.s3_client.head_object(Bucket=self.bucket_name, Key=key)
+            )
+        except ClientError as e:
+            rm: dict = e.response
+            operation_response_code_handler(
+                rm, "Get object metadata", key, self.bucket_name
+            )
+        else:
+            return metadata_response
 
     def _is_object_folder(self, object_path: str) -> bool:
         return (object_path.endswith("/")) and (
