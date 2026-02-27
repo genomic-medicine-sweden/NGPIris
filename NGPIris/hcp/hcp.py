@@ -1104,11 +1104,6 @@ class HCPHandler:
             ),
         )
 
-        if not self.object_exists(key):
-            raise ObjectDoesNotExistError(
-                '"' + key + '"' + " does not exist",
-            )
-
         # If the folder object is empty, delete the object itself. Since
         # `delete_objects` was only made for file objects in mind then
         if not objects:
