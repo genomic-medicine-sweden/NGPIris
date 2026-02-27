@@ -750,19 +750,7 @@ class HCPHandler:
             https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html#aws-service-exceptions
         :raises Exception: Other exceptions
         """
-        try:
-            self.get_object(key)
-        except:  # noqa: E722
-            msg = (
-                'Could not find object "'
-                + key
-                + '" in bucket "'
-                + str(self.bucket_name)
-                + '"'
-            )
-            raise ObjectDoesNotExistError(
-                msg,
-            ) from None
+        self.raise_error_if_object_is_folder(key)
 
         if show_progress_bar:
             file_size: int = self.s3_client.head_object(
