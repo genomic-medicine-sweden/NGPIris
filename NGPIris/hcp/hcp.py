@@ -511,6 +511,15 @@ class HCPHandler:
 
     @check_mounted
     def get_object(self, key: str) -> dict:
+        """
+        Get object data and metadata.
+
+        :param key: Object key
+        :type key: str
+
+        :return: Dictionary with object data and metadata
+        :rtype: dict
+        """
         try:
             response = dict(
                 self.s3_client.get_object(
