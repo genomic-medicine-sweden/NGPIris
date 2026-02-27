@@ -1036,13 +1036,7 @@ class HCPHandler:
         does_not_exist = []
         for key in keys:
             if self.object_exists(key):
-                if key[-1] == "/":
-                    raise IsFolderObjectError(
-                        'The object "'
-                        + key
-                        + '" is a folder object. Please use the `delete_folder`'
-                        + "method for this object",
-                    )
+                self.raise_error_if_object_is_folder(key)
                 object_list.append({"Key": key})
             else:
                 does_not_exist.append(key)
