@@ -1149,10 +1149,8 @@ class HCPHandler:
             The destination bucket, defaults to the mounted bucket
         :type destination_bucket: str
         """
-        file_size: int = self.s3_client.head_object(
-            Bucket=self.bucket_name,
-            Key=source_key,
-        )["ContentLength"]
+        self.raise_error_if_object_is_folder(source_key)
+        file_size: int = self.get_object_metadata(source_key)["ContentLength"]
         with tqdm(
             total=file_size,
             unit="B",
