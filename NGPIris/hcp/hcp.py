@@ -542,7 +542,9 @@ class HCPHandler:
             self.get_object(object_path)["ContentLength"] == 0
         )
 
-    def raise_error_if_object_is_file(self, object_path: str) -> None:
+    def raise_error_if_object_is_file_and_exists(
+        self, object_path: str
+    ) -> None:
         """
         [PRIMITIVE OBJECT METHOD].
 
@@ -557,7 +559,9 @@ class HCPHandler:
             msg = "The object " + object_path + " is a file"
             raise IsFileObjectError(msg)
 
-    def raise_error_if_object_is_folder(self, object_path: str) -> None:
+    def raise_error_if_object_is_folder_and_exists(
+        self, object_path: str
+    ) -> None:
         """
         [PRIMITIVE OBJECT METHOD].
 
