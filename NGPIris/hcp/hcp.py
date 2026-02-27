@@ -706,7 +706,7 @@ class HCPHandler:
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object: dict
                     key = folder_object["Prefix"]
-                    folder_object_metadata = self.get_object(
+                    folder_object_metadata = self.get_object_metadata(
                         key,
                     )
                     yield _format_output_dictionary(
