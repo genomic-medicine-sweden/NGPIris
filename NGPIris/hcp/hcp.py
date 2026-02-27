@@ -1080,7 +1080,7 @@ class HCPHandler:
                 Delete=deletion_dict,
             )
 
-            operation_response_code_handler(response, "Delete")
+            operation_response_code_handler(response, "Delete", deletion_dict)
 
             deleted_files: list = [d["Key"] for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
