@@ -607,7 +607,7 @@ class HCPHandler:
         :rtype: bool
         """
         try:
-            self.get_object(key)
+            self.get_object_metadata(key)
         except ObjectDoesNotExistError:
             return False
         except:
