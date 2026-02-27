@@ -79,7 +79,12 @@ def check_mounted(method: Callable[P, T]) -> Callable[P, T]:
     return check_if_mounted
 
 
-def operation_response_code_handler(response: dict, operation: str) -> None:
+def operation_response_code_handler(
+    response: dict,
+    operation: str,
+    obj: str | dict | None = None,
+    bucket: str | None = None,
+) -> None:
     """
     Check for status codes from response. If it's anything but 200, raise
     errors.
@@ -103,14 +108,30 @@ def operation_response_code_handler(response: dict, operation: str) -> None:
             case 403:
                 msg = (
                     "You do not have enough permissions (status code 403) for "
-                    "the followingoperation: " + operation
+                    "the following operation: " + operation
                 )
                 raise OperationNotPermittedError(msg)
             case 404:
-                msg = (
-                    "An object that was part of the operation could not be "
-                    "found"
-                )
+                match obj:
+                    case str():
+                        bucket_str = "' in bucket '" + bucket if bucket else ""
+                        msg = (
+                            "The object '"
+                            + obj
+                            + bucket_str
+                            + "' that was part of the operation could not be "
+                            "found"
+                        )
+                    case dict():
+                        msg = (
+                            "The object that was part of the operation could"
+                            "not be found: " + str(obj)
+                        )
+                    case _:
+                        msg = (
+                            "An object that was part of the operation could "
+                            "not be found"
+                        )
                 raise ObjectDoesNotExistError(msg)
             case None:
                 msg = "No status code was supplied in the operation response"
