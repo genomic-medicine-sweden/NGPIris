@@ -753,10 +753,7 @@ class HCPHandler:
         self.raise_error_if_object_is_folder(key)
 
         if show_progress_bar:
-            file_size: int = self.s3_client.head_object(
-                Bucket=self.bucket_name,
-                Key=key,
-            )["ContentLength"]
+            file_size: int = self.get_object_metadata(key)["ContentLength"]
             with tqdm(
                 total=file_size,
                 unit="B",
