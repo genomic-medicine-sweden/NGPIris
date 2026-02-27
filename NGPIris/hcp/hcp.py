@@ -1095,8 +1095,7 @@ class HCPHandler:
         :return: The result of the deletion
         :rtype: str
         """  # noqa: D400, D415
-        if key[-1] != "/":
-            key += "/"
+        self.raise_error_if_object_is_file(key)
 
         objects: list[dict[str, Any]] = list(
             self.list_objects(
