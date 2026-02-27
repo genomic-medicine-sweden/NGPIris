@@ -665,7 +665,9 @@ class HCPHandler:
                         "ETag": object_metadata["ETag"],
                     }
 
-        self.raise_error_if_object_is_file_and_exists(path_key)
+        # If `path_key` is the empty string then everything is fine
+        if path_key:
+            self.raise_error_if_object_is_file_and_exists(path_key)
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
