@@ -821,19 +821,8 @@ class HCPHandler:
 
         :raises NotADirectoryError: If local_folder_path is not a directory
         """
-        try:
-            self.get_object(folder_key)
-        except:  # noqa: E722
-            msg = (
-                'Could not find object "'
-                + folder_key
-                + '" in bucket "'
-                + str(self.bucket_name)
-                + '"'
-            )
-            raise ObjectDoesNotExistError(
-                msg,
-            ) from None
+        self.raise_error_if_object_is_file(folder_key)
+
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(
                 0,
