@@ -555,7 +555,7 @@ class HCPHandler:
 
         :raises IsFileObjectError: If `object_path` is a file
         """
-        if self._is_object_folder(object_path):
+        if not self._is_object_folder(object_path):
             msg = "The object " + object_path + " is a file"
             raise IsFileObjectError(msg)
 
@@ -572,7 +572,7 @@ class HCPHandler:
 
         :raises IsFolderObjectError: If `object_path` is a folder
         """
-        if not self._is_object_folder(object_path):
+        if self._is_object_folder(object_path):
             msg = "The object " + object_path + " is a folder"
             raise IsFolderObjectError(msg)
 
@@ -665,7 +665,7 @@ class HCPHandler:
                         "ETag": object_metadata["ETag"],
                     }
 
-        self.check_if_object_is_folder(path_key)
+        self.raise_error_if_object_is_file_and_exists(path_key)
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
