@@ -548,6 +548,9 @@ class HCPHandler:
             operation_response_code_handler(
                 rm, "Get object metadata", key, self.bucket_name
             )
+            # This `raise` is most likely useless, but acts as fallback
+            # if `operation_response_code_handler` does not raise any exception
+            raise
         else:
             return metadata_response
 
