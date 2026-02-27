@@ -555,9 +555,11 @@ class HCPHandler:
             return metadata_response
 
     def _is_object_folder(self, object_path: str) -> bool:
-        return (object_path.endswith("/")) and (
-            self.get_object(object_path)["ContentLength"] == 0
+        end_with_slash = object_path.endswith("/")
+        size_is_none = (
+            self.get_object_metadata(object_path).get("Size", None) is None
         )
+        return end_with_slash and size_is_none
 
     def raise_error_if_object_is_file_and_exists(
         self, object_path: str
