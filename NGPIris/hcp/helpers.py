@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import ParamSpec, TypeVar
 
 from icecream.icecream import ic
+from tqdm import tqdm
 
 from NGPIris.hcp.exceptions import (
     MetadataCouldNotBeFoundError,
@@ -147,3 +148,32 @@ def operation_response_code_handler(
     else:
         msg = "MetadataCouldNotBeFoundError.__doc__"
         raise MetadataCouldNotBeFoundError(msg)
+
+
+def progress_bar_handler[**P, R](
+    show_progress_bar: bool,
+    file_size: int,
+    desc: str,
+    method: Callable[P, R],
+    method_kwargs: dict,
+) -> None:
+    """
+    Helper function for progressbar logic.
+    """
+
+    def _progress_bar_handler(*args: P.args, **kwargs: P.kwargs) -> None:
+        if show_progress_bar:
+            with tqdm(
+                total=file_size,
+                unit="B",
+                unit_scale=True,
+                desc=desc,
+            ) as pbar:
+                kwargs["Callback"] = lambda bytes_transferred: pbar.update(
+                    bytes_transferred,
+                )
+                method(*args, **kwargs)
+        else:
+            method(*args, **kwargs)
+
+    _progress_bar_handler(**method_kwargs)  # pyright: ignore[reportCallIssue]
