@@ -1,12 +1,10 @@
 import sys
-from collections.abc import Generator
 from json import dump
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import click
 from bitmath import SI, Byte
-from click.core import Context
 from tabulate import tabulate
 
 from NGPIris import HCPHandler
@@ -25,6 +23,11 @@ from NGPIris.hcp.exceptions import (
     IsFolderObjectError,
     ObjectDoesNotExistError,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from click.core import Context
 
 
 @click.group(cls=SectionedGroup)
