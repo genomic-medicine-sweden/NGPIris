@@ -1,3 +1,5 @@
+# ruff: noqa: SLF001
+
 import sys
 from json import dump
 from pathlib import Path
@@ -14,7 +16,6 @@ from NGPIris.cli.helpers import (
     download_file,
     download_folder,
     ensure_destination_dir,
-    object_is_folder,
     render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
@@ -316,26 +317,21 @@ def download(  # noqa: PLR0913
 
     destination_path = ensure_destination_dir(destination)
 
-    is_folder = object_is_folder(source, hcp_h)
+    is_folder = hcp_h._is_object_folder(source)
 
     if dry_run:
-        if hcp_h.object_exists(source):
-            if is_folder:
-                click.echo(
-                    'This command would have downloaded the folder "'
-                    + source
-                    + '". If you wish to know the contents of this folder, '
-                    + "use the 'list-objects' command",
-                )
-            else:
-                click.echo(
-                    'This command would have downloaded the object "'
-                    + source
-                    + '"',
-                )
+        if is_folder:
+            click.echo(
+                'This command would have downloaded the folder "'
+                + source
+                + '". If you wish to know the contents of this folder, '
+                + "use the 'list-objects' command",
+            )
         else:
             click.echo(
-                '"' + source + '" does not exist',
+                'This command would have downloaded the object "'
+                + source
+                + '"',
             )
         return
 
@@ -443,7 +439,7 @@ def list_objects(  # noqa: PLR0913
         else HCPHandler.ListObjectsOutputMode.SIMPLE
     )
 
-    if not object_is_folder(path, hcp_h):
+    if not hcp_h._is_object_folder(path):
         msg = "The provided path is a file, which is not a valid path"
         raise IsFileObjectError(msg)
 
