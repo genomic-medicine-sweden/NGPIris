@@ -39,6 +39,7 @@ from NGPIris.hcp.helpers import (
     check_mounted,
     create_access_control_policy,
     operation_response_code_handler,
+    progress_bar_handler,
     raise_path_error,
 )
 from NGPIris.parse_credentials import CredentialsHandler
@@ -733,7 +734,7 @@ class HCPHandler:
     def download_file(
         self,
         key: str,
-        local_file_path: str,
+        filename: str,
         show_progress_bar: bool = True,
     ) -> None:
         """
@@ -742,10 +743,8 @@ class HCPHandler:
         :param key: Name of the object
         :type key: str
 
-        :param local_file_path:
-            Path to a file on your local system where the contents of the
-            object file can be put
-        :type local_file_path: str
+        :param filename: New name of the object
+        :type filename: str
 
         :param show_progress_bar:
             Boolean choice of displaying a progress bar. Defaults to True
@@ -761,30 +760,18 @@ class HCPHandler:
         """
         self.raise_error_if_object_is_folder(key)
         file_size: int = self.get_object_metadata(key)["ContentLength"]
-
-        if show_progress_bar:
-            with tqdm(
-                total=file_size,
-                unit="B",
-                unit_scale=True,
-                desc=key,
-            ) as pbar:
-                self.s3_client.download_file(
-                    Bucket=self.bucket_name,
-                    Key=key,
-                    Filename=local_file_path,
-                    Config=self.transfer_config,
-                    Callback=lambda bytes_transferred: pbar.update(
-                        bytes_transferred,
-                    ),
-                )
-        else:
-            self.s3_client.download_file(
-                Bucket=self.bucket_name,
-                Key=key,
-                Filename=local_file_path,
-                Config=self.transfer_config,
-            )
+        progress_bar_handler(
+            show_progress_bar,
+            file_size,
+            key,
+            self.s3_client.download_file,
+            {
+                "Key": key,
+                "Filename": filename,
+                "Bucket": self.bucket_name,
+                "Config": self.transfer_config,
+            },
+        )
 
     @check_mounted
     def download_folder(
