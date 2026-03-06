@@ -760,9 +760,9 @@ class HCPHandler:
         :raises Exception: Other exceptions
         """
         self.raise_error_if_object_is_folder(key)
+        file_size: int = self.get_object_metadata(key)["ContentLength"]
 
         if show_progress_bar:
-            file_size: int = self.get_object_metadata(key)["ContentLength"]
             with tqdm(
                 total=file_size,
                 unit="B",
