@@ -934,29 +934,18 @@ class HCPHandler:
                     multipart_chunksize=round(file_size / equal_parts),
                 )
 
-        if show_progress_bar:
-            with tqdm(
-                total=file_size,
-                unit="B",
-                unit_scale=True,
-                desc=local_file_path,
-            ) as pbar:
-                self.s3_client.upload_file(
-                    Filename=local_file_path,
-                    Bucket=self.bucket_name,
-                    Key=key,
-                    Config=config,
-                    Callback=lambda bytes_transferred: pbar.update(
-                        bytes_transferred,
-                    ),
-                )
-        else:
-            self.s3_client.upload_file(
-                Filename=local_file_path,
-                Bucket=self.bucket_name,
-                Key=key,
-                Config=config,
-            )
+        progress_bar_handler(
+            show_progress_bar,
+            file_size,
+            key,
+            self.s3_client.upload_file,
+            {
+                "Filename": local_file_path,
+                "Key": key,
+                "Bucket": self.bucket_name,
+                "Config": config,
+            },
+        )
 
     @check_mounted
     def upload_folder(
