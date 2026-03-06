@@ -54,22 +54,22 @@ def raise_path_error(path: str) -> None:
 
 
 P = ParamSpec("P")
-T = TypeVar("T")
+R = TypeVar("R")
 
 
-def check_mounted(method: Callable[P, T]) -> Callable[P, T]:
+def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator for checking if a bucket is mounted. This is meant to be used by
     class methods, hence the possibly odd typing.
 
     :param method: An arbitrary class method of the `HCPHandler` class
-    :type method: Callable[ParamSpec("P"), TypeVar("T")]
+    :type method: Callable[ParamSpec("P"), TypeVar("R")]
 
     :return: A decorated class method of the `HCPHandler` class
-    :rtype: Callable[ParamSpec("P"), TypeVar("T")]
+    :rtype: Callable[ParamSpec("P"), TypeVar("R")]
     """
 
-    def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> T:
+    def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> R:
         self = args[0]
         if not self.bucket_name:  # pyright: ignore[reportAttributeAccessIssue]
             msg = "No bucket is mounted"
