@@ -400,7 +400,7 @@ def list_objects(  # noqa: PLR0913
         path: str,
         output_mode: HCPHandler.ListObjectsOutputMode,
         files_only: bool,
-    ) -> Generator[str, Any, None]:
+    ) -> Generator[str, Any]:
         """
         Handle object list as a paginator that `click` can handle.
         It works slightly different from `list_objects` in `hcp.py` in order to
@@ -419,7 +419,7 @@ def list_objects(  # noqa: PLR0913
         path: str,
         output_mode: HCPHandler.ListObjectsOutputMode,
         files_only: bool,
-    ) -> Generator[dict[str, Any], Any, None]:
+    ) -> Generator[dict[str, Any], Any]:
         objects = hcp_h.list_objects(
             path,
             output_mode=output_mode,
