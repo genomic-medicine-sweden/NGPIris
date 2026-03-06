@@ -1117,6 +1117,7 @@ class HCPHandler:
         source_key: str,
         destination_key: str,
         destination_bucket: str = "",
+        show_progress_bar: bool = True,
     ) -> None:
         """
         Copy a file object within the HCP.
@@ -1133,20 +1134,22 @@ class HCPHandler:
         """
         self.raise_error_if_object_is_folder(source_key)
         file_size: int = self.get_object_metadata(source_key)["ContentLength"]
-        with tqdm(
-            total=file_size,
-            unit="B",
-            unit_scale=True,
-            desc=source_key,
-        ) as pbar:
-            self.s3_client.copy(
-                {"Bucket": self.bucket_name, "Key": source_key},
-                destination_bucket if destination_bucket else self.bucket_name,
-                destination_key,
-                Callback=lambda bytes_transferred: pbar.update(
-                    bytes_transferred,
-                ),
-            )
+        progress_bar_handler(
+            show_progress_bar,
+            file_size,
+            source_key,
+            self.s3_client.copy,
+            {
+                "Key": destination_key,
+                "Bucket": destination_bucket
+                if destination_bucket
+                else self.bucket_name,
+                "CopySource": {
+                    "Bucket": self.bucket_name,
+                    "Key": source_key,
+                },
+            },
+        )
 
     @check_mounted
     def move_file(
