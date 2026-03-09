@@ -43,7 +43,7 @@ jobs:
       - name: ruff statistics
         run: |
           ruff check --statistics -e >> ruff_stats.txt
-          python ruff_stats_to_md.py >> $GITHUB_STEP_SUMMARY
+          python .github/workflows/ruff_stats_to_md.py >> $GITHUB_STEP_SUMMARY
 
       - name: Run `ruff check`
         run: ruff check
