@@ -3,7 +3,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import ParamSpec, TypeVar
 
-from icecream.icecream import ic
 from tqdm import tqdm
 
 from NGPIris.hcp.exceptions import (
