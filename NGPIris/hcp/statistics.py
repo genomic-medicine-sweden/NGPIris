@@ -27,7 +27,7 @@ class HCPStatistics(HCPHandler):
         :return: Namespace/bucket settings as a dictionary.
         :rtype: dict
         """
-        return self.get_response("/namespaces/" + self.bucket_name) #pyright: ignore[reportOperatorIssue]
+        return self.get_response("/namespaces/" + self.bucket_name)  # pyright: ignore[reportOperatorIssue, reportAttributeAccessIssue]
 
     @check_mounted
     def get_namespace_statistics(self) -> dict:
@@ -37,8 +37,8 @@ class HCPStatistics(HCPHandler):
         :return: Namespace/bucket statistics as a dictionary.
         :rtype: dict
         """
-        return self.get_response(
-            "/namespaces/" + self.bucket_name + "/statistics", #pyright: ignore[reportOperatorIssue]
+        return self.get_response(  # pyright: ignore[reportAttributeAccessIssue]
+            "/namespaces/" + self.bucket_name + "/statistics",  # pyright: ignore[reportOperatorIssue]
         )
 
     @check_mounted
@@ -49,6 +49,6 @@ class HCPStatistics(HCPHandler):
         :return: Namespace/bucket permissions as a dictionary.
         :rtype: dict
         """
-        return self.get_response(
-            "/namespaces/" + self.bucket_name + "/permissions", #pyright: ignore[reportOperatorIssue]
+        return self.get_response(  # pyright: ignore[reportAttributeAccessIssue]
+            "/namespaces/" + self.bucket_name + "/permissions",  # pyright: ignore[reportOperatorIssue]
         )
