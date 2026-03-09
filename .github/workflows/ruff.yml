@@ -1,0 +1,49 @@
+name: Ruff check
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on pull request events
+  pull_request:
+    branches: ["main", "dev"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  ruff:
+    name: Run ruff check
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Create and start virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+
+      - name: Install dependencies
+        run: |
+          pip install ruff==0.13.2
+          pip install parse==1.20.2
+          pip install pandas==2.3.3
+          pip install tabulate==0.9.0
+          pip install numpy==2.3.3
+
+      - name: ruff statistics
+        run: |
+          ruff check --statistics -e >> ruff_stats.txt
+          python ruff_stats_to_md.py >> $GITHUB_STEP_SUMMARY
+
+      - name: Run `ruff check`
+        run: ruff check
