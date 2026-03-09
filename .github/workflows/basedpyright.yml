@@ -34,7 +34,6 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync
-          uv add basedpyright==1.31.6
 
       - name: Run `basedpyright`
         run: |
