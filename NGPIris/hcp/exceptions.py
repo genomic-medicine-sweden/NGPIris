@@ -19,10 +19,37 @@ class NotSufficientPermissionsError(Exception):
     The given permissions where not sufficient when making a MAPI request (403).
     """
 
+
 class NotFoundError(Exception):
     """
     The given request path was not found when making a MAPI request (404).
     """
+
+
+# -------------- Operation response exceptions --------------
+class MetadataCouldNotBeFoundError(Exception):
+    """
+    The response metadata could not be found.
+    """
+
+
+class OperationNotPermittedError(Exception):
+    """
+    The user is not permitted to do that operation on this bucket (403).
+    """
+
+
+class NoStatusCodeSuppliedError(Exception):
+    """
+    `HTTPStatusCode` in the response metadata was not supplied.
+    """
+
+
+class UnknownStatusCodeError(Exception):
+    """
+    The status code recieved is not known.
+    """
+
 
 # -------------- Bucket exceptions --------------
 class NoBucketMountedError(Exception):
@@ -61,6 +88,12 @@ class ObjectDoesNotExistError(Exception):
 class IsFolderObjectError(Exception):
     """
     The object on the mounted bucket is a folder.
+    """
+
+
+class IsFileObjectError(Exception):
+    """
+    The object on the mounted bucket is a file.
     """
 
 

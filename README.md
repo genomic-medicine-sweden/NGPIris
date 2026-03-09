@@ -8,10 +8,8 @@ Both of these cases can be achieved as either a [Python package](#as-a-python-pa
 ## Getting started
 
 ### Prerequisites 
-* Python 3.11.5[^1]
+* Python 3.14
 * NGPr credentials (see ["NGPr credentials"](#ngpr-credentials))
-
-[^1]: Most versions of Python 3 should work
 
 ### Installation
 Iris can be installed via PyPi by running the following:

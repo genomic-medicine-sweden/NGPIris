@@ -1,11 +1,13 @@
 import os
 import sys
 from pathlib import Path
+from typing import Any, Generator
 
 import click
 from bitmath import Byte, TiB
 from boto3 import set_stream_logger
 from click.core import Context
+from tabulate import tabulate
 
 from NGPIris import HCPHandler
 
@@ -89,15 +91,6 @@ def create_HCPHandler(context: Context) -> HCPHandler:
     return hcp_h
 
 
-def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
-    """
-    Predicate for checking if an HCP object is a folder or not.
-    """
-    return (object_path.endswith("/")) and (
-        hcp_h.get_object(object_path)["ContentLength"] == 0
-    )
-
-
 def ensure_destination_dir(destination: str) -> Path:
     """
     Ensure that `destination` exists and return it as a `Path`.
@@ -161,3 +154,27 @@ def download_file(
             " use the -f / --force option"
         )
     hcp_h.download_file(source, downloaded_source.as_posix())
+
+
+def render_objects_table(
+    table_data: Generator[dict[str, Any], Any, None], batch_size: int
+) -> None:
+    """
+    Helper function for lazily displaying objects in a table with a given batch
+    size.
+    """
+    rows = []
+    positive_batch_size = batch_size > 0
+    for row in table_data:
+        rows.append(row)
+        if positive_batch_size and (
+            not len(rows) % batch_size
+        ):  # Check if `len(rows)` is a mutliple of `batch_size`
+            click.echo(tabulate(rows, headers="keys"))
+            click.echo(
+                "(Press any key to get more rows or ctrl+c to abort...)",
+                nl=False,
+            )
+            click.getchar()
+            click.clear()
+    click.echo(tabulate(rows, headers="keys"))

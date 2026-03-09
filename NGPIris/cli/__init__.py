@@ -1,12 +1,12 @@
+# ruff: noqa: SLF001
+
 import sys
-from collections.abc import Generator
 from json import dump
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import click
-import lazy_table as lt
-from click.core import Context
+from bitmath import SI, Byte
 from tabulate import tabulate
 
 from NGPIris import HCPHandler
@@ -16,10 +16,19 @@ from NGPIris.cli.helpers import (
     download_file,
     download_folder,
     ensure_destination_dir,
-    object_is_folder,
+    render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
-from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
+from NGPIris.hcp.exceptions import (
+    IsFileObjectError,
+    IsFolderObjectError,
+    ObjectDoesNotExistError,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from click.core import Context
 
 
 @click.group(cls=SectionedGroup)
@@ -204,7 +213,7 @@ def delete(
     hcp_h.mount_bucket(bucket)
     if not dry_run:
         match mode:
-            case "files":
+            case "file":
                 try:
                     click.echo(hcp_h.delete_object(hcp_object))
                 except IsFolderObjectError:
@@ -231,7 +240,7 @@ def delete(
                     sys.exit(1)
     else:
         match mode:
-            case "files":
+            case "file":
                 click.echo(
                     'This command would have deleted the file object "'
                     + hcp_object
@@ -244,12 +253,12 @@ def delete(
                     + '", the following file objects would have been deleted '
                     + "(this list excludes any potential sub-folders):",
                 )
-                lt.stream(
+                render_objects_table(
                     hcp_h.list_objects(
                         hcp_object,
                         files_only=True,
                     ),
-                    headers="keys",
+                    -1,
                 )
 
 
@@ -308,26 +317,21 @@ def download(  # noqa: PLR0913
 
     destination_path = ensure_destination_dir(destination)
 
-    is_folder = object_is_folder(source, hcp_h)
+    is_folder = hcp_h._is_object_folder(source)
 
     if dry_run:
-        if hcp_h.object_exists(source):
-            if is_folder:
-                click.echo(
-                    'This command would have downloaded the folder "'
-                    + source
-                    + '". If you wish to know the contents of this folder, '
-                    + "use the 'list-objects' command",
-                )
-            else:
-                click.echo(
-                    'This command would have downloaded the object "'
-                    + source
-                    + '"',
-                )
+        if is_folder:
+            click.echo(
+                'This command would have downloaded the folder "'
+                + source
+                + '". If you wish to know the contents of this folder, '
+                + "use the 'list-objects' command",
+            )
         else:
             click.echo(
-                '"' + source + '" does not exist',
+                'This command would have downloaded the object "'
+                + source
+                + '"',
             )
         return
 
@@ -343,6 +347,14 @@ def download(  # noqa: PLR0913
 )
 @click.argument("bucket")
 @click.argument("path", required=False)
+@click.option(
+    "-bs",
+    "--batch_size",
+    help="Number of rows added to the output at a time. If value is zero or a "
+    "negative number, all rows will be displayed in one go. "
+    "Default value is 25",
+    default=25,
+)
 @click.option(
     "-p",
     "--pagination",
@@ -369,6 +381,7 @@ def list_objects(  # noqa: PLR0913
     context: Context,
     bucket: str,
     path: str,
+    batch_size: int,
     pagination: bool,
     files_only: bool,
     extended_information: bool,
@@ -381,12 +394,12 @@ def list_objects(  # noqa: PLR0913
     PATH is an optional argument for where to list the objects
     """
 
-    def list_objects_generator(
+    def list_objects_pagination_generator(
         hcp_h: HCPHandler,
         path: str,
-        files_only: bool,
         output_mode: HCPHandler.ListObjectsOutputMode,
-    ) -> Generator[str, Any, None]:
+        files_only: bool,
+    ) -> Generator[str, Any]:
         """
         Handle object list as a paginator that `click` can handle.
         It works slightly different from `list_objects` in `hcp.py` in order to
@@ -400,6 +413,24 @@ def list_objects(  # noqa: PLR0913
         for obj in objects:
             yield str(obj) + "\n"
 
+    def list_objects_generator(
+        hcp_h: HCPHandler,
+        path: str,
+        output_mode: HCPHandler.ListObjectsOutputMode,
+        files_only: bool,
+    ) -> Generator[dict[str, Any], Any]:
+        objects = hcp_h.list_objects(
+            path,
+            output_mode=output_mode,
+            files_only=files_only,
+        )
+        for obj in objects:
+            if obj.get("Size", 0):
+                obj["Size"] = str(
+                    Byte(obj.get("Size", 0)).best_prefix(system=SI)
+                )
+            yield obj
+
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
     output_mode = (
@@ -407,6 +438,10 @@ def list_objects(  # noqa: PLR0913
         if extended_information
         else HCPHandler.ListObjectsOutputMode.SIMPLE
     )
+
+    if not hcp_h._is_object_folder(path):
+        msg = "The provided path is a file, which is not a valid path"
+        raise IsFileObjectError(msg)
 
     if path:
         path_with_slash = add_trailing_slash(path)
@@ -419,21 +454,22 @@ def list_objects(  # noqa: PLR0913
 
     if pagination:
         click.echo_via_pager(
-            list_objects_generator(
+            list_objects_pagination_generator(
                 hcp_h,
                 path_with_slash,
-                files_only,
                 output_mode,
+                files_only,
             ),
         )
     else:
-        lt.stream(
-            hcp_h.list_objects(
+        render_objects_table(
+            list_objects_generator(
+                hcp_h,
                 path_with_slash,
-                output_mode=output_mode,
-                files_only=files_only,
+                output_mode,
+                files_only,
             ),
-            headers="keys",
+            batch_size,
         )
 
 
@@ -689,9 +725,9 @@ def simple_search(
         case_sensitive=case_sensitive,
     )
     click.echo("Search results:")
-    lt.stream(
+    render_objects_table(
         list_of_results,
-        headers="keys",
+        -1,
     )
 
 
@@ -744,9 +780,9 @@ def fuzzy_search(
         threshold=threshold,
     )
     click.echo("Search results:")
-    lt.stream(
+    render_objects_table(
         list_of_results,
-        headers="keys",
+        -1,
     )
 
 
