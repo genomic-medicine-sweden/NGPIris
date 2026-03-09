@@ -70,6 +70,8 @@ def pytest_configure(config: Config) -> None:
     # Dynamically add all key-value pairs from "HCI_tests" section
     set_section(config, parser, "HCI_tests")
 
+    set_section(config, parser, "General")
+
 
 @fixture(scope="session")
 def hcp_result_path(pytestconfig: Config) -> str:
