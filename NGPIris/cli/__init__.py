@@ -1,12 +1,12 @@
+# ruff: noqa: SLF001
+
 import sys
-from collections.abc import Generator
 from json import dump
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import click
 from bitmath import SI, Byte
-from click.core import Context
 from tabulate import tabulate
 
 from NGPIris import HCPHandler
@@ -16,11 +16,19 @@ from NGPIris.cli.helpers import (
     download_file,
     download_folder,
     ensure_destination_dir,
-    object_is_folder,
     render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
-from NGPIris.hcp.exceptions import IsFolderObjectError, ObjectDoesNotExistError
+from NGPIris.hcp.exceptions import (
+    IsFileObjectError,
+    IsFolderObjectError,
+    ObjectDoesNotExistError,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from click.core import Context
 
 
 @click.group(cls=SectionedGroup)
@@ -309,26 +317,21 @@ def download(  # noqa: PLR0913
 
     destination_path = ensure_destination_dir(destination)
 
-    is_folder = object_is_folder(source, hcp_h)
+    is_folder = hcp_h._is_object_folder(source)
 
     if dry_run:
-        if hcp_h.object_exists(source):
-            if is_folder:
-                click.echo(
-                    'This command would have downloaded the folder "'
-                    + source
-                    + '". If you wish to know the contents of this folder, '
-                    + "use the 'list-objects' command",
-                )
-            else:
-                click.echo(
-                    'This command would have downloaded the object "'
-                    + source
-                    + '"',
-                )
+        if is_folder:
+            click.echo(
+                'This command would have downloaded the folder "'
+                + source
+                + '". If you wish to know the contents of this folder, '
+                + "use the 'list-objects' command",
+            )
         else:
             click.echo(
-                '"' + source + '" does not exist',
+                'This command would have downloaded the object "'
+                + source
+                + '"',
             )
         return
 
@@ -396,7 +399,7 @@ def list_objects(  # noqa: PLR0913
         path: str,
         output_mode: HCPHandler.ListObjectsOutputMode,
         files_only: bool,
-    ) -> Generator[str, Any, None]:
+    ) -> Generator[str, Any]:
         """
         Handle object list as a paginator that `click` can handle.
         It works slightly different from `list_objects` in `hcp.py` in order to
@@ -415,7 +418,7 @@ def list_objects(  # noqa: PLR0913
         path: str,
         output_mode: HCPHandler.ListObjectsOutputMode,
         files_only: bool,
-    ) -> Generator[dict[str, Any], Any, None]:
+    ) -> Generator[dict[str, Any], Any]:
         objects = hcp_h.list_objects(
             path,
             output_mode=output_mode,
@@ -435,6 +438,10 @@ def list_objects(  # noqa: PLR0913
         if extended_information
         else HCPHandler.ListObjectsOutputMode.SIMPLE
     )
+
+    if not hcp_h._is_object_folder(path):
+        msg = "The provided path is a file, which is not a valid path"
+        raise IsFileObjectError(msg)
 
     if path:
         path_with_slash = add_trailing_slash(path)

@@ -12,7 +12,7 @@ from NGPIris import HCPHandler
 
 # --------------------------- Constants ---------------------------
 
-SUBDIR = "a_sub_directory"
+SUBDIR = "a_sub_directory/"
 
 # --------------------------- Helper functions ---------------------------------
 
@@ -165,9 +165,9 @@ def test_upload_file_in_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
-        SUBDIR + "/a_file",
+        SUBDIR + "a_file",
     )
-    custom_config.hcp_h.delete_object(SUBDIR + "/a_file")
+    custom_config.hcp_h.delete_object(SUBDIR + "a_file")
 
 
 def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
@@ -349,7 +349,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     custom_config.hcp_h.upload_file(
         custom_config.test_file_path,
-        SUBDIR + "/another_dir/a_new_file",
+        SUBDIR + "another_dir/a_new_file",
     )
     try:
         custom_config.hcp_h.delete_folder(SUBDIR)
@@ -357,7 +357,7 @@ def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
         assert True
     else:  # pragma: no cover
         fail("Test failed")
-    custom_config.hcp_h.delete_folder(SUBDIR + "/another_dir/")
+    custom_config.hcp_h.delete_folder(SUBDIR + "another_dir/")
     custom_config.hcp_h.delete_folder(SUBDIR)
 
 

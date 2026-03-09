@@ -91,15 +91,6 @@ def create_HCPHandler(context: Context) -> HCPHandler:
     return hcp_h
 
 
-def object_is_folder(object_path: str, hcp_h: HCPHandler) -> bool:
-    """
-    Predicate for checking if an HCP object is a folder or not.
-    """
-    return (object_path.endswith("/")) and (
-        hcp_h.get_object(object_path)["ContentLength"] == 0
-    )
-
-
 def ensure_destination_dir(destination: str) -> Path:
     """
     Ensure that `destination` exists and return it as a `Path`.

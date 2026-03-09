@@ -3,7 +3,17 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import ParamSpec, TypeVar
 
-from NGPIris.hcp.exceptions import NoBucketMountedError
+from icecream.icecream import ic
+from tqdm import tqdm
+
+from NGPIris.hcp.exceptions import (
+    MetadataCouldNotBeFoundError,
+    NoBucketMountedError,
+    NoStatusCodeSuppliedError,
+    ObjectDoesNotExistError,
+    OperationNotPermittedError,
+    UnknownStatusCodeError,
+)
 
 
 def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  # noqa: D103
@@ -45,26 +55,125 @@ def raise_path_error(path: str) -> None:
 
 
 P = ParamSpec("P")
-T = TypeVar("T")
+R = TypeVar("R")
 
 
-def check_mounted(method: Callable[P, T]) -> Callable[P, T]:
+def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator for checking if a bucket is mounted. This is meant to be used by
     class methods, hence the possibly odd typing.
 
     :param method: An arbitrary class method of the `HCPHandler` class
-    :type method: Callable[ParamSpec("P"), TypeVar("T")]
+    :type method: Callable[ParamSpec("P"), TypeVar("R")]
 
     :return: A decorated class method of the `HCPHandler` class
-    :rtype: Callable[ParamSpec("P"), TypeVar("T")]
+    :rtype: Callable[ParamSpec("P"), TypeVar("R")]
     """
 
-    def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> T:
+    def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> R:
         self = args[0]
-        if not self.bucket_name: # pyright: ignore[reportAttributeAccessIssue]
+        if not self.bucket_name:  # pyright: ignore[reportAttributeAccessIssue]
             msg = "No bucket is mounted"
             raise NoBucketMountedError(msg)
         return method(*args, **kwargs)
 
     return check_if_mounted
+
+
+def operation_response_code_handler(
+    response: dict,
+    operation: str,
+    obj: str | dict | None = None,
+    bucket: str | None = None,
+) -> None:
+    """
+    Check for status codes from response. If it's anything but 200, raise
+    errors.
+
+    :param response: The response dictionary from an S3 operation
+    :type response: dict
+
+    :param operation:
+        The type of operation that will be displayed in the error
+        message.
+    :type operation: str
+
+    :rtype: None
+    """
+    metadata: dict = response.get("ResponseMetadata", {})
+    if metadata:
+        status_code: int | None = metadata.get("HTTPStatusCode")
+        match status_code:
+            case 200:
+                pass
+            case 403:
+                msg = (
+                    "You do not have enough permissions (status code 403) for "
+                    "the following operation: " + operation
+                )
+                raise OperationNotPermittedError(msg)
+            case 404:
+                match obj:
+                    case str():
+                        bucket_str = "' in bucket '" + bucket if bucket else ""
+                        msg = (
+                            "The object '"
+                            + obj
+                            + bucket_str
+                            + "' that was part of the operation could not be "
+                            "found"
+                        )
+                    case dict():
+                        msg = (
+                            "The object that was part of the operation could"
+                            "not be found: " + str(obj)
+                        )
+                    case _:
+                        msg = (
+                            "An object that was part of the operation could "
+                            "not be found"
+                        )
+                raise ObjectDoesNotExistError(msg)
+            case None:
+                msg = "No status code was supplied in the operation response"
+                raise NoStatusCodeSuppliedError(msg)
+            case _:
+                msg = (
+                    "The status code "
+                    + str(status_code)
+                    + " is not among known status codes. Please report this to "
+                    + "the NGP development team"
+                )
+                raise UnknownStatusCodeError(msg)
+    else:
+        msg = "MetadataCouldNotBeFoundError.__doc__"
+        raise MetadataCouldNotBeFoundError(msg)
+
+
+def progress_bar_handler[**P, R](
+    show_progress_bar: bool,
+    file_size: int,
+    desc: str,
+    method: Callable[P, R],
+    method_kwargs: dict,
+) -> None:
+    """
+    Helper function for progressbar logic.
+    """
+
+    def _progress_bar_handler(*args: P.args, **kwargs: P.kwargs) -> None:
+        if show_progress_bar:
+            with tqdm(
+                total=file_size,
+                unit="B",
+                unit_scale=True,
+                desc=desc,
+            ) as pbar:
+                kwargs["Callback"] = lambda bytes_transferred: pbar.update(
+                    bytes_transferred,
+                )
+                method(*args, **kwargs)
+        else:
+            method(*args, **kwargs)
+
+    _progress_bar_handler(**method_kwargs)  # pyright: ignore[reportCallIssue]

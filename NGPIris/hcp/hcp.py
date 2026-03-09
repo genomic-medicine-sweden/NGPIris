@@ -9,7 +9,7 @@ from bitmath import Byte, TiB
 from bitmath import parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
-from botocore.client import Config
+from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
 from more_itertools import peekable
 from parse import Result, parse
@@ -23,6 +23,7 @@ from NGPIris.hcp.exceptions import (
     BucketForbiddenError,
     BucketNotFoundError,
     DownloadLimitReachedError,
+    IsFileObjectError,
     IsFolderObjectError,
     NoBucketMountedError,
     NotAValidTenantError,
@@ -37,6 +38,8 @@ from NGPIris.hcp.exceptions import (
 from NGPIris.hcp.helpers import (
     check_mounted,
     create_access_control_policy,
+    operation_response_code_handler,
+    progress_bar_handler,
     raise_path_error,
 )
 from NGPIris.parse_credentials import CredentialsHandler
@@ -505,12 +508,127 @@ class HCPHandler:
                     output_list.append(base)
         return output_list
 
-    # ---------------------------- Object methods ----------------------------
+    # ---------------------------- Object primitive methods --------------------
+
+    @check_mounted
+    def get_object(self, key: str) -> dict:
+        """
+        Get object data and metadata.
+
+        :param key: Object key
+        :type key: str
+
+        :return: Dictionary with object data and metadata
+        :rtype: dict
+        """
+        try:
+            response = dict(
+                self.s3_client.get_object(
+                    Bucket=self.bucket_name,
+                    Key=key,
+                ),
+            )
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                msg = "The object " + key + " does not exist"
+                raise ObjectDoesNotExistError(msg) from e
+            raise
+        else:
+            return response
+
+    @check_mounted
+    def get_object_metadata(self, key: str) -> dict:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Retrieve object metadata.
+
+        :param key: The object name
+        :type key: str
+
+        :return: A dictionary containing the object metadata
+        :rtype: dict
+        """
+        try:
+            metadata_response = dict(
+                self.s3_client.head_object(Bucket=self.bucket_name, Key=key)
+            )
+        except ClientError as e:
+            rm: dict = e.response
+            operation_response_code_handler(
+                rm, "Get object metadata", key, self.bucket_name
+            )
+            # This `raise` is most likely useless, but acts as fallback
+            # if `operation_response_code_handler` does not raise any exception
+            raise
+        else:
+            return metadata_response
+
+    def _is_object_folder(self, object_path: str) -> bool:
+        end_with_slash = object_path.endswith("/")
+        size_is_none = (
+            self.get_object_metadata(object_path).get("Size", None) is None
+        )
+        return end_with_slash and size_is_none
+
+    def raise_error_if_object_is_file(self, object_path: str) -> None:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Raises an error if `object_path` is a file.
+
+        :param object_path: The path to the object
+        :type object_path: str
+
+        :raises IsFileObjectError: If `object_path` is a file
+        """
+        if not self._is_object_folder(object_path):
+            msg = "The object " + object_path + " is a file"
+            raise IsFileObjectError(msg)
+
+    def raise_error_if_object_is_folder(self, object_path: str) -> None:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Raises an error if `object_path` is a folder.
+
+        :param object_path: The path to the object
+        :type object_path: str
+
+        :raises IsFolderObjectError: If `object_path` is a folder
+        """
+        if self._is_object_folder(object_path):
+            msg = "The object " + object_path + " is a folder"
+            raise IsFolderObjectError(msg)
+
+    @check_mounted
+    def object_exists(self, key: str) -> bool:
+        """
+        [PRIMITIVE OBJECT METHOD].
+
+        Check if a given object is in the mounted bucket.
+
+        :param key: The object name
+        :type key: str
+
+        :return: True if the object exist, otherwise False
+        :rtype: bool
+        """
+        try:
+            self.get_object_metadata(key)
+        except ObjectDoesNotExistError:
+            return False
+        except:
+            raise
+        else:
+            return True
 
     class ListObjectsOutputMode(Enum):
         SIMPLE = "simple"
         EXTENDED = "extended"
         MINIMAL = "minimal"
+
+    # ---------------------------- Object methods ----------------------------
 
     @check_mounted
     def list_objects(  # noqa: C901
@@ -572,6 +690,10 @@ class HCPHandler:
                         "ETag": object_metadata["ETag"],
                     }
 
+        # If `path_key` is the empty string then everything is fine
+        if path_key:
+            self.raise_error_if_object_is_file(path_key)
+
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
             Bucket=self.bucket_name,
@@ -592,7 +714,7 @@ class HCPHandler:
                 for folder_object in page.get("CommonPrefixes", []):
                     folder_object: dict
                     key = folder_object["Prefix"]
-                    folder_object_metadata = self.get_object(
+                    folder_object_metadata = self.get_object_metadata(
                         key,
                     )
                     yield _format_output_dictionary(
@@ -609,45 +731,10 @@ class HCPHandler:
                     )
 
     @check_mounted
-    def get_object(self, key: str) -> dict:
-        """
-        Retrieve object metadata.
-
-        :param key: The object name
-        :type key: str
-
-        :return: A dictionary containing the object metadata
-        :rtype: dict
-        """
-        return dict(
-            self.s3_client.get_object(
-                Bucket=self.bucket_name,
-                Key=key,
-            ),
-        )
-
-    @check_mounted
-    def object_exists(self, key: str) -> bool:
-        """
-        Check if a given object is in the mounted bucket.
-
-        :param key: The object name
-        :type key: str
-
-        :return: True if the object exist, otherwise False
-        :rtype: bool
-        """
-        try:
-            response = self.get_object(key)
-            return response["ResponseMetadata"]["HTTPStatusCode"] == 200  # noqa: PLR2004
-        except Exception:  # noqa: BLE001  # pragma: no cover
-            return False
-
-    @check_mounted
     def download_file(
         self,
         key: str,
-        local_file_path: str,
+        filename: str,
         show_progress_bar: bool = True,
     ) -> None:
         """
@@ -656,10 +743,8 @@ class HCPHandler:
         :param key: Name of the object
         :type key: str
 
-        :param local_file_path:
-            Path to a file on your local system where the contents of the
-            object file can be put
-        :type local_file_path: str
+        :param filename: New name of the object
+        :type filename: str
 
         :param show_progress_bar:
             Boolean choice of displaying a progress bar. Defaults to True
@@ -673,47 +758,20 @@ class HCPHandler:
             https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html#aws-service-exceptions
         :raises Exception: Other exceptions
         """
-        try:
-            self.get_object(key)
-        except:  # noqa: E722
-            msg = (
-                'Could not find object "'
-                + key
-                + '" in bucket "'
-                + str(self.bucket_name)
-                + '"'
-            )
-            raise ObjectDoesNotExistError(
-                msg,
-            ) from None
-
-        if show_progress_bar:
-            file_size: int = self.s3_client.head_object(
-                Bucket=self.bucket_name,
-                Key=key,
-            )["ContentLength"]
-            with tqdm(
-                total=file_size,
-                unit="B",
-                unit_scale=True,
-                desc=key,
-            ) as pbar:
-                self.s3_client.download_file(
-                    Bucket=self.bucket_name,
-                    Key=key,
-                    Filename=local_file_path,
-                    Config=self.transfer_config,
-                    Callback=lambda bytes_transferred: pbar.update(
-                        bytes_transferred,
-                    ),
-                )
-        else:
-            self.s3_client.download_file(
-                Bucket=self.bucket_name,
-                Key=key,
-                Filename=local_file_path,
-                Config=self.transfer_config,
-            )
+        self.raise_error_if_object_is_folder(key)
+        file_size: int = self.get_object_metadata(key)["ContentLength"]
+        progress_bar_handler(
+            show_progress_bar,
+            file_size,
+            key,
+            self.s3_client.download_file,
+            {
+                "Key": key,
+                "Filename": filename,
+                "Bucket": self.bucket_name,
+                "Config": self.transfer_config,
+            },
+        )
 
     @check_mounted
     def download_folder(
@@ -756,19 +814,8 @@ class HCPHandler:
 
         :raises NotADirectoryError: If local_folder_path is not a directory
         """
-        try:
-            self.get_object(folder_key)
-        except:  # noqa: E722
-            msg = (
-                'Could not find object "'
-                + folder_key
-                + '" in bucket "'
-                + str(self.bucket_name)
-                + '"'
-            )
-            raise ObjectDoesNotExistError(
-                msg,
-            ) from None
+        self.raise_error_if_object_is_file(folder_key)
+
         if Path(local_folder_path).is_dir():
             current_download_size_in_bytes = Byte(
                 0,
@@ -887,29 +934,18 @@ class HCPHandler:
                     multipart_chunksize=round(file_size / equal_parts),
                 )
 
-        if show_progress_bar:
-            with tqdm(
-                total=file_size,
-                unit="B",
-                unit_scale=True,
-                desc=local_file_path,
-            ) as pbar:
-                self.s3_client.upload_file(
-                    Filename=local_file_path,
-                    Bucket=self.bucket_name,
-                    Key=key,
-                    Config=config,
-                    Callback=lambda bytes_transferred: pbar.update(
-                        bytes_transferred,
-                    ),
-                )
-        else:
-            self.s3_client.upload_file(
-                Filename=local_file_path,
-                Bucket=self.bucket_name,
-                Key=key,
-                Config=config,
-            )
+        progress_bar_handler(
+            show_progress_bar,
+            file_size,
+            key,
+            self.s3_client.upload_file,
+            {
+                "Filename": local_file_path,
+                "Key": key,
+                "Bucket": self.bucket_name,
+                "Config": config,
+            },
+        )
 
     @check_mounted
     def upload_folder(
@@ -982,13 +1018,7 @@ class HCPHandler:
         does_not_exist = []
         for key in keys:
             if self.object_exists(key):
-                if key[-1] == "/":
-                    raise IsFolderObjectError(
-                        'The object "'
-                        + key
-                        + '" is a folder object. Please use the `delete_folder`'
-                        + "method for this object",
-                    )
+                self.raise_error_if_object_is_folder(key)
                 object_list.append({"Key": key})
             else:
                 does_not_exist.append(key)
@@ -1000,6 +1030,8 @@ class HCPHandler:
                 Bucket=self.bucket_name,
                 Delete=deletion_dict,
             )
+
+            operation_response_code_handler(response, "Delete", deletion_dict)
 
             deleted_files: list = [d["Key"] for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
@@ -1045,8 +1077,7 @@ class HCPHandler:
         :return: The result of the deletion
         :rtype: str
         """  # noqa: D400, D415
-        if key[-1] != "/":
-            key += "/"
+        self.raise_error_if_object_is_file(key)
 
         objects: list[dict[str, Any]] = list(
             self.list_objects(
@@ -1054,11 +1085,6 @@ class HCPHandler:
                 output_mode=HCPHandler.ListObjectsOutputMode.MINIMAL,
             ),
         )
-
-        if not self.object_exists(key):
-            raise ObjectDoesNotExistError(
-                '"' + key + '"' + " does not exist",
-            )
 
         # If the folder object is empty, delete the object itself. Since
         # `delete_objects` was only made for file objects in mind then
@@ -1091,6 +1117,7 @@ class HCPHandler:
         source_key: str,
         destination_key: str,
         destination_bucket: str = "",
+        show_progress_bar: bool = True,
     ) -> None:
         """
         Copy a file object within the HCP.
@@ -1105,24 +1132,24 @@ class HCPHandler:
             The destination bucket, defaults to the mounted bucket
         :type destination_bucket: str
         """
-        file_size: int = self.s3_client.head_object(
-            Bucket=self.bucket_name,
-            Key=source_key,
-        )["ContentLength"]
-        with tqdm(
-            total=file_size,
-            unit="B",
-            unit_scale=True,
-            desc=source_key,
-        ) as pbar:
-            self.s3_client.copy(
-                {"Bucket": self.bucket_name, "Key": source_key},
-                destination_bucket if destination_bucket else self.bucket_name,
-                destination_key,
-                Callback=lambda bytes_transferred: pbar.update(
-                    bytes_transferred,
-                ),
-            )
+        self.raise_error_if_object_is_folder(source_key)
+        file_size: int = self.get_object_metadata(source_key)["ContentLength"]
+        progress_bar_handler(
+            show_progress_bar,
+            file_size,
+            source_key,
+            self.s3_client.copy,
+            {
+                "Key": destination_key,
+                "Bucket": destination_bucket
+                if destination_bucket
+                else self.bucket_name,
+                "CopySource": {
+                    "Bucket": self.bucket_name,
+                    "Key": source_key,
+                },
+            },
+        )
 
     @check_mounted
     def move_file(
