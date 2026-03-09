@@ -1,0 +1,41 @@
+name: Run `basedpyright`
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on pull request events
+  pull_request:
+    branches: ["main", "dev"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  pyright:
+    runs-on: ubuntu-latest
+    name: Run `basedpyright` typecheck
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Create and start virtual environment
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+
+      - name: Install dependencies
+        run: |
+          uv sync
+          uv add basedpyright==1.31.6
+
+      - name: Run `basedpyright`
+        run: |
+          uv run basedpyright >> $GITHUB_STEP_SUMMARY
