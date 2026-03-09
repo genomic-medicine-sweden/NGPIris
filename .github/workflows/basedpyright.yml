@@ -37,4 +37,4 @@ jobs:
 
       - name: Run `basedpyright NGPIris/`
         run: |
-          uv run basedpyright >> $GITHUB_STEP_SUMMARY
+          uv run basedpyright NGPIris/ >> $GITHUB_STEP_SUMMARY
