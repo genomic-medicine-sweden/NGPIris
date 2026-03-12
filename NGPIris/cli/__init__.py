@@ -380,7 +380,7 @@ def download(  # noqa: PLR0913
 def list_objects(  # noqa: PLR0913
     context: Context,
     bucket: str,
-    path: str,
+    path: str | None,
     batch_size: int,
     pagination: bool,
     files_only: bool,
@@ -439,7 +439,7 @@ def list_objects(  # noqa: PLR0913
         else HCPHandler.ListObjectsOutputMode.SIMPLE
     )
 
-    if not hcp_h._is_object_folder(path):
+    if path and not hcp_h._is_object_folder(path):
         msg = "The provided path is a file, which is not a valid path"
         raise IsFileObjectError(msg)
 
