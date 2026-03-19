@@ -438,20 +438,29 @@ class HCPHandler:
                 Byte(stats["Ingested volume"]).best_prefix(SI)
             )
 
-            stats["Storage capacity used"] = str(
-                Byte(stats["Storage capacity used"]).best_prefix(SI)
-            )
+            storage_capacity_used_bytes = Byte(
+                stats["Storage capacity used"]
+            ).best_prefix(SI)
+            stats["Storage capacity used"] = str(storage_capacity_used_bytes)
 
-            bucket_information["Hard quota"] = str(
-                bitmath_parse(bucket_information["Hard quota"]).best_prefix(SI)
-            )
+            hard_quota_bytes = bitmath_parse(
+                bucket_information["Hard quota"]
+            ).best_prefix(SI)
+            bucket_information["Hard quota"] = str(hard_quota_bytes)
 
             bucket_information["Soft quota (%)"] = bucket_information[
                 "Soft quota"
             ]
             del bucket_information["Soft quota"]
 
-            fields = base | stats | bucket_information
+            extra_info = {
+                "Storage capacity used (%)": round(
+                    storage_capacity_used_bytes / hard_quota_bytes, 3
+                )
+                * 100
+            }
+
+            fields = base | stats | bucket_information | extra_info
 
             match output_mode:
                 case HCPHandler.ListBucketsOutputMode.FULL:
@@ -460,11 +469,16 @@ class HCPHandler:
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
                     field_order = [
                         "Bucket",
+                        "Ingested volume",
+                        "Storage capacity used",
                         "Hard quota",
+                        "Storage capacity used (%)",
                         "Soft quota (%)",
+                        "Object count",
                         "Owner",
                         "Description",
                     ]
+
                     output_list.append(
                         OrderedDict(
                             (field, fields[field]) for field in field_order
@@ -474,11 +488,9 @@ class HCPHandler:
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
                     field_order = [
                         "Bucket",
-                        "Ingested volume",
                         "Storage capacity used",
                         "Hard quota",
-                        "Soft quota (%)",
-                        "Object count",
+                        "Storage capacity used (%)",
                         "Owner",
                         "Description",
                     ]
