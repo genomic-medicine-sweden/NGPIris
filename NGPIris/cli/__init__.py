@@ -803,11 +803,17 @@ def test_connection(context: Context, bucket: str) -> None:
     click.echo(hcp_h.test_connection(bucket))
 
 
-@cli.command(section="Utility commands")
+@cli.command(
+    section="Utility commands",
+    short_help="Generate the hashes for a username and password.",
+)
 # @click.argument("username")
 # @click.argument("password")
 @click.pass_context
 def hash_credentials(context: Context) -> None:
+    """
+    Generate the hashes for a username and password.
+    """
     username: str = click.prompt(
         "Please enter your username (a.k.a aws_access_key_id)",
     )
