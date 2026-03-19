@@ -24,6 +24,7 @@ from NGPIris.hcp.exceptions import (
     IsFolderObjectError,
     ObjectDoesNotExistError,
 )
+from NGPIris.utils.utils import base64_hashing, md5_hashing
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -800,6 +801,27 @@ def test_connection(context: Context, bucket: str) -> None:
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     click.echo(hcp_h.test_connection(bucket))
+
+
+@cli.command(section="Utility commands")
+# @click.argument("username")
+# @click.argument("password")
+@click.pass_context
+def hash_credentials(context: Context) -> None:
+    username: str = click.prompt(
+        "Please enter your username (a.k.a aws_access_key_id)",
+    )
+    h_username = base64_hashing(username)
+
+    password: str = click.prompt(
+        "Please enter your password (a.k.a aws_secret_access_key)",
+        hide_input=True,
+        confirmation_prompt=True,
+    )
+    h_password = md5_hashing(password)
+
+    click.echo("Your hashed username is " + h_username)
+    click.echo("Your hashed password is " + h_password)
 
 
 # -------------------- Generate credentials command --------------------
