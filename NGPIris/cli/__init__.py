@@ -664,7 +664,7 @@ def delete_bucket(
         HCPHandler.ListBucketsOutputMode,
         case_sensitive=False,
     ),
-    default=HCPHandler.ListBucketsOutputMode.SIMPLE,
+    default=HCPHandler.ListBucketsOutputMode.EXTENDED,
 )
 @click.pass_context
 def list_buckets(
