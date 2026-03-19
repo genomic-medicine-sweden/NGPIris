@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from bitmath import Byte, TiB
+from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
@@ -434,26 +434,22 @@ class HCPHandler:
                 for k, _ in bucket_information.items()
             }
 
-            # Parse `"Hard quota"` value to be just a number
-            bucket_information["Hard quota (Bytes)"] = int(
-                bitmath_parse(
-                    # TODO(EB): `"Hard quota"` is written as being decimal
-                    # (MB, GB, TB, etc), but it is probably binary
-                    # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
-                    # be 100% correct, and should be corrected soon, but that is
-                    # annoying so I won't right now :/
-                    bucket_information["Hard quota"]
-                ).to_Byte()
+            stats["Ingested volume"] = str(
+                Byte(stats["Ingested volume"]).best_prefix(SI)
             )
+
+            stats["Storage capacity used"] = str(
+                Byte(stats["Storage capacity used"]).best_prefix(SI)
+            )
+
+            bucket_information["Hard quota"] = bitmath_parse(
+                bucket_information["Hard quota"]
+            ).best_prefix(SI)
 
             bucket_information["Soft quota (%)"] = bucket_information[
                 "Soft quota"
             ]
             del bucket_information["Soft quota"]
-
-            for col in ["Ingested volume", "Storage capacity used"]:
-                stats[col + " (Bytes)"] = stats[col]
-                del stats[col]
 
             match output_mode:
                 case HCPHandler.ListBucketsOutputMode.FULL:
@@ -461,7 +457,7 @@ class HCPHandler:
 
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
                     bi_fields = [
-                        "Hard quota (Bytes)",
+                        "Hard quota",
                         "Soft quota (%)",
                         "Description",
                         "Owner",
@@ -474,12 +470,12 @@ class HCPHandler:
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
                     stats_fields = [
-                        "Ingested volume (Bytes)",
-                        "Storage capacity used (Bytes)",
+                        "Ingested volume",
+                        "Storage capacity used",
                         "Object count",
                     ]
                     bi_fields = [
-                        "Hard quota (Bytes)",
+                        "Hard quota",
                         "Soft quota (%)",
                         "Owner",
                     ]
@@ -493,7 +489,7 @@ class HCPHandler:
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
                     stats_fields = ["Object count"]
                     bi_fields = [
-                        "Hard quota (Bytes)",
+                        "Hard quota",
                         "Soft quota (%)",
                         "Owner",
                     ]
