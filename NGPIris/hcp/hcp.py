@@ -1,5 +1,4 @@
 import re
-from collections.abc import Generator
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
@@ -16,7 +15,6 @@ from parse import Result, parse
 from rapidfuzz import fuzz, process, utils
 from requests import get
 from requests.exceptions import HTTPError
-from tqdm import tqdm
 from urllib3 import disable_warnings
 
 from NGPIris.hcp.exceptions import (
@@ -45,6 +43,8 @@ from NGPIris.hcp.helpers import (
 from NGPIris.parse_credentials import CredentialsHandler
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from botocore.paginate import PageIterator, Paginator
 
 _KB = 1024
@@ -636,7 +636,7 @@ class HCPHandler:
         path_key: str = "",
         output_mode: ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
         files_only: bool = False,
-    ) -> Generator[dict[str, Any], Any, None]:
+    ) -> Generator[dict[str, Any], Any]:
         r"""
         List all objects in the mounted bucket as a generator.
         If one wishes to get the result as a list, use :py:function:`list` to
