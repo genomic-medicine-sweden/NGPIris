@@ -2,7 +2,7 @@ import re
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, OrderedDict
 
 from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
@@ -459,8 +459,8 @@ class HCPHandler:
                     bi_fields = [
                         "Hard quota",
                         "Soft quota (%)",
-                        "Description",
                         "Owner",
+                        "Description",
                     ]
                     output_list.append(
                         base
@@ -469,21 +469,37 @@ class HCPHandler:
                     )
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
-                    stats_fields = [
+                    final_field_order: list[str] = [
+                        "Bucket",
                         "Ingested volume",
                         "Storage capacity used",
+                        "Hard quota",
+                        "Soft quota (%)",
                         "Object count",
+                        "Owner",
+                        "Description",
+                    ]
+                    stats_fields = [
+                        "Object count",
+                        "Ingested volume",
+                        "Storage capacity used",
                     ]
                     bi_fields = [
                         "Hard quota",
                         "Soft quota (%)",
                         "Owner",
+                        "Description",
                     ]
-
-                    output_list.append(
+                    fields = (
                         base
                         | {f: stats[f] for f in stats_fields}
                         | {f: bucket_information[f] for f in bi_fields}
+                    )
+                    output_list.append(
+                        OrderedDict(
+                            (field, fields[field])
+                            for field in final_field_order
+                        )
                     )
 
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
