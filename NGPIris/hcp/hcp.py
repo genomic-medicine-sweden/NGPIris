@@ -503,10 +503,8 @@ class HCPHandler:
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
                     field_order = [
                         "Bucket",
-                        "Hard quota",
-                        "Soft quota (%)",
+                        "Storage capacity used (%)",
                         "Object count",
-                        "Owner",
                     ]
                     output_list.append(
                         OrderedDict(
