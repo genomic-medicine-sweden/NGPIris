@@ -2,9 +2,9 @@ import re
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, OrderedDict
 
-from bitmath import Byte, TiB
+from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
@@ -434,74 +434,82 @@ class HCPHandler:
                 for k, _ in bucket_information.items()
             }
 
-            # Parse `"Hard quota"` value to be just a number
-            bucket_information["Hard quota (Bytes)"] = int(
-                bitmath_parse(
-                    # TODO(EB): `"Hard quota"` is written as being decimal
-                    # (MB, GB, TB, etc), but it is probably binary
-                    # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
-                    # be 100% correct, and should be corrected soon, but that is
-                    # annoying so I won't right now :/
-                    bucket_information["Hard quota"]
-                ).to_Byte()
+            stats["Ingested volume"] = str(
+                Byte(stats["Ingested volume"]).best_prefix(SI)
             )
+
+            storage_capacity_used_bytes = Byte(
+                stats["Storage capacity used"]
+            ).best_prefix(SI)
+            stats["Storage capacity used"] = str(storage_capacity_used_bytes)
+
+            hard_quota_bytes = bitmath_parse(
+                bucket_information["Hard quota"]
+            ).best_prefix(SI)
+            bucket_information["Hard quota"] = str(hard_quota_bytes)
 
             bucket_information["Soft quota (%)"] = bucket_information[
                 "Soft quota"
             ]
             del bucket_information["Soft quota"]
 
-            for col in ["Ingested volume", "Storage capacity used"]:
-                stats[col + " (Bytes)"] = stats[col]
-                del stats[col]
+            extra_info = {
+                "Storage capacity used (%)": round(
+                    storage_capacity_used_bytes / hard_quota_bytes, 3
+                )
+                * 100
+            }
+
+            fields = base | stats | bucket_information | extra_info
 
             match output_mode:
                 case HCPHandler.ListBucketsOutputMode.FULL:
-                    output_list.append(base | stats | bucket_information)
+                    output_list.append(fields)
 
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
-                    bi_fields = [
-                        "Hard quota (Bytes)",
+                    field_order = [
+                        "Bucket",
+                        "Ingested volume",
+                        "Storage capacity used",
+                        "Hard quota",
+                        "Storage capacity used (%)",
                         "Soft quota (%)",
-                        "Description",
+                        "Object count",
                         "Owner",
+                        "Description",
                     ]
+
                     output_list.append(
-                        base
-                        | stats
-                        | {f: bucket_information[f] for f in bi_fields}
+                        OrderedDict(
+                            (field, fields[field]) for field in field_order
+                        )
                     )
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
-                    stats_fields = [
-                        "Ingested volume (Bytes)",
-                        "Storage capacity used (Bytes)",
-                        "Object count",
-                    ]
-                    bi_fields = [
-                        "Hard quota (Bytes)",
-                        "Soft quota (%)",
+                    field_order = [
+                        "Bucket",
+                        "Storage capacity used",
+                        "Hard quota",
+                        "Storage capacity used (%)",
                         "Owner",
+                        "Description",
                     ]
-
                     output_list.append(
-                        base
-                        | {f: stats[f] for f in stats_fields}
-                        | {f: bucket_information[f] for f in bi_fields}
+                        OrderedDict(
+                            (field, fields[field]) for field in field_order
+                        )
                     )
 
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
-                    stats_fields = ["Object count"]
-                    bi_fields = [
-                        "Hard quota (Bytes)",
-                        "Soft quota (%)",
-                        "Owner",
+                    field_order = [
+                        "Bucket",
+                        "Storage capacity used (%)",
+                        "Object count",
                     ]
-
                     output_list.append(
-                        base
-                        | {f: stats[f] for f in stats_fields}
-                        | {f: bucket_information[f] for f in bi_fields}
+                        OrderedDict(
+                            (field, fields[field]) for field in field_order
+                        )
                     )
 
                 case HCPHandler.ListBucketsOutputMode.BUCKET_ONLY:
