@@ -1,5 +1,6 @@
 import os
 import sys
+from json import load
 from pathlib import Path
 from typing import Any, Generator
 
@@ -51,11 +52,29 @@ def create_HCPHandler(context: Context) -> HCPHandler:
         sys.exit(1)
 
     credentials: str | None = parent_context.params.get("credentials")
+    profile: str | None = parent_context.params.get("profile")
+    profile_path: str | None = parent_context.params.get("profile_path")
 
     if credentials:
         hcp_credentials = credentials
     elif os.environ.get("NGPIRIS_CREDENTIALS_PATH", None):
         hcp_credentials = os.environ["NGPIRIS_CREDENTIALS_PATH"]
+    elif profile_path:
+        if profile:
+            # profile_path = os.environ.get(PROFILE_PATH_ENV_VAR)
+            with Path(profile_path).open() as file:
+                profiles_dict: dict = load(file)
+                creds: dict | None = profiles_dict.get(profile)
+                if creds:
+                    hcp_credentials = creds["hcp"]
+                else:
+                    click.echo(
+                        "No profile named" + profile + " exist", err=True
+                    )
+                    sys.exit(1)
+        else:
+            click.echo("No profile supplied with `-p`")
+            sys.exit(1)
     else:
         endpoint: str = click.prompt(
             "Please enter your tenant endpoint",

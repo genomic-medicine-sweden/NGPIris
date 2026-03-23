@@ -39,6 +39,20 @@ if TYPE_CHECKING:
     help="Path to a JSON file with credentials",
 )
 @click.option(
+    "-pp",
+    "--profile_path",
+    help=("Path to the profile JSON file"),
+)
+@click.option(
+    "-p",
+    "--profile",
+    help=("Select a profile after setting profile path with the `-pp` flag"),
+    # help=(
+    #    "Select a profile after setting profile path with the `set-profile` "
+    #    "command"
+    # ),
+)
+@click.option(
     "--debug",
     help="Get the debug log for running a command",
     is_flag=True,
@@ -50,9 +64,11 @@ if TYPE_CHECKING:
 )
 @click.version_option(package_name="NGPIris")
 @click.pass_context
-def cli(
+def cli(  # noqa: PLR0913
     context: Context,
     credentials: str,
+    profile_path: str,
+    profile: str,
     debug: bool,
     transfer_config: str,
 ) -> None:
