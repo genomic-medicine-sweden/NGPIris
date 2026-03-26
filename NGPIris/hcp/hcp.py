@@ -2,6 +2,7 @@ import re
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
+from sys import setrecursionlimit
 from typing import TYPE_CHECKING, Any, OrderedDict
 
 from bitmath import SI, Byte, TiB
@@ -995,19 +996,28 @@ class HCPHandler:
         """
         raise_path_error(local_folder_path)
 
-        if not key:
-            key = local_folder_path
+        # Should not ever need to recurse 4000 times but you never know :P
+        setrecursionlimit(4000)
 
-        filenames = Path(local_folder_path).iterdir()
+        files_and_folders = Path(local_folder_path).iterdir()
 
-        for filename in filenames:
-            self.upload_file(
-                local_folder_path + filename.name,
-                key + filename.name,
-                show_progress_bar=show_progress_bar,
-                upload_mode=upload_mode,
-                equal_parts=equal_parts,
-            )
+        for file_or_folder in files_and_folders:
+            if file_or_folder.is_dir():
+                self.upload_folder(
+                    str(file_or_folder),
+                    str(Path(key) / file_or_folder.name),
+                    show_progress_bar=show_progress_bar,
+                    upload_mode=upload_mode,
+                    equal_parts=equal_parts,
+                )
+            else:
+                self.upload_file(
+                    str(file_or_folder),
+                    str(Path(key) / file_or_folder.name),
+                    show_progress_bar=show_progress_bar,
+                    upload_mode=upload_mode,
+                    equal_parts=equal_parts,
+                )
 
     @check_mounted
     def delete_objects(self, keys: list[str]) -> str:
