@@ -937,8 +937,6 @@ class HCPHandler:
         local_folder_path: str,
         key: str = "",
         show_progress_bar: bool = True,
-        upload_mode: UploadMode = UploadMode.STANDARD,
-        equal_parts: int = 5,
     ) -> None:
         r"""
         Upload the contents of a folder to the mounted bucket.
@@ -982,16 +980,12 @@ class HCPHandler:
                     str(file_or_folder),
                     str(Path(key) / file_or_folder.name),
                     show_progress_bar=show_progress_bar,
-                    upload_mode=upload_mode,
-                    equal_parts=equal_parts,
                 )
             else:
                 self.upload_file(
                     str(file_or_folder),
                     str(Path(key) / file_or_folder.name),
                     show_progress_bar=show_progress_bar,
-                    upload_mode=upload_mode,
-                    equal_parts=equal_parts,
                 )
 
     @check_mounted
