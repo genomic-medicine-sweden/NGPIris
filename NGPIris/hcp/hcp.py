@@ -879,8 +879,6 @@ class HCPHandler:
         local_file_path: str,
         key: str = "",
         show_progress_bar: bool = True,
-        upload_mode: UploadMode = UploadMode.STANDARD,
-        equal_parts: int = 5,
     ) -> None:
         r"""
         Upload one file to the mounted bucket.
@@ -896,19 +894,6 @@ class HCPHandler:
         :param show_progress_bar:
             Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
-
-        :param upload_mode:
-            The upload mode of the transfer is any of the following:\n
-                HCPHandler.UploadMode.STANDARD,\n
-                HCPHandler.UploadMode.SIMPLE,\n
-                HCPHandler.UploadMode.EQUAL_PARTS\n
-            Default is STANDARD
-        :type upload_mode: UploadMode, optional
-
-        :param equal_parts:
-            The number of equal parts that each file should be divided into when
-            using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
-        :type equal_parts: int, optional
 
         :raises FileNotFoundError: If `path` does not exist
 
@@ -933,16 +918,6 @@ class HCPHandler:
 
         file_size: int = Path(local_file_path).stat().st_size
 
-        match upload_mode:
-            case HCPHandler.UploadMode.STANDARD:
-                config = self.transfer_config
-            case HCPHandler.UploadMode.SIMPLE:
-                config = TransferConfig(multipart_chunksize=file_size)
-            case HCPHandler.UploadMode.EQUAL_PARTS:
-                config = TransferConfig(
-                    multipart_chunksize=round(file_size / equal_parts),
-                )
-
         progress_bar_handler(
             show_progress_bar,
             file_size,
@@ -952,7 +927,7 @@ class HCPHandler:
                 "Filename": local_file_path,
                 "Key": key,
                 "Bucket": self.bucket_name,
-                "Config": config,
+                "Config": self.transfer_config,
             },
         )
 
