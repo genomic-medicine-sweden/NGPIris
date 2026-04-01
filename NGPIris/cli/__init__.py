@@ -490,38 +490,13 @@ def list_objects(  # noqa: PLR0913
     ),
     is_flag=True,
 )
-@click.option(
-    "-um",
-    "--upload_mode",
-    help="""
-    Choose an upload method. Default upload mode is STANDARD which uses a basic
-    multipart upload. Use another mode than STANDARD if that mode misbehaves
-    """,
-    type=click.Choice(
-        ["STANDARD", "SIMPLE", "EQUAL_PARTS"],
-        case_sensitive=False,
-    ),
-    default="STANDARD",
-)
-@click.option(
-    "-ep",
-    "--equal_parts",
-    help="""
-    Supplementary option when using the EQUAL_PARTS upload mode. Splits each
-    file into a given number of parts. Must be a positive integer
-    """,
-    type=int,
-    default=5,
-)
 @click.pass_context
-def upload(  # noqa: PLR0913
+def upload(
     context: Context,
     bucket: str,
     source: str,
     destination: str,
     dry_run: bool,
-    upload_mode: str,
-    equal_parts: int,
 ) -> None:
     """
     Upload files to a bucket/namespace on the HCP.
@@ -532,15 +507,6 @@ def upload(  # noqa: PLR0913
 
     DESTINATION is the destination path on the HCP.
     """
-    if equal_parts <= 0:
-        click.echo(
-            "Error: --equal_parts value must be a positive integer",
-            err=True,
-        )
-        sys.exit(1)
-
-    upload_mode_choice = HCPHandler.UploadMode(upload_mode.lower())
-
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
     destination = add_trailing_slash(destination)
@@ -558,8 +524,6 @@ def upload(  # noqa: PLR0913
             hcp_h.upload_folder(
                 source,
                 destination,
-                upload_mode=upload_mode_choice,
-                equal_parts=equal_parts,
             )
     else:
         file_name = Path(source).name
@@ -576,8 +540,6 @@ def upload(  # noqa: PLR0913
             hcp_h.upload_file(
                 source,
                 destination,
-                upload_mode=upload_mode_choice,
-                equal_parts=equal_parts,
             )
 
 
