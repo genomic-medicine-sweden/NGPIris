@@ -190,7 +190,10 @@ def test_upload_folder(custom_config: CustomConfig) -> None:
         key,
     )
     for obj in custom_config.hcp_h.list_objects(key):
-        custom_config.hcp_h.delete_folder(obj["Key"])
+        if obj["IsFile"]:
+            custom_config.hcp_h.delete_object(obj["Key"])
+        else:
+            custom_config.hcp_h.delete_folder(obj["Key"])
 
 
 def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
