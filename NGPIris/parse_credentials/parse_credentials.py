@@ -1,8 +1,7 @@
 from json import load
 from pathlib import Path
-from typing import TypeAlias
 
-Credentials: TypeAlias = dict[str, dict[str, str]]
+type Credentials = dict[str, dict[str, str]]
 
 
 class CredentialsHandler:

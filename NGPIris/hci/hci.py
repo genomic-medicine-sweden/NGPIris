@@ -1,5 +1,6 @@
 from json import load
 from pathlib import Path
+from warnings import deprecated
 
 from requests import Response, post
 from urllib3 import disable_warnings
@@ -53,18 +54,32 @@ class HCIHandler:
             self.auth_port = credentials["auth_port"]
             self.api_port = credentials["api_port"]
 
-        self.token = ""
-
         self.use_ssl = use_ssl
 
         if not self.use_ssl:
             disable_warnings()
 
+        self.token = self._request_token()
+
+    @deprecated(
+        "`request_token` is depricated in favour of integrating its "
+        "functionality in the `HCIHandler` constructor"
+    )
     def request_token(self) -> None:
         """
         Request a token from the HCI, which is stored in the HCIHandler object.
         The token is used for every operation that needs to send a request to
         HCI.
+
+        :raises ConnectionError:
+            If there was a problem when requesting a token
+        """
+        self.token = self._request_token()
+
+    def _request_token(self) -> str:
+        """
+        Request a token from the HCI. The token is used for every operation
+        that needs to send a request to HCI.
 
         :raises ConnectionError:
             If there was a problem when requesting a token
@@ -92,7 +107,7 @@ class HCIHandler:
             raise ConnectionError(error_msg) from None
 
         token: str = response.json()["access_token"]
-        self.token = token
+        return token
 
     def list_index_names(self) -> list[str]:
         """

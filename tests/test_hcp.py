@@ -12,7 +12,7 @@ from NGPIris import HCPHandler
 
 # --------------------------- Constants ---------------------------
 
-SUBDIR = "a_sub_directory/"
+SUBDIR = "B/"
 
 # --------------------------- Helper functions ---------------------------------
 
@@ -189,7 +189,11 @@ def test_upload_folder(custom_config: CustomConfig) -> None:
         custom_config.test_folder_path,
         key,
     )
-    custom_config.hcp_h.delete_folder(key)
+    for obj in custom_config.hcp_h.list_objects(key):
+        if obj["IsFile"]:
+            custom_config.hcp_h.delete_object(obj["Key"])
+        else:
+            custom_config.hcp_h.delete_folder(obj["Key"])
 
 
 def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
@@ -307,7 +311,11 @@ def test_download_folder(custom_config: CustomConfig) -> None:
         key,
         custom_config.result_path,
     )
-    custom_config.hcp_h.delete_folder(key)
+    for obj in custom_config.hcp_h.list_objects(key):
+        if obj["IsFile"]:
+            custom_config.hcp_h.delete_object(obj["Key"])
+        else:
+            custom_config.hcp_h.delete_folder(obj["Key"])
 
 
 # delete_objects
@@ -342,7 +350,11 @@ def test_delete_folder(custom_config: CustomConfig) -> None:
         custom_config.test_folder_path,
         key,
     )
-    custom_config.hcp_h.delete_folder(key)
+    for obj in custom_config.hcp_h.list_objects(key):
+        if obj["IsFile"]:
+            custom_config.hcp_h.delete_object(obj["Key"])
+        else:
+            custom_config.hcp_h.delete_folder(obj["Key"])
 
 
 def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:
