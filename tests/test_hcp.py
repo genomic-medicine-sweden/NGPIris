@@ -12,7 +12,7 @@ from NGPIris import HCPHandler
 
 # --------------------------- Constants ---------------------------
 
-SUBDIR = "a_sub_directory/"
+SUBDIR = "B/"
 
 # --------------------------- Helper functions ---------------------------------
 
@@ -189,7 +189,8 @@ def test_upload_folder(custom_config: CustomConfig) -> None:
         custom_config.test_folder_path,
         key,
     )
-    custom_config.hcp_h.delete_folder(key)
+    for obj in custom_config.hcp_h.list_objects(key):
+        custom_config.hcp_h.delete_folder(obj["Key"])
 
 
 def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
