@@ -1,7 +1,9 @@
-from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import click
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class SectionedGroup(click.Group):
@@ -10,9 +12,7 @@ class SectionedGroup(click.Group):
     """
 
     def format_commands(
-        self,
-        ctx : click.Context,
-        formatter: click.HelpFormatter
+        self, ctx: click.Context, formatter: click.HelpFormatter
     ) -> None:
         """
         Format commands such that commands are grouped in sections.
@@ -42,10 +42,8 @@ class SectionedGroup(click.Group):
                     rows.append((name, cmd.get_short_help_str()))
                 formatter.write_dl(rows)
 
-    def command( # pyright: ignore[reportIncompatibleMethodOverride]
-        self,
-        *args,
-        **kwargs
+    def command(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, *args, **kwargs
     ) -> Callable[[Callable[..., Any]], click.Command] | click.Command:
         """
         Override Group.command to accept a 'section' kwarg.
@@ -59,7 +57,7 @@ class SectionedGroup(click.Group):
         def decorator(f: Callable) -> click.Command:
             cmd = super(SectionedGroup, self).command(*args, **kwargs)(f)
             if section is not None:
-                cmd.section = section # pyright: ignore[reportAttributeAccessIssue]
+                cmd.section = section  # pyright: ignore[reportAttributeAccessIssue]
             return cmd
 
         return decorator
