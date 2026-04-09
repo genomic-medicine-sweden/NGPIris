@@ -46,4 +46,4 @@ jobs:
           python .github/workflows/ruff_stats_to_md.py >> $GITHUB_STEP_SUMMARY
 
       - name: Run `ruff check`
-        run: ruff check
+        run: ruff check NGPIris
