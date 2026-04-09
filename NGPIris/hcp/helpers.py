@@ -1,7 +1,6 @@
 import sys
-from collections.abc import Callable
 from pathlib import Path
-from typing import ParamSpec, TypeVar
+from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
 from tqdm import tqdm
 
@@ -13,6 +12,9 @@ from NGPIris.hcp.exceptions import (
     OperationNotPermittedError,
     UnknownStatusCodeError,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  # noqa: D103

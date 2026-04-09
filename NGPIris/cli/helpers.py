@@ -62,11 +62,11 @@ def create_HCPHandler(context: Context) -> HCPHandler:
         )
 
         aws_access_key_id: str = click.prompt(
-            "Please enter your base64 hashed aws_access_key_id",
+            "Please enter your base64 hashed username (a.k.a aws_access_key_id)",
         )
 
         aws_secret_access_key: str = click.prompt(
-            "Please enter your md5 hashed aws_secret_access_key",
+            "Please enter your md5 hashed password (a.k.a aws_secret_access_key)",
             hide_input=True,
             confirmation_prompt=True,
         )

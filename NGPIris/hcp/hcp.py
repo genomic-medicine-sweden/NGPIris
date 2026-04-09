@@ -1,11 +1,11 @@
 import re
-from collections.abc import Generator
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from sys import setrecursionlimit
+from typing import TYPE_CHECKING, Any, OrderedDict
 
-from bitmath import Byte, TiB
+from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
 from boto3 import client
 from boto3.s3.transfer import TransferConfig
@@ -16,7 +16,6 @@ from parse import Result, parse
 from rapidfuzz import fuzz, process, utils
 from requests import get
 from requests.exceptions import HTTPError
-from tqdm import tqdm
 from urllib3 import disable_warnings
 
 from NGPIris.hcp.exceptions import (
@@ -45,6 +44,8 @@ from NGPIris.hcp.helpers import (
 from NGPIris.parse_credentials import CredentialsHandler
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from botocore.paginate import PageIterator, Paginator
 
 _KB = 1024
@@ -434,74 +435,82 @@ class HCPHandler:
                 for k, _ in bucket_information.items()
             }
 
-            # Parse `"Hard quota"` value to be just a number
-            bucket_information["Hard quota (Bytes)"] = int(
-                bitmath_parse(
-                    # TODO(EB): `"Hard quota"` is written as being decimal
-                    # (MB, GB, TB, etc), but it is probably binary
-                    # (MiB, GiB, TiB, etc). As such the `bitmath_parse` will not
-                    # be 100% correct, and should be corrected soon, but that is
-                    # annoying so I won't right now :/
-                    bucket_information["Hard quota"]
-                ).to_Byte()
+            stats["Ingested volume"] = str(
+                Byte(stats["Ingested volume"]).best_prefix(SI)
             )
+
+            storage_capacity_used_bytes = Byte(
+                stats["Storage capacity used"]
+            ).best_prefix(SI)
+            stats["Storage capacity used"] = str(storage_capacity_used_bytes)
+
+            hard_quota_bytes = bitmath_parse(
+                bucket_information["Hard quota"]
+            ).best_prefix(SI)
+            bucket_information["Hard quota"] = str(hard_quota_bytes)
 
             bucket_information["Soft quota (%)"] = bucket_information[
                 "Soft quota"
             ]
             del bucket_information["Soft quota"]
 
-            for col in ["Ingested volume", "Storage capacity used"]:
-                stats[col + " (Bytes)"] = stats[col]
-                del stats[col]
+            extra_info = {
+                "Storage capacity used (%)": round(
+                    storage_capacity_used_bytes / hard_quota_bytes, 3
+                )
+                * 100
+            }
+
+            fields = base | stats | bucket_information | extra_info
 
             match output_mode:
                 case HCPHandler.ListBucketsOutputMode.FULL:
-                    output_list.append(base | stats | bucket_information)
+                    output_list.append(fields)
 
                 case HCPHandler.ListBucketsOutputMode.EXTENDED:
-                    bi_fields = [
-                        "Hard quota (Bytes)",
+                    field_order = [
+                        "Bucket",
+                        "Ingested volume",
+                        "Storage capacity used",
+                        "Hard quota",
+                        "Storage capacity used (%)",
                         "Soft quota (%)",
-                        "Description",
+                        "Object count",
                         "Owner",
+                        "Description",
                     ]
+
                     output_list.append(
-                        base
-                        | stats
-                        | {f: bucket_information[f] for f in bi_fields}
+                        OrderedDict(
+                            (field, fields[field]) for field in field_order
+                        )
                     )
 
                 case HCPHandler.ListBucketsOutputMode.SIMPLE:
-                    stats_fields = [
-                        "Ingested volume (Bytes)",
-                        "Storage capacity used (Bytes)",
-                        "Object count",
-                    ]
-                    bi_fields = [
-                        "Hard quota (Bytes)",
-                        "Soft quota (%)",
+                    field_order = [
+                        "Bucket",
+                        "Storage capacity used",
+                        "Hard quota",
+                        "Storage capacity used (%)",
                         "Owner",
+                        "Description",
                     ]
-
                     output_list.append(
-                        base
-                        | {f: stats[f] for f in stats_fields}
-                        | {f: bucket_information[f] for f in bi_fields}
+                        OrderedDict(
+                            (field, fields[field]) for field in field_order
+                        )
                     )
 
                 case HCPHandler.ListBucketsOutputMode.MINIMAL:
-                    stats_fields = ["Object count"]
-                    bi_fields = [
-                        "Hard quota (Bytes)",
-                        "Soft quota (%)",
-                        "Owner",
+                    field_order = [
+                        "Bucket",
+                        "Storage capacity used (%)",
+                        "Object count",
                     ]
-
                     output_list.append(
-                        base
-                        | {f: stats[f] for f in stats_fields}
-                        | {f: bucket_information[f] for f in bi_fields}
+                        OrderedDict(
+                            (field, fields[field]) for field in field_order
+                        )
                     )
 
                 case HCPHandler.ListBucketsOutputMode.BUCKET_ONLY:
@@ -636,7 +645,7 @@ class HCPHandler:
         path_key: str = "",
         output_mode: ListObjectsOutputMode = ListObjectsOutputMode.EXTENDED,
         files_only: bool = False,
-    ) -> Generator[dict[str, Any], Any, None]:
+    ) -> Generator[dict[str, Any], Any]:
         r"""
         List all objects in the mounted bucket as a generator.
         If one wishes to get the result as a list, use :py:function:`list` to
@@ -987,19 +996,28 @@ class HCPHandler:
         """
         raise_path_error(local_folder_path)
 
-        if not key:
-            key = local_folder_path
+        # Should not ever need to recurse 4000 times but you never know :P
+        setrecursionlimit(4000)
 
-        filenames = Path(local_folder_path).iterdir()
+        files_and_folders = Path(local_folder_path).iterdir()
 
-        for filename in filenames:
-            self.upload_file(
-                local_folder_path + filename.name,
-                key + filename.name,
-                show_progress_bar=show_progress_bar,
-                upload_mode=upload_mode,
-                equal_parts=equal_parts,
-            )
+        for file_or_folder in files_and_folders:
+            if file_or_folder.is_dir():
+                self.upload_folder(
+                    str(file_or_folder),
+                    str(Path(key) / file_or_folder.name),
+                    show_progress_bar=show_progress_bar,
+                    upload_mode=upload_mode,
+                    equal_parts=equal_parts,
+                )
+            else:
+                self.upload_file(
+                    str(file_or_folder),
+                    str(Path(key) / file_or_folder.name),
+                    show_progress_bar=show_progress_bar,
+                    upload_mode=upload_mode,
+                    equal_parts=equal_parts,
+                )
 
     @check_mounted
     def delete_objects(self, keys: list[str]) -> str:
