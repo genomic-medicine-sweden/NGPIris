@@ -810,7 +810,7 @@ def test_connection(context: Context, bucket: str) -> None:
 # @click.argument("username")
 # @click.argument("password")
 @click.pass_context
-def hash_credentials(context: Context) -> None:
+def hash_credentials(context: Context) -> None:  # noqa: ARG001
     """
     Generate the hashes for a username and password.
     """

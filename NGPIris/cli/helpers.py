@@ -1,15 +1,19 @@
 import os
 import sys
 from pathlib import Path
-from typing import Any, Generator
+from typing import TYPE_CHECKING, Any
 
 import click
 from bitmath import Byte, TiB
 from boto3 import set_stream_logger
-from click.core import Context
 from tabulate import tabulate
 
 from NGPIris import HCPHandler
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from click.core import Context
 
 
 def add_trailing_slash(path: str) -> str:
@@ -62,11 +66,17 @@ def create_HCPHandler(context: Context) -> HCPHandler:
         )
 
         aws_access_key_id: str = click.prompt(
-            "Please enter your base64 hashed username (a.k.a aws_access_key_id)",
+            (
+                "Please enter your base64 hashed username "
+                "(a.k.a aws_access_key_id)"
+            ),
         )
 
         aws_secret_access_key: str = click.prompt(
-            "Please enter your md5 hashed password (a.k.a aws_secret_access_key)",
+            (
+                "Please enter your md5 hashed password "
+                "(a.k.a aws_secret_access_key)"
+            ),
             hide_input=True,
             confirmation_prompt=True,
         )
@@ -157,7 +167,7 @@ def download_file(
 
 
 def render_objects_table(
-    table_data: Generator[dict[str, Any], Any, None], batch_size: int
+    table_data: Generator[dict[str, Any], Any], batch_size: int
 ) -> None:
     """
     Helper function for lazily displaying objects in a table with a given batch

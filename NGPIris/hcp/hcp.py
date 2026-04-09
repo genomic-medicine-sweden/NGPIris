@@ -1,9 +1,10 @@
 import re
+from collections import OrderedDict
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
 from sys import setrecursionlimit
-from typing import TYPE_CHECKING, Any, OrderedDict
+from typing import TYPE_CHECKING, Any
 
 from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
