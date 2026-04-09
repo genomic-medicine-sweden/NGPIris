@@ -831,14 +831,14 @@ class HCPHandler:
                 0,
             )  # For tracking download limit
             (Path(local_folder_path) / Path(folder_key)).mkdir(
-                parents=True,
+                parents=True, exist_ok=True
             )  # Create "base folder"
             for hcp_object in self.list_objects(
                 folder_key,
             ):  # Build the tree with directories or add files:
                 p = Path(local_folder_path) / Path(hcp_object["Key"])
                 if not hcp_object["IsFile"]:  # If the object is a "folder"
-                    p.mkdir(parents=True)
+                    p.mkdir(parents=True, exist_ok=True)
                     self.download_folder(
                         folder_key=str(hcp_object["Key"]),
                         local_folder_path=local_folder_path,
