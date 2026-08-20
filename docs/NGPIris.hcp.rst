@@ -1,6 +1,8 @@
 NGPIris.hcp package
 ===================
 
+This page contains everything related to the `NGPIris.hcp` module and its submodules.
+
 NGPIris.hcp.hcp module
 ----------------------
 
