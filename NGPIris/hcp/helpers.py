@@ -1,4 +1,5 @@
 import sys
+from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
@@ -55,10 +56,6 @@ def raise_path_error(path: str) -> None:
         raise FileNotFoundError('"' + path + '"' + " does not exist")
 
 
-P = ParamSpec("P")
-R = TypeVar("R")
-
-
 def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
     """
     Decorator for checking if a bucket is mounted. This is meant to be used by
@@ -71,6 +68,7 @@ def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
     :rtype: Callable[ParamSpec("P"), TypeVar("R")]
     """
 
+    @wraps(method)
     def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> R:
         self = args[0]
         if not self.bucket_name:  # pyright: ignore[reportAttributeAccessIssue]
