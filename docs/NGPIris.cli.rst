@@ -4,7 +4,7 @@ NGPIris.cli package
 This page contains the CLI commands. For information about the submodules of `NGPIris.cli`, go to :ref:`submodules`.
 
 CLI commands
----------------
+------------
 The following is an enumeration of all commands and subcommands provided with IRIS
 
 .. click:: NGPIris.cli:cli
@@ -18,7 +18,7 @@ The following is an enumeration of all commands and subcommands provided with IR
 .. _submodules:
 
 Submodules
---------------------------
+----------
 
 The following sections describe the submodules of `NGPIris.cli`.
 
