@@ -9,37 +9,37 @@ NGPIris.hcp.exceptions module
 
 .. automodule:: NGPIris.hcp.exceptions
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 NGPIris.hcp.hcp module
 ----------------------
 
 .. automodule:: NGPIris.hcp.hcp
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 NGPIris.hcp.helpers module
 --------------------------
 
 .. automodule:: NGPIris.hcp.helpers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 NGPIris.hcp.statistics module
 -----------------------------
 
 .. automodule:: NGPIris.hcp.statistics
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: NGPIris.hcp
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

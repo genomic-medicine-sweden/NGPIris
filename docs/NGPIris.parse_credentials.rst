@@ -9,13 +9,13 @@ NGPIris.parse\_credentials.parse\_credentials module
 
 .. automodule:: NGPIris.parse_credentials.parse_credentials
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: NGPIris.parse_credentials
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

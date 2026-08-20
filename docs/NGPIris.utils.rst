@@ -9,13 +9,13 @@ NGPIris.utils.utils module
 
 .. automodule:: NGPIris.utils.utils
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: NGPIris.utils
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

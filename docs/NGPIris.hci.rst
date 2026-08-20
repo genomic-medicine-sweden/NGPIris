@@ -9,29 +9,29 @@ NGPIris.hci.exceptions module
 
 .. automodule:: NGPIris.hci.exceptions
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 NGPIris.hci.hci module
 ----------------------
 
 .. automodule:: NGPIris.hci.hci
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 NGPIris.hci.helpers module
 --------------------------
 
 .. automodule:: NGPIris.hci.helpers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: NGPIris.hci
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

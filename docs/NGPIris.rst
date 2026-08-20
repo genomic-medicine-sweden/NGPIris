@@ -18,5 +18,5 @@ Module contents
 
 .. automodule:: NGPIris
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
