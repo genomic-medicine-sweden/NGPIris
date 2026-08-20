@@ -649,7 +649,7 @@ class HCPHandler:
     ) -> Generator[dict[str, Any], Any]:
         r"""
         List all objects in the mounted bucket as a generator.
-        If one wishes to get the result as a list, use :py:function:`list` to
+        If one wishes to get the result as a list, use `list` to
         type cast the generator
 
         :param path_key:
