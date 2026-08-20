@@ -857,8 +857,8 @@ def iris_generate_credentials_file(path: str, name: str) -> None:
     credentials_dict = {
         "hcp": {
             "endpoint": "",
-            "aws_access_key_id": "",
-            "aws_secret_access_key": "",
+            "username": "",
+            "password": "",
         },
         "hci": {
             "username": "",
