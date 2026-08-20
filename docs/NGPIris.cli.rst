@@ -20,6 +20,8 @@ The following is an enumeration of all commands and subcommands provided with IR
 Submodules
 --------------------------
 
+The following sections describe the submodules of `NGPIris.cli`.
+
 NGPIris.cli.helpers module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
