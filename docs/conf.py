@@ -30,9 +30,8 @@ toc_object_entries_show_parents = "hide"
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "classic"
+html_theme = "furo"
 html_static_path = ["_static"]
-html_theme_options = {"sidebarwidth": 350}
 
 
 # -- Options for todo extension ----------------------------------------------
