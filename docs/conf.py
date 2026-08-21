@@ -32,7 +32,7 @@ toc_object_entries_show_parents = "hide"
 
 html_theme = "furo"
 html_static_path = ["_static"]
-html_logo = html_favicon = "gms.png"
+html_logo = html_favicon = "_static/gms.png"
 
 
 # -- Options for todo extension ----------------------------------------------
