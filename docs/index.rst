@@ -6,22 +6,14 @@
 NGPIris documentation
 =====================
 
-Welcome to the NGPIris package documentation! The following table of contents contain documentation for all modules and submodules in NGPIris.
-
-Subpackages
------------
+Welcome to the NGPIris package documentation! The following table contain documentation for all modules and submodules in NGPIris.
 
 .. toctree::
    :maxdepth: 2
 
+   NGPIris_base
    NGPIris.cli
    NGPIris.hci
    NGPIris.hcp
    NGPIris.parse_credentials
    NGPIris.utils
-
-Module contents
----------------
-
-.. automodule:: NGPIris
-   :members:
