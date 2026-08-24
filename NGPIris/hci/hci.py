@@ -23,16 +23,15 @@ class HCIHandler:
         :param credentials:
             If `credentials` is a `str`, then it will be interpreted as a path
             to the JSON credentials file. If `credentials` is a `dict`, then a
-            dictionary with the appropriate HCI credentials is expected:
-            ```
-            {
-                "username" : "",
-                "password" : "",
-                "address" : "",
-                "auth_port" : "",
-                "api_port" : ""
-            }
-            ```
+            dictionary with the appropriate HCI credentials is expected::
+
+                {
+                    "username" : "",
+                    "password" : "",
+                    "address" : "",
+                    "auth_port" : "",
+                    "api_port" : ""
+                }
         :type credentials: str | dict[str, str]
 
         :param use_ssl: Boolean choice between using SSL, defaults to False
