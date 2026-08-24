@@ -70,14 +70,12 @@ class HCPHandler:
         :param credentials:
             If `credentials` is a `str`, then it will be interpreted as a path
             to the JSON credentials file. If `credentials` is a `dict`, then a
-            dictionary with the appropriate HCP credentials is expected:
-            ```
-            {
-                "endpoint" : "",
-                "username" : "",
-                "password" : ""
-            }
-            ```
+            dictionary with the appropriate HCP credentials is expected::
+                {
+                    "endpoint" : "",
+                    "username" : "",
+                    "password" : ""
+                }
         :type credentials: str | dict[str, str]
 
         :param use_ssl: Boolean choice between using SSL, defaults to False
