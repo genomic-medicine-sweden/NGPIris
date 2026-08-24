@@ -41,13 +41,14 @@ def all_fields_empty(key: str, credentials: Credentials) -> bool:
 def check_empty_field(credentials: Credentials) -> None:
     """
     Makes the following checks:
-     - All fields in the credentials file are empty
-     - If fields under `hcp` and `hci` are only partially filled in
+
+    * All fields in the credentials file are empty
+    * If fields under `hcp` and `hci` are only partially filled in
+
     If any of the above are true, then `RuntimeError` is raised
 
     :param credentials: Credentials to be checked
     :type credentials: Credentials
-
     :raise RuntimeError: If any check is true
     """  # noqa: D400, D415
     if all(all_fields_empty(k, credentials) for k in credentials):
@@ -83,11 +84,10 @@ def check_empty_field(credentials: Credentials) -> None:
 
 def parse_credentials(credentials_path: str) -> Credentials:
     """
-    Parse credentials at the given `credentials_path`.
+    Parse credentials at the given ``credentials_path``.
 
     :param credentials_path: Path to credentials
     :type credentials_path: str
-
     :return: Parsed credentials
     :rtype: Credentials = dict[str, dict[str, str]]
     """
