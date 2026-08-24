@@ -48,11 +48,10 @@ html_logo = html_favicon = "_static/gms.png"
 
 # -- Options for autodoc_typehints ---------------------------------------------
 
-# Don't show "None" return types, but show all others
-typehints_document_rtype_none = False
-
+typehints_document_rtype_none = True
 typehints_defaults = "comma"
 typehints_use_signature = True
+typehints_use_rtype = False
 
 
 # -- Options for autodoc -------------------------------------------------
