@@ -21,7 +21,6 @@ def add_trailing_slash(path: str) -> str:
     Add a trailing slash ("/") to `path`.
 
     :param path: Arbitrary string
-    :type path: str
 
     :return: Arbitrary string with `"/"` at the end
     :rtype: str
@@ -36,7 +35,6 @@ def create_HCPHandler(context: Context) -> HCPHandler:
     Returns a `HCPHandler` based on the given command `context`.
 
     :param context: The `click` context from the entered command
-    :type context: Context
 
     :return: An `HCPHandler` instance based on the given command `context`
     :rtype: HCPHandler

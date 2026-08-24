@@ -48,7 +48,6 @@ def raise_path_error(path: str) -> None:
     Raise FileNotFoundError if the system path does not exist.
 
     :param path: Local system path
-    :type path: str
 
     :raises FileNotFoundError: If `path` does not exist
     """
@@ -62,7 +61,6 @@ def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
     class methods, hence the possibly odd typing.
 
     :param method: An arbitrary class method of the `HCPHandler` class
-    :type method: Callable[ParamSpec("P"), TypeVar("R")]
 
     :return: A decorated class method of the `HCPHandler` class
     :rtype: Callable[ParamSpec("P"), TypeVar("R")]
@@ -90,12 +88,10 @@ def operation_response_code_handler(
     errors.
 
     :param response: The response dictionary from an S3 operation
-    :type response: dict
 
     :param operation:
         The type of operation that will be displayed in the error
         message.
-    :type operation: str
 
     :rtype: None
     """

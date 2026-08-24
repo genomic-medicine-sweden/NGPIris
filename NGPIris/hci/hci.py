@@ -32,10 +32,8 @@ class HCIHandler:
                     "auth_port" : "",
                     "api_port" : ""
                 }
-        :type credentials: str | dict[str, str]
 
-        :param use_ssl: Boolean choice between using SSL, defaults to False
-        :type use_ssl: bool, optional
+        :param use_ssl: Boolean choice between using SSL
         """
         if type(credentials) is str:
             credentials_handler = CredentialsHandler(credentials)
@@ -129,7 +127,6 @@ class HCIHandler:
         the index name. Will return an empty dictionary if no index was found.
 
         :param index_name: The index name
-        :type index_name: str
 
         :return: A dictionary containing information about an index
         :rtype: dict
@@ -152,7 +149,6 @@ class HCIHandler:
         Make query to an HCI index, with a dictionary.
 
         :param query_dict: Dictionary consisting of the query
-        :type query_dict: dict[str, str | list | dict]
 
         :return: Dictionary containing the raw query
         :rtype: dict
@@ -172,7 +168,6 @@ class HCIHandler:
         Make query to an HCI index, with prewritten query in a JSON file.
 
         :param query_path: Path to the JSON file
-        :type query_path: str
 
         :return: Dictionary containing the raw query
         :rtype: dict
@@ -198,15 +193,11 @@ class HCIHandler:
         Make a query to the HCI based on the parameters of this method.
 
         :param index_name: Name of the index
-        :type index_name: str
 
-        :param query_string: The Solr query string. Defaults to the empty string
-        :type query_string: str, optional
+        :param query_string: The Solr query string.
 
         :param facets:
             List of facets that should be returned included in the response.
-            Defaults to []
-        :type facets: list[str], optional
 
         :return: The response in the form of a dictionary
         :rtype: dict

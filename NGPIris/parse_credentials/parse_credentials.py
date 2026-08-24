@@ -14,7 +14,6 @@ class CredentialsHandler:
         Class for handling credentials to HCP and HCI.
 
         :param credentials_path: Path to the credentials JSON file
-        :type credentials_path: str
         """
         self.hcp: dict[str, str] = {}
         self.hci: dict[str, str] = {}
@@ -30,10 +29,8 @@ def all_fields_empty(key: str, credentials: Credentials) -> bool:
     empty.
 
     :param key: Key for to be accessed in `credentials`
-    :type key: str
 
     :param credentials: The credentials
-    :type credentials: Credentials
     """
     return all(v == "" for v in credentials[key].values())
 
@@ -48,7 +45,6 @@ def check_empty_field(credentials: Credentials) -> None:
     If any of the above are true, then `RuntimeError` is raised
 
     :param credentials: Credentials to be checked
-    :type credentials: Credentials
     :raise RuntimeError: If any check is true
     """  # noqa: D400, D415
     if all(all_fields_empty(k, credentials) for k in credentials):
@@ -87,7 +83,6 @@ def parse_credentials(credentials_path: str) -> Credentials:
     Parse credentials at the given ``credentials_path``.
 
     :param credentials_path: Path to credentials
-    :type credentials_path: str
     :return: Parsed credentials
     :rtype: Credentials = dict[str, dict[str, str]]
     """
