@@ -1,10 +1,12 @@
+# ruff: noqa: TC002, TC003
 import re
 from collections import OrderedDict
+from collections.abc import Generator
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
 from sys import setrecursionlimit
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
@@ -12,6 +14,7 @@ from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
+from botocore.paginate import PageIterator, Paginator
 from more_itertools import peekable
 from parse import Result, parse
 from rapidfuzz import fuzz, process, utils
@@ -44,11 +47,6 @@ from NGPIris.hcp.helpers import (
 )
 from NGPIris.parse_credentials import CredentialsHandler
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
-    from botocore.paginate import PageIterator, Paginator
-
 _KB = 1024
 _MB = _KB * _KB
 
@@ -65,32 +63,31 @@ class HCPHandler:
         custom_config_path: str = "",
     ) -> None:
         """
-        Constructor for the `HCPHandler` class.
+        Constructor for the `HCPHandler` class. The `credentials` parameter
+        can either be a path or a dictionary with the following keys::
+
+            {
+                "endpoint" : "",
+                "username" : "",
+                "password" : ""
+            }
 
         :param credentials:
             If `credentials` is a `str`, then it will be interpreted as a path
             to the JSON credentials file. If `credentials` is a `dict`, then a
-            dictionary with the appropriate HCP credentials is expected::
-                {
-                    "endpoint" : "",
-                    "username" : "",
-                    "password" : ""
-                }
+            dictionary with the appropriate HCP credentials is expected (see
+            above format).
         :type credentials: str | dict[str, str]
-
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
-
         :param custom_config_path:
             Path to a .ini file for customs settings regarding download and
             upload
         :type custom_config_path: str, optional
-
         :raise NotAValidTenantError:
             If the tenant in the specified endpoint is not valid
-
         :raise UnableToParseEndpointError: The endpoint could not be parsed
-        """
+        """  # noqa: D400, D415
         # Determine type of `credentials`
         if type(credentials) is str:
             parsed_credentials = CredentialsHandler(credentials).hcp
@@ -648,24 +645,22 @@ class HCPHandler:
         r"""
         List all objects in the mounted bucket as a generator.
         If one wishes to get the result as a list, use `list` to
-        type cast the generator
+        type cast the generator. The `output_mode` options are the following:
+
+        * HCPHandler.ListObjectsOutputMode.SIMPLE,
+        * HCPHandler.ListObjectsOutputMode.EXTENDED,
+        * HCPHandler.ListObjectsOutputMode.MINIMAL
 
         :param path_key:
             Filter string for which keys to list, specifically for finding
             objects in certain folders. Defaults to \"the root\" of the bucket
         :type path_key: str, optional
-
         :param output_mode:
-            The upload mode of the transfer is any of the following:\n
-                    HCPHandler.ListObjectsOutputMode.SIMPLE,\n
-                    HCPHandler.ListObjectsOutputMode.EXTENDED,\n
-                    HCPHandler.ListObjectsOutputMode.MINIMAL\n
-            Default is EXTENDED
+            The upload mode of the transfer is any of the options stated above
+            (Default is EXTENDED)
         :type output_mode: ListObjectsOutputMode, optional
-
         :param files_only: If True, only yield file objects. Defaults to False
         :type files_only: bool, optional
-
         :yield: A generator of all objects in specified folder in a bucket
         :rtype: Generator
         """  # noqa: D400, D415
@@ -882,40 +877,34 @@ class HCPHandler:
         equal_parts: int = 5,
     ) -> None:
         r"""
-        Upload one file to the mounted bucket.
+        Upload one file to the mounted bucket. Upload modes include the
+        following:
+
+        * HCPHandler.UploadMode.STANDARD
+        * HCPHandler.UploadMode.SIMPLE
+        * HCPHandler.UploadMode.EQUAL_PARTS
 
         :param local_file_path: Path to the file to be uploaded
         :type local_file_path: str
-
         :param key:
             An optional new name for the file object on the bucket.
             Defaults to the same name as the file
         :type key: str, optional
-
         :param show_progress_bar:
             Boolean choice of displaying a progress bar. Defaults to True
         :type show_progress_bar: bool, optional
-
         :param upload_mode:
-            The upload mode of the transfer is any of the following:\n
-                HCPHandler.UploadMode.STANDARD,\n
-                HCPHandler.UploadMode.SIMPLE,\n
-                HCPHandler.UploadMode.EQUAL_PARTS\n
-            Default is STANDARD
+            The upload mode of the transfer as stated above. Default is STANDARD
         :type upload_mode: UploadMode, optional
-
         :param equal_parts:
             The number of equal parts that each file should be divided into when
             using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
-
         :raises FileNotFoundError: If `path` does not exist
-
         :raises UnallowedCharacterError: If the \"\\\" is used in the file path
-
         :raises ObjectAlreadyExistError:
             If the object already exist on the mounted bucket
-        """
+        """  # noqa: D400, D415
         raise_path_error(local_file_path)
 
         if not key:
