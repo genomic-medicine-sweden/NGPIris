@@ -34,6 +34,12 @@ html_theme = "furo"
 html_static_path = ["_static"]
 html_logo = html_favicon = "_static/gms.png"
 
+# -- Options for autodoc -------------------------------------------------
+
+autodoc_typehints = "both"
+autodoc_preserve_defaults = True
+autodoc_member_order = "bysource"
+autoclass_content = "init"
 
 # -- Options for todo extension ----------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
