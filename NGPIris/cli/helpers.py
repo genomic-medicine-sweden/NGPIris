@@ -8,7 +8,7 @@ from bitmath import Byte, TiB
 from boto3 import set_stream_logger
 from tabulate import tabulate
 
-from NGPIris import HCPHandler
+from NGPIris.hcp import HCPHandler
 
 if TYPE_CHECKING:
     from collections.abc import Generator
