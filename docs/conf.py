@@ -16,12 +16,18 @@ author = "Erik Brink"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    "sphinx_click",
     "sphinx.ext.autodoc",
-    # "sphinx_autodoc_typehints",
+    "sphinx.ext.intersphinx",
+    "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
-    "sphinx_click",
 ]
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}
+
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
@@ -37,13 +43,23 @@ html_theme = "furo"
 html_static_path = ["_static"]
 html_logo = html_favicon = "_static/gms.png"
 
+# -- Options for autodoc_typehints ---------------------------------------------
+
+# Don't show "None" return types, but show all others
+typehints_document_rtype_none = False
+
+typehints_defaults = "comma"
+typehints_use_signature = True
+
+
 # -- Options for autodoc -------------------------------------------------
 
-autodoc_typehints = "both"
+# autodoc_typehints = "both"
 autodoc_preserve_defaults = True
 autodoc_member_order = "bysource"
 autoclass_content = "init"
 autodoc_mock_imports = [
+    "botocore",
     "bitmath",
     "rapidfuzz",
 ]
