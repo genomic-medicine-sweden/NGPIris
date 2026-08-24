@@ -63,8 +63,8 @@ class HCPHandler:
         custom_config_path: str = "",
     ) -> None:
         """
-        Constructor for the `HCPHandler` class. The `credentials` parameter
-        can either be a path or a dictionary with the following keys::
+        Constructor for the :py:class:`HCPHandler` class. The ``credentials``
+        parameter can either be a path or a dictionary with the following keys::
 
             {
                 "endpoint" : "",
@@ -73,10 +73,10 @@ class HCPHandler:
             }
 
         :param credentials:
-            If `credentials` is a `str`, then it will be interpreted as a path
-            to the JSON credentials file. If `credentials` is a `dict`, then a
-            dictionary with the appropriate HCP credentials is expected (see
-            above format).
+            If ``credentials`` is a :py:type:`str`, then it will be interpreted
+            as a path to the JSON credentials file. If ``credentials`` is a
+            :py:type:`dict`, then a dictionary with the appropriate HCP
+            credentials is expected (see above format).
         :type credentials: str | dict[str, str]
         :param use_ssl: Boolean choice between using SSL, defaults to False
         :type use_ssl: bool, optional
@@ -300,7 +300,7 @@ class HCPHandler:
     def test_connection(self, bucket_name: str = "") -> dict:
         """
         Test the connection to the mounted bucket or another bucket which is
-        supplied as the argument :py:obj:`bucket_name`.
+        supplied as the argument ``bucket_name``.
 
         :param bucket_name:
             The name of the bucket to be mounted. Defaults to the empty string
@@ -580,12 +580,12 @@ class HCPHandler:
         """
         [PRIMITIVE OBJECT METHOD].
 
-        Raises an error if `object_path` is a file.
+        Raises an error if ``object_path`` is a file.
 
         :param object_path: The path to the object
         :type object_path: str
 
-        :raises IsFileObjectError: If `object_path` is a file
+        :raises IsFileObjectError: If ``object_path`` is a file
         """
         if not self._is_object_folder(object_path):
             msg = "The object " + object_path + " is a file"
@@ -595,12 +595,12 @@ class HCPHandler:
         """
         [PRIMITIVE OBJECT METHOD].
 
-        Raises an error if `object_path` is a folder.
+        Raises an error if ``object_path`` is a folder.
 
         :param object_path: The path to the object
         :type object_path: str
 
-        :raises IsFolderObjectError: If `object_path` is a folder
+        :raises IsFolderObjectError: If ``object_path`` is a folder
         """
         if self._is_object_folder(object_path):
             msg = "The object " + object_path + " is a folder"
@@ -644,8 +644,8 @@ class HCPHandler:
     ) -> Generator[dict[str, Any], Any]:
         r"""
         List all objects in the mounted bucket as a generator.
-        If one wishes to get the result as a list, use `list` to
-        type cast the generator. The `output_mode` options are the following:
+        If one wishes to get the result as a list, use :py:type:`list` to
+        type cast the generator. The ``output_mode`` options are the following:
 
         * HCPHandler.ListObjectsOutputMode.SIMPLE,
         * HCPHandler.ListObjectsOutputMode.EXTENDED,
@@ -797,16 +797,16 @@ class HCPHandler:
         :type local_folder_path: str
 
         :param use_download_limit:
-            Boolean choice for using a download limit. Defaults to False
+            Boolean choice for using a download limit. Defaults to ``False``
         :type use_download_limit: bool, optional
 
         :param download_limit_in_bytes:
-            The optional download limit in Byte (from the package `bitmath`).
-            Defaults to 1 TB (`TiB(1).to_Byte()`)
+            The optional download limit in :py:class:`Byte` (from the package
+            :py:mod:`bitmath`). Defaults to 1 TB (``TiB(1).to_Byte()``)
         :type download_limit_in_bytes: Byte, optional
 
         :param show_progress_bar:
-            Boolean choice of displaying a progress bar. Defaults to True
+            Boolean choice of displaying a progress bar. Defaults to ``True``
         :type show_progress_bar: bool, optional
 
         :raises ObjectDoesNotExistError:
@@ -900,7 +900,7 @@ class HCPHandler:
             The number of equal parts that each file should be divided into when
             using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
-        :raises FileNotFoundError: If `path` does not exist
+        :raises FileNotFoundError: If ``path`` does not exist
         :raises UnallowedCharacterError: If the \"\\\" is used in the file path
         :raises ObjectAlreadyExistError:
             If the object already exist on the mounted bucket
@@ -980,7 +980,7 @@ class HCPHandler:
             using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
         :type equal_parts: int, optional
 
-        :raises FileNotFoundError: If `path` does not exist
+        :raises FileNotFoundError: If ``path`` does not exist
         """
         raise_path_error(local_folder_path)
 
@@ -1071,7 +1071,7 @@ class HCPHandler:
     def delete_folder(self, key: str) -> str:
         """
         Delete a folder of objects in the mounted bucket.
-        If there are subfolders, a `SubfolderException` is raised
+        If there are subfolders, a :py:exc:`SubfolderException` is raised
 
         :param key: The folder of objects to be deleted
         :type key: str
@@ -1165,7 +1165,7 @@ class HCPHandler:
         destination_bucket: str = "",
     ) -> None:
         """
-        Move a file `source_key` to `destination_key`.
+        Move a file ``source_key`` to ``destination_key``.
 
         :param source_key: The key to the object to be moved
         :type source_key: str
@@ -1211,7 +1211,7 @@ class HCPHandler:
         threshold: int = 80,
     ) -> Generator:
         """
-        Fuzzy search implementation based on the `RapidFuzz` library.
+        Fuzzy search implementation based on the :py:mod:`rapidfuzz` library.
 
         :param search_string: Substring to be used in the search
         :type search_string: str
