@@ -26,6 +26,9 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "botocore": ("https://docs.aws.amazon.com/botocore/latest/", None),
+    "bitmath": ("https://bitmath.readthedocs.io/en/latest/", None),
+    "rapidfuzz": ("https://rapidfuzz.github.io/RapidFuzz/Usage/", None),
 }
 
 
@@ -58,11 +61,6 @@ typehints_use_signature = True
 autodoc_preserve_defaults = True
 autodoc_member_order = "bysource"
 autoclass_content = "init"
-autodoc_mock_imports = [
-    "botocore",
-    "bitmath",
-    "rapidfuzz",
-]
 
 # -- Options for todo extension ----------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
