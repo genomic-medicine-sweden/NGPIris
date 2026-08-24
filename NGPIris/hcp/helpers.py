@@ -63,7 +63,6 @@ def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
     :param method: An arbitrary class method of the `HCPHandler` class
 
     :return: A decorated class method of the `HCPHandler` class
-    :rtype: Callable[ParamSpec("P"), TypeVar("R")]
     """
 
     @wraps(method)
@@ -92,8 +91,6 @@ def operation_response_code_handler(
     :param operation:
         The type of operation that will be displayed in the error
         message.
-
-    :rtype: None
     """
     metadata: dict = response.get("ResponseMetadata", {})
     if metadata:

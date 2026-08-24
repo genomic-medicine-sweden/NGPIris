@@ -111,7 +111,6 @@ class HCIHandler:
         Retrieve a list of all index names.
 
         :return: A list of index names
-        :rtype: list[str]
         """
         response: Response = get_index_response(
             self.address,
@@ -129,7 +128,6 @@ class HCIHandler:
         :param index_name: The index name
 
         :return: A dictionary containing information about an index
-        :rtype: dict
         """
         response: Response = get_index_response(
             self.address,
@@ -151,7 +149,6 @@ class HCIHandler:
         :param query_dict: Dictionary consisting of the query
 
         :return: Dictionary containing the raw query
-        :rtype: dict
         """
         return dict(
             get_query_response(
@@ -170,7 +167,6 @@ class HCIHandler:
         :param query_path: Path to the JSON file
 
         :return: Dictionary containing the raw query
-        :rtype: dict
         """
         with Path(query_path).open() as inp:
             return dict(
@@ -200,7 +196,6 @@ class HCIHandler:
             List of facets that should be returned included in the response.
 
         :return: The response in the form of a dictionary
-        :rtype: dict
         """
         facetRequests = [{"fieldName": facet} for facet in facets]
         return self.raw_query(

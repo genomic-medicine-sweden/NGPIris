@@ -21,7 +21,6 @@ def get_index_response(
     :param use_ssl: Boolean choice of using SSL
 
     :return: A response containing information about the index
-    :rtype: requests.Response
     """
     url: str = "https://" + address + ":" + api_port + "/api/search/indexes/"
     headers: dict[str, str] = {
@@ -62,7 +61,6 @@ def get_query_response(  # noqa: PLR0913
         requests.
 
     :return: A response containing information about the query
-    :rtype: requests.Response
     """
     if "indexName" not in query_dict:
         msg = "Field indexName is missing in the query dictionary"

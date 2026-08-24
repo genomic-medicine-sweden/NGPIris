@@ -84,7 +84,6 @@ def parse_credentials(credentials_path: str) -> Credentials:
 
     :param credentials_path: Path to credentials
     :return: Parsed credentials
-    :rtype: Credentials = dict[str, dict[str, str]]
     """
     with Path(credentials_path).open() as inp:
         credentials: Credentials = load(inp)

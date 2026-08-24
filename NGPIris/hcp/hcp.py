@@ -224,7 +224,6 @@ class HCPHandler:
             Extension for the base request URL
 
         :return: The response as a dictionary
-        :rtype: dict
         """
         url = self.base_request_url + path_extension
         headers = {
@@ -262,7 +261,6 @@ class HCPHandler:
         Get a list of users on the tenant.
 
         :return: List of users on the tenant
-        :rtype: list[str]
         """
         return self.get_MAPI_request("/userAccounts").get("username", [])
 
@@ -273,7 +271,6 @@ class HCPHandler:
         :param username: A username on the tenant
 
         :return: List of roles the user has
-        :rtype: list[str]
         """
         return (
             self.get_MAPI_request("/userAccounts/" + username)
@@ -287,7 +284,6 @@ class HCPHandler:
 
         :param username: The user name
 
-        :rtype: bool
         """
         return "ADMINISTRATOR" in self.get_user_roles(username)
 
@@ -307,7 +303,6 @@ class HCPHandler:
         :raises Exception: Other exceptions
 
         :return: A dictionary of the response
-        :rtype: dict
         """
         if not bucket_name and self.bucket_name:
             bucket_name = self.bucket_name
@@ -400,7 +395,6 @@ class HCPHandler:
         bucket.
 
         :return: A list of buckets and their statistics
-        :rtype: list[dict[str, Any]]
         """
         response = self.get_MAPI_request("/namespaces")
         buckets: list[str] = response["name"]
@@ -515,7 +509,6 @@ class HCPHandler:
         :param key: Object key
 
         :return: Dictionary with object data and metadata
-        :rtype: dict
         """
         try:
             response = dict(
@@ -542,7 +535,6 @@ class HCPHandler:
         :param key: The object name
 
         :return: A dictionary containing the object metadata
-        :rtype: dict
         """
         try:
             metadata_response = dict(
@@ -604,7 +596,6 @@ class HCPHandler:
         :param key: The object name
 
         :return: True if the object exist, otherwise False
-        :rtype: bool
         """
         try:
             self.get_object_metadata(key)
@@ -646,7 +637,6 @@ class HCPHandler:
             (Default is EXTENDED)
         :param files_only: If True, only yield file objects.
         :yield: A generator of all objects in specified folder in a bucket
-        :rtype: Generator
         """  # noqa: D400, D415
 
         def _format_output_dictionary(
@@ -983,7 +973,6 @@ class HCPHandler:
         :raises IsFolderObjectError: If the provided object is a folder object
 
         :return: The result of the deletion
-        :rtype: str
         """
         object_list = []
         does_not_exist = []
@@ -1027,7 +1016,6 @@ class HCPHandler:
         :raises IsFolderObject: If the provided object is a folder object
 
         :return: The result of the deletion
-        :rtype: str
         """
         return self.delete_objects([key])
 
@@ -1044,7 +1032,6 @@ class HCPHandler:
         :raises SubfolderError: If there are subfolders
 
         :return: The result of the deletion
-        :rtype: str
         """  # noqa: D400, D415
         self.raise_error_if_object_is_file(key)
 
@@ -1153,7 +1140,6 @@ class HCPHandler:
         :param case_sensitive: Case sensitivity.
 
         :return: A generator of objects based on the search string
-        :rtype: Generator
         """  # noqa: D400, D415
         return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
 
@@ -1174,7 +1160,6 @@ class HCPHandler:
         :param threshold: The fuzzy search similarity score.
 
         :return: A generator of objects based on the search string
-        :rtype: Generator
         """
         msg = "This method is currently not implemented"
         raise NotImplementedError(msg)
@@ -1209,7 +1194,6 @@ class HCPHandler:
         :param key: The name of the object
 
         :return: Return the ACL in the shape of a dictionary
-        :rtype: dict
         """
         response: dict = self.s3_client.get_object_acl(
             Bucket=self.bucket_name,
@@ -1223,7 +1207,6 @@ class HCPHandler:
         Get the bucket Access Control List (ACL).
 
         :return: Return the ACL in the shape of a dictionary
-        :rtype: dict
         """
         response: dict = self.s3_client.get_bucket_acl(
             Bucket=self.bucket_name,

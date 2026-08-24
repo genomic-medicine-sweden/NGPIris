@@ -23,7 +23,6 @@ def add_trailing_slash(path: str) -> str:
     :param path: Arbitrary string
 
     :return: Arbitrary string with `"/"` at the end
-    :rtype: str
     """
     if not path.endswith("/"):
         path += "/"
@@ -37,7 +36,6 @@ def create_HCPHandler(context: Context) -> HCPHandler:
     :param context: The `click` context from the entered command
 
     :return: An `HCPHandler` instance based on the given command `context`
-    :rtype: HCPHandler
     """
     if context.parent:
         parent_context = context.parent
