@@ -1,5 +1,7 @@
 # Configuration file for the Sphinx documentation builder.
 #
+# ruff: noqa: ERA001
+#
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
@@ -7,14 +9,15 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "NGPIris"
-copyright = "2026, Author"
-author = "Author"
+# copyright = "2026, Author"
+author = "Erik Brink"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
     "sphinx.ext.autodoc",
+    # "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinx_click",
@@ -40,6 +43,10 @@ autodoc_typehints = "both"
 autodoc_preserve_defaults = True
 autodoc_member_order = "bysource"
 autoclass_content = "init"
+autodoc_mock_imports = [
+    "bitmath",
+    "rapidfuzz",
+]
 
 # -- Options for todo extension ----------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
