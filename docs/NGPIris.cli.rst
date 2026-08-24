@@ -31,7 +31,7 @@ NGPIris.cli.helpers module
    :undoc-members:
 
 NGPIris.cli.sections module
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: NGPIris.cli.sections
    :members:
