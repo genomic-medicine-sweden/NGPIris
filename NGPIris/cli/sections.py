@@ -47,13 +47,6 @@ class SectionedGroup(click.Group):
     ) -> Callable[[Callable[..., Any]], click.Command] | click.Command:
         """
         Override Group.command to accept a 'section' kwarg.
-
-        Example:
-        ::
-            @cli.command(section="User Commands")
-            def add():
-                ...
-
         """
         section = kwargs.pop("section", None)
 
