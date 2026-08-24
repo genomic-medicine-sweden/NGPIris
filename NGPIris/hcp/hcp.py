@@ -65,20 +65,19 @@ class HCPHandler:
         custom_config_path: str = "",
     ) -> None:
         """
-        Constructor for the :py:class:`HCPHandler` class. The ``credentials``
-        parameter can either be a path or a dictionary with the following keys::
-
-            {
-                "endpoint" : "",
-                "username" : "",
-                "password" : ""
-            }
+        Constructor for the :py:class:`HCPHandler` class.
 
         :param credentials:
             If ``credentials`` is a :py:type:`str`, then it will be interpreted
             as a path to the JSON credentials file. If ``credentials`` is a
             :py:type:`dict`, then a dictionary with the appropriate HCP
-            credentials is expected (see above format).
+            credentials is expected::
+
+                {
+                    "endpoint" : "",
+                    "username" : "",
+                    "password" : ""
+                }.
         :param use_ssl: Boolean choice between using SSL
         :param custom_config_path:
             Path to a .ini file for customs settings regarding download and
@@ -623,18 +622,12 @@ class HCPHandler:
         r"""
         List all objects in the mounted bucket as a generator.
         If one wishes to get the result as a list, use :py:type:`list` to
-        type cast the generator. The ``output_mode`` options are the following:
-
-        * HCPHandler.ListObjectsOutputMode.SIMPLE,
-        * HCPHandler.ListObjectsOutputMode.EXTENDED,
-        * HCPHandler.ListObjectsOutputMode.MINIMAL
+        type cast the generator.
 
         :param path_key:
             Filter string for which keys to list, specifically for finding
             objects in certain folders. Defaults to \"the root\" of the bucket
-        :param output_mode:
-            The upload mode of the transfer is any of the options stated above
-            (Default is EXTENDED)
+        :param output_mode: The upload mode of the transfer.
         :param files_only: If True, only yield file objects.
         :yield: A generator of all objects in specified folder in a bucket
         """  # noqa: D400, D415
@@ -843,12 +836,7 @@ class HCPHandler:
         equal_parts: int = 5,
     ) -> None:
         r"""
-        Upload one file to the mounted bucket. Upload modes include the
-        following:
-
-        * HCPHandler.UploadMode.STANDARD
-        * HCPHandler.UploadMode.SIMPLE
-        * HCPHandler.UploadMode.EQUAL_PARTS
+        Upload one file to the mounted bucket.
 
         :param local_file_path: Path to the file to be uploaded
         :param key:
@@ -857,7 +845,7 @@ class HCPHandler:
         :param show_progress_bar:
             Boolean choice of displaying a progress bar.
         :param upload_mode:
-            The upload mode of the transfer as stated above.
+            The upload mode of the transfer.
         :param equal_parts:
             The number of equal parts that each file should be divided into when
             using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
@@ -1013,7 +1001,7 @@ class HCPHandler:
 
         :param key: The object to be deleted
 
-        :raises IsFolderObject: If the provided object is a folder object
+        :raises IsFolderObjectError: If the provided object is a folder object
 
         :return: The result of the deletion
         """
@@ -1230,11 +1218,12 @@ class HCPHandler:
 
         :param permission:
             What permission to be set. Valid options are:
-                * FULL_CONTROL
-                * WRITE
-                * WRITE_ACP
-                * READ
-                * READ_ACP\n
+
+            * FULL_CONTROL
+            * WRITE
+            * WRITE_ACP
+            * READ
+            * READ_ACP
         """
         self.s3_client.put_object_acl(
             Bucket=self.bucket_name,
@@ -1255,11 +1244,12 @@ class HCPHandler:
 
         :param permission:
             What permission to be set. Valid options are:
-                * FULL_CONTROL
-                * WRITE
-                * WRITE_ACP
-                * READ
-                * READ_ACP\n
+
+            * FULL_CONTROL
+            * WRITE
+            * WRITE_ACP
+            * READ
+            * READ_ACP
         """
         self.s3_client.put_bucket_acl(
             Bucket=self.bucket_name,
