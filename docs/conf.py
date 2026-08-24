@@ -26,7 +26,14 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "botocore": ("https://docs.aws.amazon.com/botocore/latest/", None),
+    "botocore": (
+        "https://docs.aws.amazon.com/botocore/latest/reference/",
+        None,
+    ),
+    "boto3": (
+        "https://docs.aws.amazon.com/boto3/latest/",
+        None,
+    ),
     "bitmath": ("https://bitmath.readthedocs.io/en/latest/", None),
     "rapidfuzz": ("https://rapidfuzz.github.io/RapidFuzz/Usage/", None),
 }
