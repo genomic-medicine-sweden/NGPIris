@@ -65,7 +65,7 @@ class HCIHandler:
         "functionality into the :py:class:`HCIHandler` constructor"
     )
 
-    @_add_deprecation_in_doc_string(_REQUEST_TOKEN_DEP_MSG)
+    @_add_deprecation_in_doc_string(_REQUEST_TOKEN_DEP_MSG, "v5.6.7")
     @deprecated(_REQUEST_TOKEN_DEP_MSG)
     def request_token(self) -> None:
         """
