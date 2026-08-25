@@ -21,9 +21,10 @@ class HCIHandler:
         Class for handling HCI requests.
 
         :param credentials:
-            If `credentials` is a `str`, then it will be interpreted as a path
-            to the JSON credentials file. If `credentials` is a `dict`, then a
-            dictionary with the appropriate HCI credentials is expected::
+            If ``credentials`` is a :py:type:`str`, then it will be interpreted as
+            a path to the JSON credentials file. If ``credentials`` is a
+            :py:type:`dict`, then a dictionary with the appropriate HCI
+            credentials is expected::
 
                 {
                     "username" : "",
