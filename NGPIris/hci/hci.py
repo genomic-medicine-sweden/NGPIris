@@ -1,12 +1,12 @@
 from json import load
 from pathlib import Path
-from warnings import deprecated
 
 from requests import Response, post
 from urllib3 import disable_warnings
 
 from NGPIris.hci.helpers import get_index_response, get_query_response
 from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.utils.deprecation import deprecated, deprecated_base
 
 
 class HCIHandler:
@@ -59,10 +59,13 @@ class HCIHandler:
 
         self.token = self._request_token()
 
-    @deprecated(
-        "`request_token` is depricated in favour of integrating its "
-        "functionality in the `HCIHandler` constructor"
+    _REQUEST_TOKEN_DEP_MSG = (
+        ":py:func:`request_token` is depricated in favor of integrating its "  # noqa: S105
+        "functionality into the :py:class:`HCIHandler` constructor"
     )
+
+    @deprecated_base(_REQUEST_TOKEN_DEP_MSG)
+    @deprecated(_REQUEST_TOKEN_DEP_MSG)
     def request_token(self) -> None:
         """
         Request a token from the HCI, which is stored in the HCIHandler object.
