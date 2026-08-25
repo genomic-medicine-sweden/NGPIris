@@ -1,39 +1,43 @@
-from ast import Call
-from functools import partial, reduce, wraps
-from textwrap import wrap
-from typing import TYPE_CHECKING, Any, LiteralString
-from warnings import deprecated as deprecated_base
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def add_deprecation_in_doc_string[**P, R](
+def _add_deprecation_in_doc_string[**P, R](
     function: Callable[P, R],
     deprecatation_message: str,
     deprecated_in: str,
-    removed_in: str,
 ) -> Callable[P, R]:
-    deprecation_note = """
-    .. version-deprecated:: {deprecated_in}
-
-        {deprecatation_message}
-    """
+    deprecation_note = (
+        "\n.. version-deprecated:: "
+        + deprecated_in
+        + "\n"
+        + "   "
+        + deprecatation_message
+        + "\n"
+    )
     doc_string = function.__doc__
     if doc_string:
-        doc_string += deprecation_note
-    function.__doc__ = doc_string
+        new_doc_string = deprecation_note + doc_string
+        function.__doc__ = new_doc_string
     return function
 
 
-def deprecated(
+def add_deprecation_in_doc_string[**P, R](
     deprecatation_message: str,
-    deprecated_in: str = "",
-    removed_in: str = "",
-):
-    def decorator(function: Callable):
-        return add_deprecation_in_doc_string(
-            function, deprecatation_message, deprecated_in, removed_in
+    deprecated_in: str = "[Unknown]",
+) -> Callable[..., Callable[P, R]]:
+    """
+    Decorator for adding deprecation message to API documentation.
+
+    :param deprecatation_message: Deprecration message
+    :param deprecated_in: Version where the object was deprecated
+    """
+
+    def decorator(function: Callable[P, R]) -> Callable[P, R]:
+        return _add_deprecation_in_doc_string(
+            function, deprecatation_message, deprecated_in
         )
 
     return decorator
