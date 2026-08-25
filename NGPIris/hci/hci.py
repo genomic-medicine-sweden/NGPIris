@@ -7,7 +7,7 @@ from urllib3 import disable_warnings
 
 from NGPIris.hci.helpers import get_index_response, get_query_response
 from NGPIris.parse_credentials import CredentialsHandler
-from NGPIris.utils.deprecation import add_deprecation_in_doc_string
+from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
 
 class HCIHandler:
@@ -65,7 +65,7 @@ class HCIHandler:
         "functionality into the :py:class:`HCIHandler` constructor"
     )
 
-    @add_deprecation_in_doc_string(_REQUEST_TOKEN_DEP_MSG)
+    @_add_deprecation_in_doc_string(_REQUEST_TOKEN_DEP_MSG)
     @deprecated(_REQUEST_TOKEN_DEP_MSG)
     def request_token(self) -> None:
         """
