@@ -1,12 +1,13 @@
 from json import load
 from pathlib import Path
+from warnings import deprecated
 
 from requests import Response, post
 from urllib3 import disable_warnings
 
 from NGPIris.hci.helpers import get_index_response, get_query_response
 from NGPIris.parse_credentials import CredentialsHandler
-from NGPIris.utils.deprecation import deprecated, deprecated_base
+from NGPIris.utils.deprecation import add_deprecation_in_doc_string
 
 
 class HCIHandler:
@@ -64,7 +65,7 @@ class HCIHandler:
         "functionality into the :py:class:`HCIHandler` constructor"
     )
 
-    @deprecated_base(_REQUEST_TOKEN_DEP_MSG)
+    @add_deprecation_in_doc_string(_REQUEST_TOKEN_DEP_MSG)
     @deprecated(_REQUEST_TOKEN_DEP_MSG)
     def request_token(self) -> None:
         """
