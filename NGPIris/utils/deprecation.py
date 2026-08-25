@@ -4,7 +4,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def _add_deprecation_in_doc_string[**P, R](
+def __add_deprecation_in_doc_string[**P, R](
     function: Callable[P, R],
     deprecatation_message: str,
     deprecated_in: str,
@@ -24,7 +24,7 @@ def _add_deprecation_in_doc_string[**P, R](
     return function
 
 
-def add_deprecation_in_doc_string[**P, R](
+def _add_deprecation_in_doc_string[**P, R](
     deprecatation_message: str,
     deprecated_in: str = "[Unknown]",
 ) -> Callable[..., Callable[P, R]]:
@@ -36,7 +36,7 @@ def add_deprecation_in_doc_string[**P, R](
     """
 
     def decorator(function: Callable[P, R]) -> Callable[P, R]:
-        return _add_deprecation_in_doc_string(
+        return __add_deprecation_in_doc_string(
             function, deprecatation_message, deprecated_in
         )
 
