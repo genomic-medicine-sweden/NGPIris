@@ -35,7 +35,6 @@ intersphinx_mapping = {
         None,
     ),
     "bitmath": ("https://bitmath.readthedocs.io/en/latest/", None),
-    "rapidfuzz": ("https://rapidfuzz.github.io/RapidFuzz/Usage/", None),
     "requests": ("https://requests.readthedocs.io/en/latest/", None),
 }
 

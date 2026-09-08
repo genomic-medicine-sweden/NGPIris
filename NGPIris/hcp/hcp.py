@@ -14,9 +14,7 @@ from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
-from more_itertools import peekable
 from parse import Result, parse
-from rapidfuzz import fuzz, process, utils
 from requests import get, post
 from requests.exceptions import HTTPError
 from urllib3 import disable_warnings
@@ -1260,65 +1258,6 @@ class HCPHandler:
 
             if not result_count or offset >= int(total_results):
                 break
-
-    @check_mounted
-    def search_in_bucket(
-        self,
-        search_string: str,
-        case_sensitive: bool = False,
-    ) -> Generator:
-        """
-        Simple search method using exact substrings in order to find certain
-        objects. Case insensitive by default. Does not utilise the HCI
-
-        :param search_string: Substring to be used in the search
-
-        :param case_sensitive: Case sensitivity.
-
-        :return: A generator of objects based on the search string
-        """  # noqa: D400, D415
-        return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
-
-    @check_mounted
-    def fuzzy_search_in_bucket(
-        self,
-        search_string: str,
-        case_sensitive: bool = False,
-        threshold: int = 80,
-    ) -> Generator:
-        """
-        Fuzzy search implementation based on the :py:mod:`rapidfuzz` library.
-
-        :param search_string: Substring to be used in the search
-
-        :param case_sensitive: Case sensitivity.
-
-        :param threshold: The fuzzy search similarity score.
-
-        :return: A generator of objects based on the search string
-        """
-        msg = "This method is currently not implemented"
-        raise NotImplementedError(msg)
-        processor = None if case_sensitive else utils.default_process
-
-        full_list = peekable(self.list_objects())
-
-        full_list_names_only = peekable(
-            obj["Key"]
-            for obj in self.list_objects(
-                output_mode=HCPHandler.ListObjectsOutputMode.MINIMAL,
-                list_all_bucket_objects=True,
-            )
-        )
-
-        for _, score, index in process.extract_iter(
-            search_string,
-            full_list_names_only,
-            scorer=fuzz.partial_ratio,
-            processor=processor,
-        ):
-            if score >= threshold:
-                yield full_list[index]
 
     # ---------------------------- ACL methods ----------------------------
 
