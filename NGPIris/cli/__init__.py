@@ -688,6 +688,48 @@ def list_buckets(
 
 @cli.command(
     section="Search commands",
+    short_help="Search objects using the HCP built-in metadata index.",
+)
+@click.argument("bucket")
+@click.argument("search_string")
+@click.option(
+    "-e",
+    "--extended-information",
+    help="Display additional information for each search result",
+    default=False,
+    is_flag=True,
+)
+@click.pass_context
+def search(
+    context: Context,
+    bucket: str,
+    search_string: str,
+    extended_information: bool,
+) -> None:
+    """
+    Search objects in a bucket/namespace using the HCP metadata index.
+
+    BUCKET is the name of the bucket in which to make the search.
+
+    SEARCH_STRING is the substring to search for in object paths.
+    """
+    hcp_h: HCPHandler = create_HCPHandler(context)
+    hcp_h.mount_bucket(bucket)
+    search_results = hcp_h.mqe_search_in_bucket(search_string)
+
+    click.echo("Search results:")
+    if extended_information:
+        render_objects_table(
+            search_results,
+            -1,
+        )
+    else:
+        for result in search_results:
+            click.echo(result["Key"])
+
+
+@cli.command(
+    section="Search commands",
     short_help=(
         "Make a simple search using substrings in a bucket/namespace on "
         "the HCP."
