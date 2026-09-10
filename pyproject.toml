@@ -20,7 +20,7 @@ requires-python = ">=3.14"
 
 authors = [
     {name = "Erik Brink", email = "erik.brink@gu.se"},
-    {name = "Isak Sylvin", email = "isak.sylvin@gu.se"}
+    {name = "Sven Kristian Feddersen", email = "sven.kristian.feddersen@gu.se"}
 ]
 
 [build-system]

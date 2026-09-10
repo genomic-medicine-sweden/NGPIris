@@ -5,12 +5,23 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+from pathlib import Path
+from tomllib import load
+
+with Path("../pyproject.toml").open("rb") as f:
+    pyproject = load(f)
+    project_name: str = pyproject["project"]["name"]
+    authors: list[str] = [
+        author["name"] for author in pyproject["project"]["authors"]
+    ]
+    project_version: str = pyproject["project"]["version"]
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "NGPIris"
-# copyright = "2026, Author"
-author = "Erik Brink"
+project = project_name
+author = ", ".join(authors)
+version = project_version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
