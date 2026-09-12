@@ -5,6 +5,8 @@ from enum import Enum
 from pathlib import Path
 from sys import setrecursionlimit
 from typing import TYPE_CHECKING, Any
+from urllib.parse import unquote
+from xml.etree import ElementTree as ET
 
 from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
@@ -12,10 +14,8 @@ from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
-from more_itertools import peekable
 from parse import Result, parse
-from rapidfuzz import fuzz, process, utils
-from requests import get
+from requests import get, post
 from requests.exceptions import HTTPError
 from urllib3 import disable_warnings
 
@@ -1113,64 +1113,151 @@ class HCPHandler:
 
     # ---------------------------- Search methods ----------------------------
 
-    @check_mounted
-    def search_in_bucket(
-        self,
-        search_string: str,
-        case_sensitive: bool = False,
-    ) -> Generator:
+    @staticmethod
+    def _escape_lucene_search(search_string: str) -> str:
         """
-        Simple search method using exact substrings in order to find certain
-        objects. Case insensitive by default. Does not utilise the HCI
+        Escape characters with a special meaning in Lucene queries.
 
-        :param search_string: Substring to be used in the search
+        :param search_string: String to escape
+        :type search_string: str
 
-        :param case_sensitive: Case sensitivity.
-
-        :return: A generator of objects based on the search string
-        """  # noqa: D400, D415
-        return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
-
-    @check_mounted
-    def fuzzy_search_in_bucket(
-        self,
-        search_string: str,
-        case_sensitive: bool = False,
-        threshold: int = 80,
-    ) -> Generator:
+        :return: Escaped search string
+        :rtype: str
         """
-        Fuzzy search implementation based on the :py:mod:`rapidfuzz` library.
-
-        :param search_string: Substring to be used in the search
-
-        :param case_sensitive: Case sensitivity.
-
-        :param threshold: The fuzzy search similarity score.
-
-        :return: A generator of objects based on the search string
-        """
-        msg = "This method is currently not implemented"
-        raise NotImplementedError(msg)
-        processor = None if case_sensitive else utils.default_process
-
-        full_list = peekable(self.list_objects())
-
-        full_list_names_only = peekable(
-            obj["Key"]
-            for obj in self.list_objects(
-                output_mode=HCPHandler.ListObjectsOutputMode.MINIMAL,
-                list_all_bucket_objects=True,
-            )
+        pattern = re.compile(r'(?:&&|\|\||[+\-!(){}\[\]^"~*?:=\\/|&])')
+        return pattern.sub(
+            lambda match: "".join("\\" + c for c in match.group(0)),
+            search_string,
         )
 
-        for _, score, index in process.extract_iter(
-            search_string,
-            full_list_names_only,
-            scorer=fuzz.partial_ratio,
-            processor=processor,
-        ):
-            if score >= threshold:
-                yield full_list[index]
+    def _build_mqe_query(
+        self,
+        search_string: str,
+        offset: int,
+        count: int,
+    ) -> bytes:
+        """
+        Build an XML request for the HCP Metadata Query Engine.
+
+        :param search_string: String to search for in object paths
+        :type search_string: str
+
+        :param offset: Zero-based result offset
+        :type offset: int
+
+        :param count: Number of results to request
+        :type count: int
+
+        :return: XML request body
+        :rtype: bytes
+        """
+        root = ET.Element("queryRequest")
+        obj = ET.SubElement(root, "object")
+
+        escaped_search = self._escape_lucene_search(search_string)
+
+        ET.SubElement(obj, "query").text = (
+            "+objectPath:(/*"
+            + escaped_search
+            + "*) +namespace:"
+            + str(self.bucket_name)
+            + "."
+            + str(self.tenant)
+        )
+        ET.SubElement(obj, "sort").text = "objectPath+asc"
+        ET.SubElement(obj, "count").text = str(count)
+        ET.SubElement(obj, "offset").text = str(offset)
+        ET.SubElement(
+            obj, "objectProperties"
+        ).text = "objectPath,size,changeTimeString"
+
+        return ET.tostring(
+            root,
+            encoding="utf-8",
+            xml_declaration=False,
+        )
+
+    @check_mounted
+    def mqe_search_in_bucket(
+        self,
+        search_string: str,
+        page_size: int = 1000,
+    ) -> Generator[dict[str, Any], Any]:
+        """
+        Search the mounted bucket using the HCP Metadata Query Engine.
+
+        This method uses the HCP built-in metadata index instead of listing and
+        searching objects locally.
+
+        :param search_string: Substring to search for in object paths
+        :type search_string: str
+
+        :param page_size:
+            Number of search results requested from HCP at a time.
+            Defaults to 1000
+        :type page_size: int, optional
+
+        :raises NoBucketMountedError: If no bucket is mounted
+
+        :raises HTTPError:
+            If the HCP Metadata Query Engine request returns an unsuccessful
+            HTTP status code
+
+        :yield: Matching HCP objects
+        :rtype: Generator[dict[str, Any], Any]
+        """
+        if not search_string:
+            return
+
+        offset = 0
+        endpoint = self.endpoint + "/query"
+        headers = {
+            "Content-Type": "application/xml",
+            "Accept": "application/json",
+            "Authorization": "HCP " + self.token,
+        }
+
+        while True:
+            query = self._build_mqe_query(
+                search_string,
+                offset,
+                page_size,
+            )
+
+            response = post(
+                endpoint,
+                data=query,
+                headers=headers,
+                verify=self.use_ssl,
+                timeout=60,
+            )
+            response.raise_for_status()
+
+            query_result = response.json().get("queryResult", {})
+            result_set = query_result.get("resultSet", [])
+
+            for result in result_set:
+                object_path = unquote(
+                    result.get("objectPath", "")
+                ).removeprefix("/")
+
+                if search_string in object_path:
+                    yield {
+                        "Key": object_path,
+                        "Size": result.get("size", ""),
+                        "LastModified": result.get("changeTimeString", ""),
+                    }
+
+            result_count = len(result_set)
+            offset += result_count
+
+            total_results = query_result.get("status", {}).get(
+                "totalResults",
+                offset,
+            )
+
+            if not result_count or offset >= int(total_results):
+                break
 
     # ---------------------------- ACL methods ----------------------------
 
