@@ -1,3 +1,5 @@
+import builtins
+import contextlib
 from collections.abc import Generator
 from configparser import ConfigParser
 from pathlib import Path
@@ -62,7 +64,8 @@ def pytest_configure(config: Config) -> None:
     config.hcp_h = HCPHandler(parser.get("General", "credentials_path"))
 
     # Dynamically add an HCIHandler instance to config
-    config.hci_h = HCIHandler(parser.get("General", "credentials_path"))
+    with contextlib.suppress(builtins.BaseException):
+        config.hci_h = HCIHandler(parser.get("General", "credentials_path"))
 
     # Dynamically add all key-value pairs from "HCP_tests" section
     set_section(config, parser, "HCP_tests")
