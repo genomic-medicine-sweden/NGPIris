@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import click
-from bitmath import SI, Byte
 from tabulate import tabulate
 
 from NGPIris import HCPHandler
@@ -16,6 +15,7 @@ from NGPIris.cli.helpers import (
     download_file,
     download_folder,
     ensure_destination_dir,
+    format_object_sizes,
     render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
@@ -255,9 +255,11 @@ def delete(
                     + "(this list excludes any potential sub-folders):",
                 )
                 render_objects_table(
-                    hcp_h.list_objects(
-                        hcp_object,
-                        files_only=True,
+                    format_object_sizes(
+                        hcp_h.list_objects(
+                            hcp_object,
+                            files_only=True,
+                        )
                     ),
                     -1,
                 )
@@ -414,24 +416,6 @@ def list_objects(  # noqa: PLR0913
         for obj in objects:
             yield str(obj) + "\n"
 
-    def list_objects_generator(
-        hcp_h: HCPHandler,
-        path: str,
-        output_mode: HCPHandler.ListObjectsOutputMode,
-        files_only: bool,
-    ) -> Generator[dict[str, Any], Any]:
-        objects = hcp_h.list_objects(
-            path,
-            output_mode=output_mode,
-            files_only=files_only,
-        )
-        for obj in objects:
-            if obj.get("Size", 0):
-                obj["Size"] = str(
-                    Byte(obj.get("Size", 0)).best_prefix(system=SI)
-                )
-            yield obj
-
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
     output_mode = (
@@ -464,11 +448,12 @@ def list_objects(  # noqa: PLR0913
         )
     else:
         render_objects_table(
-            list_objects_generator(
-                hcp_h,
-                path_with_slash,
-                output_mode,
-                files_only,
+            format_object_sizes(
+                hcp_h.list_objects(
+                    path_with_slash,
+                    output_mode=output_mode,
+                    files_only=files_only,
+                )
             ),
             batch_size,
         )
@@ -720,7 +705,7 @@ def search(
     click.echo("Search results:")
     if extended_information:
         render_objects_table(
-            search_results,
+            format_object_sizes(search_results),
             -1,
         )
     else:

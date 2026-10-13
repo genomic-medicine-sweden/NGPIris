@@ -1119,10 +1119,8 @@ class HCPHandler:
         Escape characters with a special meaning in Lucene queries.
 
         :param search_string: String to escape
-        :type search_string: str
 
         :return: Escaped search string
-        :rtype: str
         """
         pattern = re.compile(r'(?:&&|\|\||[+\-!(){}\[\]^"~*?:=\\/|&])')
         return pattern.sub(
@@ -1140,16 +1138,10 @@ class HCPHandler:
         Build an XML request for the HCP Metadata Query Engine.
 
         :param search_string: String to search for in object paths
-        :type search_string: str
-
         :param offset: Zero-based result offset
-        :type offset: int
-
         :param count: Number of results to request
-        :type count: int
 
         :return: XML request body
-        :rtype: bytes
         """
         root = ET.Element("queryRequest")
         obj = ET.SubElement(root, "object")
@@ -1190,21 +1182,16 @@ class HCPHandler:
         searching objects locally.
 
         :param search_string: Substring to search for in object paths
-        :type search_string: str
-
         :param page_size:
             Number of search results requested from HCP at a time.
             Defaults to 1000
-        :type page_size: int, optional
 
         :raises NoBucketMountedError: If no bucket is mounted
-
         :raises HTTPError:
             If the HCP Metadata Query Engine request returns an unsuccessful
             HTTP status code
 
         :yield: Matching HCP objects
-        :rtype: Generator[dict[str, Any], Any]
         """
         if not search_string:
             return
@@ -1233,8 +1220,10 @@ class HCPHandler:
             )
             response.raise_for_status()
 
-            query_result = response.json().get("queryResult", {})
-            result_set = query_result.get("resultSet", [])
+            query_result: dict[str, list[dict[str, str]] | Any] = (
+                response.json().get("queryResult", {})
+            )
+            result_set: list[dict[str, str]] = query_result.get("resultSet", [])
 
             for result in result_set:
                 object_path = unquote(
