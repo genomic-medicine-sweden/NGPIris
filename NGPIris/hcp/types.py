@@ -4,6 +4,11 @@ from typing import TypedDict
 
 
 class MQE_ResultSet(TypedDict):
+    """
+    Typed dictionary for the `ResultSet` dictionaries inside of
+    `MQE_QueryResult`.
+    """
+
     changeTimeMilliseconds: str
     changeTimeString: str
     objectPath: str
@@ -12,10 +17,18 @@ class MQE_ResultSet(TypedDict):
 
 
 class MQE_Query(TypedDict):
+    """
+    Typed dictionary for the `Query` dictionary of `MQE_QueryResult`.
+    """
+
     expression: str
 
 
 class MQE_Status(TypedDict):
+    """
+    Typed dictionary for the `Status` dictionary of `MQE_QueryResult`.
+    """
+
     code: str
     message: str
     results: int
@@ -24,8 +37,7 @@ class MQE_Status(TypedDict):
 
 class MQE_QueryResult(TypedDict):
     """
-    Typed dictionary for MQE query results. It uses recursive typing in order to
-    keeping the structure of the dictionary general.
+    Typed dictionary for MQE query results.
     """
 
     query: MQE_Query
