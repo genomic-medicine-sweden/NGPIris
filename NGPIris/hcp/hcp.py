@@ -14,6 +14,7 @@ from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
+from icecream import ic
 from parse import Result, parse
 from requests import get, post
 from requests.exceptions import HTTPError
@@ -1242,11 +1243,9 @@ class HCPHandler:
             result_count = len(result_set)
             offset += result_count
 
-            total_results = int(
-                query_result.get("status", {}).get(
-                    "totalResults",
-                    offset,
-                )
+            total_results = query_result.get("status", {}).get(
+                "totalResults",
+                offset,
             )
 
             if not result_count or offset >= total_results:
