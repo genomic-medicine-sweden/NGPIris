@@ -49,6 +49,8 @@ if TYPE_CHECKING:
 
     from botocore.paginate import PageIterator, Paginator
 
+    from NGPIris.hcp.types import MQE_QueryResult
+
 _KB = 1024
 _MB = _KB * _KB
 
@@ -85,7 +87,7 @@ class HCPHandler:
         :raise NotAValidTenantError:
             If the tenant in the specified endpoint is not valid
         :raise UnableToParseEndpointError: The endpoint could not be parsed
-        """  # noqa: D400, D415
+        """
         # Determine type of `credentials`
         if type(credentials) is str:
             parsed_credentials = CredentialsHandler(credentials).hcp
@@ -630,7 +632,7 @@ class HCPHandler:
         :param output_mode: The upload mode of the transfer.
         :param files_only: If True, only yield file objects.
         :yield: A generator of all objects in specified folder in a bucket
-        """  # noqa: D400, D415
+        """
 
         def _format_output_dictionary(
             key: str,
@@ -853,7 +855,7 @@ class HCPHandler:
         :raises UnallowedCharacterError: If the \"\\\" is used in the file path
         :raises ObjectAlreadyExistError:
             If the object already exist on the mounted bucket
-        """  # noqa: D400, D415
+        """
         raise_path_error(local_file_path)
 
         if not key:
@@ -1220,10 +1222,10 @@ class HCPHandler:
             )
             response.raise_for_status()
 
-            query_result: dict[str, list[dict[str, str]] | Any] = (
-                response.json().get("queryResult", {})
+            query_result: MQE_QueryResult = response.json().get(
+                "queryResult", {}
             )
-            result_set: list[dict[str, str]] = query_result.get("resultSet", [])
+            result_set = query_result.get("resultSet", [])
 
             for result in result_set:
                 object_path = unquote(
@@ -1240,12 +1242,14 @@ class HCPHandler:
             result_count = len(result_set)
             offset += result_count
 
-            total_results = query_result.get("status", {}).get(
-                "totalResults",
-                offset,
+            total_results = int(
+                query_result.get("status", {}).get(
+                    "totalResults",
+                    offset,
+                )
             )
 
-            if not result_count or offset >= int(total_results):
+            if not result_count or offset >= total_results:
                 break
 
     # ---------------------------- ACL methods ----------------------------
