@@ -14,7 +14,6 @@ from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
-from icecream import ic
 from parse import Result, parse
 from requests import get, post
 from requests.exceptions import HTTPError
