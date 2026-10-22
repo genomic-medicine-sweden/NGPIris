@@ -5,6 +5,8 @@ from enum import Enum
 from pathlib import Path
 from sys import setrecursionlimit
 from typing import TYPE_CHECKING, Any
+from urllib.parse import unquote
+from xml.etree import ElementTree as ET
 
 from bitmath import SI, Byte, TiB
 from bitmath import parse_string as bitmath_parse
@@ -12,10 +14,8 @@ from boto3 import client
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
-from more_itertools import peekable
 from parse import Result, parse
-from rapidfuzz import fuzz, process, utils
-from requests import get
+from requests import get, post
 from requests.exceptions import HTTPError
 from urllib3 import disable_warnings
 
@@ -49,6 +49,8 @@ if TYPE_CHECKING:
 
     from botocore.paginate import PageIterator, Paginator
 
+    from NGPIris.hcp.types import MQE_QueryResult
+
 _KB = 1024
 _MB = _KB * _KB
 
@@ -65,32 +67,25 @@ class HCPHandler:
         custom_config_path: str = "",
     ) -> None:
         """
-        Constructor for the `HCPHandler` class.
+        Constructor for the :py:class:`HCPHandler` class.
 
         :param credentials:
-            If `credentials` is a `str`, then it will be interpreted as a path
-            to the JSON credentials file. If `credentials` is a `dict`, then a
-            dictionary with the appropriate HCP credentials is expected:
-            ```
-            {
-                "endpoint" : "",
-                "username" : "",
-                "password" : ""
-            }
-            ```
-        :type credentials: str | dict[str, str]
+            If ``credentials`` is a :py:type:`str`, then it will be interpreted
+            as a path to the JSON credentials file. If ``credentials`` is a
+            :py:type:`dict`, then a dictionary with the appropriate HCP
+            credentials is expected::
 
-        :param use_ssl: Boolean choice between using SSL, defaults to False
-        :type use_ssl: bool, optional
-
+                {
+                    "endpoint" : "",
+                    "username" : "",
+                    "password" : ""
+                }.
+        :param use_ssl: Boolean choice between using SSL
         :param custom_config_path:
             Path to a .ini file for customs settings regarding download and
             upload
-        :type custom_config_path: str, optional
-
         :raise NotAValidTenantError:
             If the tenant in the specified endpoint is not valid
-
         :raise UnableToParseEndpointError: The endpoint could not be parsed
         """
         # Determine type of `credentials`
@@ -227,11 +222,9 @@ class HCPHandler:
         Make a GET request to the HCP in order to use the builtin MAPI.
 
         :param path_extension:
-            Extension for the base request URL, defaults to the empty string
-        :type path_extension: str, optional
+            Extension for the base request URL
 
         :return: The response as a dictionary
-        :rtype: dict
         """
         url = self.base_request_url + path_extension
         headers = {
@@ -269,7 +262,6 @@ class HCPHandler:
         Get a list of users on the tenant.
 
         :return: List of users on the tenant
-        :rtype: list[str]
         """
         return self.get_MAPI_request("/userAccounts").get("username", [])
 
@@ -278,10 +270,8 @@ class HCPHandler:
         Get the user roles for a given user on the tenant.
 
         :param username: A username on the tenant
-        :type username: str
 
         :return: List of roles the user has
-        :rtype: list[str]
         """
         return (
             self.get_MAPI_request("/userAccounts/" + username)
@@ -294,9 +284,7 @@ class HCPHandler:
         Predicate for checking if a given user has the admin role.
 
         :param username: The user name
-        :type username: str
 
-        :rtype: bool
         """
         return "ADMINISTRATOR" in self.get_user_roles(username)
 
@@ -305,11 +293,10 @@ class HCPHandler:
     def test_connection(self, bucket_name: str = "") -> dict:
         """
         Test the connection to the mounted bucket or another bucket which is
-        supplied as the argument :py:obj:`bucket_name`.
+        supplied as the argument ``bucket_name``.
 
         :param bucket_name:
-            The name of the bucket to be mounted. Defaults to the empty string
-        :type bucket_name: str, optional
+            The name of the bucket to be mounted.
 
         :raises NoBucketMountedError: If no bucket is selected
         :raises EndpointConnectionError: If the endpoint can't be reached
@@ -317,7 +304,6 @@ class HCPHandler:
         :raises Exception: Other exceptions
 
         :return: A dictionary of the response
-        :rtype: dict
         """
         if not bucket_name and self.bucket_name:
             bucket_name = self.bucket_name
@@ -366,7 +352,6 @@ class HCPHandler:
         with download and upload.
 
         :param bucket_name: The name of the bucket to be mounted
-        :type bucket_name: str
         """
         # Check if bucket exist
         self.test_connection(bucket_name=bucket_name)
@@ -378,7 +363,6 @@ class HCPHandler:
         the bucket.
 
         :param bucket_name: Name of the new bucket
-        :type bucket_name: str
         """
         self.s3_client.create_bucket(
             Bucket=bucket_name,
@@ -389,7 +373,6 @@ class HCPHandler:
         Delete a specified bucket.
 
         :param bucket: The bucket to be deleted
-        :type bucket: str
         """
         # If the deletion was not successful, `self.s3_client.delete_bucket`
         # would have thrown an error
@@ -413,7 +396,6 @@ class HCPHandler:
         bucket.
 
         :return: A list of buckets and their statistics
-        :rtype: list[dict[str, Any]]
         """
         response = self.get_MAPI_request("/namespaces")
         buckets: list[str] = response["name"]
@@ -526,10 +508,8 @@ class HCPHandler:
         Get object data and metadata.
 
         :param key: Object key
-        :type key: str
 
         :return: Dictionary with object data and metadata
-        :rtype: dict
         """
         try:
             response = dict(
@@ -554,10 +534,8 @@ class HCPHandler:
         Retrieve object metadata.
 
         :param key: The object name
-        :type key: str
 
         :return: A dictionary containing the object metadata
-        :rtype: dict
         """
         try:
             metadata_response = dict(
@@ -585,12 +563,11 @@ class HCPHandler:
         """
         [PRIMITIVE OBJECT METHOD].
 
-        Raises an error if `object_path` is a file.
+        Raises an error if ``object_path`` is a file.
 
         :param object_path: The path to the object
-        :type object_path: str
 
-        :raises IsFileObjectError: If `object_path` is a file
+        :raises IsFileObjectError: If ``object_path`` is a file
         """
         if not self._is_object_folder(object_path):
             msg = "The object " + object_path + " is a file"
@@ -600,12 +577,11 @@ class HCPHandler:
         """
         [PRIMITIVE OBJECT METHOD].
 
-        Raises an error if `object_path` is a folder.
+        Raises an error if ``object_path`` is a folder.
 
         :param object_path: The path to the object
-        :type object_path: str
 
-        :raises IsFolderObjectError: If `object_path` is a folder
+        :raises IsFolderObjectError: If ``object_path`` is a folder
         """
         if self._is_object_folder(object_path):
             msg = "The object " + object_path + " is a folder"
@@ -619,10 +595,8 @@ class HCPHandler:
         Check if a given object is in the mounted bucket.
 
         :param key: The object name
-        :type key: str
 
         :return: True if the object exist, otherwise False
-        :rtype: bool
         """
         try:
             self.get_object_metadata(key)
@@ -649,28 +623,16 @@ class HCPHandler:
     ) -> Generator[dict[str, Any], Any]:
         r"""
         List all objects in the mounted bucket as a generator.
-        If one wishes to get the result as a list, use :py:function:`list` to
-        type cast the generator
+        If one wishes to get the result as a list, use :py:type:`list` to
+        type cast the generator.
 
         :param path_key:
             Filter string for which keys to list, specifically for finding
             objects in certain folders. Defaults to \"the root\" of the bucket
-        :type path_key: str, optional
-
-        :param output_mode:
-            The upload mode of the transfer is any of the following:\n
-                    HCPHandler.ListObjectsOutputMode.SIMPLE,\n
-                    HCPHandler.ListObjectsOutputMode.EXTENDED,\n
-                    HCPHandler.ListObjectsOutputMode.MINIMAL\n
-            Default is EXTENDED
-        :type output_mode: ListObjectsOutputMode, optional
-
-        :param files_only: If True, only yield file objects. Defaults to False
-        :type files_only: bool, optional
-
+        :param output_mode: The upload mode of the transfer.
+        :param files_only: If True, only yield file objects.
         :yield: A generator of all objects in specified folder in a bucket
-        :rtype: Generator
-        """  # noqa: D400, D415
+        """
 
         def _format_output_dictionary(
             key: str,
@@ -751,14 +713,11 @@ class HCPHandler:
         Download one object file from the mounted bucket.
 
         :param key: Name of the object
-        :type key: str
 
         :param filename: New name of the object
-        :type filename: str
 
         :param show_progress_bar:
-            Boolean choice of displaying a progress bar. Defaults to True
-        :type show_progress_bar: bool, optional
+            Boolean choice of displaying a progress bar.
 
         :raises ObjectDoesNotExistError:
             If the object does not exist in the bucket
@@ -796,25 +755,20 @@ class HCPHandler:
         Download multiple objects from a folder in the mounted bucket.
 
         :param folder_key: Name of the folder
-        :type folder_key: str
 
         :param local_folder_path:
             Path to a folder on your local system where the contents of the
             objects can be put
-        :type local_folder_path: str
 
         :param use_download_limit:
-            Boolean choice for using a download limit. Defaults to False
-        :type use_download_limit: bool, optional
+            Boolean choice for using a download limit.
 
         :param download_limit_in_bytes:
-            The optional download limit in Byte (from the package `bitmath`).
-            Defaults to 1 TB (`TiB(1).to_Byte()`)
-        :type download_limit_in_bytes: Byte, optional
+            The optional download limit in :py:class:`Byte` (from the package
+            :py:mod:`bitmath`).
 
         :param show_progress_bar:
-            Boolean choice of displaying a progress bar. Defaults to True
-        :type show_progress_bar: bool, optional
+            Boolean choice of displaying a progress bar.
 
         :raises ObjectDoesNotExistError:
             If the object does not exist in the bucket
@@ -887,34 +841,18 @@ class HCPHandler:
         Upload one file to the mounted bucket.
 
         :param local_file_path: Path to the file to be uploaded
-        :type local_file_path: str
-
         :param key:
             An optional new name for the file object on the bucket.
             Defaults to the same name as the file
-        :type key: str, optional
-
         :param show_progress_bar:
-            Boolean choice of displaying a progress bar. Defaults to True
-        :type show_progress_bar: bool, optional
-
+            Boolean choice of displaying a progress bar.
         :param upload_mode:
-            The upload mode of the transfer is any of the following:\n
-                HCPHandler.UploadMode.STANDARD,\n
-                HCPHandler.UploadMode.SIMPLE,\n
-                HCPHandler.UploadMode.EQUAL_PARTS\n
-            Default is STANDARD
-        :type upload_mode: UploadMode, optional
-
+            The upload mode of the transfer.
         :param equal_parts:
             The number of equal parts that each file should be divided into when
             using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
-        :type equal_parts: int, optional
-
-        :raises FileNotFoundError: If `path` does not exist
-
+        :raises FileNotFoundError: If ``path`` does not exist
         :raises UnallowedCharacterError: If the \"\\\" is used in the file path
-
         :raises ObjectAlreadyExistError:
             If the object already exist on the mounted bucket
         """
@@ -970,30 +908,25 @@ class HCPHandler:
         Upload the contents of a folder to the mounted bucket.
 
         :param local_folder_path: Path to the folder to be uploaded
-        :type local_folder_path: str
 
         :param key:
             An optional new name for the folder path on the bucket. Defaults to
             the same name as the local folder path
-        :type key: str, optional
 
         :param show_progress_bar:
-            Boolean choice of displaying a progress bar. Defaults to True
-        :type show_progress_bar: bool, optional
+            Boolean choice of displaying a progress bar.
 
         :param upload_mode:
             The upload mode of the transfer is any of the following:
                 HCPHandler.UploadMode.STANDARD,
                 HCPHandler.UploadMode.SIMPLE,
                 HCPHandler.UploadMode.EQUAL_PARTS\n
-        :type upload_mode: UploadMode, optional
 
         :param equal_parts:
             The number of equal parts that each file should be divided into when
             using the HCPHandler.UploadMode.EQUAL_PARTS mode. Default is 5
-        :type equal_parts: int, optional
 
-        :raises FileNotFoundError: If `path` does not exist
+        :raises FileNotFoundError: If ``path`` does not exist
         """
         raise_path_error(local_folder_path)
 
@@ -1026,12 +959,10 @@ class HCPHandler:
         Delete a list of objects on the mounted bucket.
 
         :param keys: List of object names to be deleted
-        :type keys: list[str]
 
         :raises IsFolderObjectError: If the provided object is a folder object
 
         :return: The result of the deletion
-        :rtype: str
         """
         object_list = []
         does_not_exist = []
@@ -1071,12 +1002,10 @@ class HCPHandler:
         Delete a single object in the mounted bucket.
 
         :param key: The object to be deleted
-        :type key: str
 
-        :raises IsFolderObject: If the provided object is a folder object
+        :raises IsFolderObjectError: If the provided object is a folder object
 
         :return: The result of the deletion
-        :rtype: str
         """
         return self.delete_objects([key])
 
@@ -1084,17 +1013,15 @@ class HCPHandler:
     def delete_folder(self, key: str) -> str:
         """
         Delete a folder of objects in the mounted bucket.
-        If there are subfolders, a `SubfolderException` is raised
+        If there are subfolders, a :py:exc:`SubfolderException` is raised
 
         :param key: The folder of objects to be deleted
-        :type key: str
 
         :raises ObjectDoesNotExistError: If an object does not exist
 
         :raises SubfolderError: If there are subfolders
 
         :return: The result of the deletion
-        :rtype: str
         """  # noqa: D400, D415
         self.raise_error_if_object_is_file(key)
 
@@ -1142,14 +1069,10 @@ class HCPHandler:
         Copy a file object within the HCP.
 
         :param source_key: The key to the object to be copied
-        :type source_key: str
 
         :param destination_key: The key to where the object will be copied to
-        :type destination_key: str
 
-        :param destination_bucket:
-            The destination bucket, defaults to the mounted bucket
-        :type destination_bucket: str
+        :param destination_bucket: The destination bucket
         """
         self.raise_error_if_object_is_folder(source_key)
         file_size: int = self.get_object_metadata(source_key)["ContentLength"]
@@ -1178,88 +1101,154 @@ class HCPHandler:
         destination_bucket: str = "",
     ) -> None:
         """
-        Move a file `source_key` to `destination_key`.
+        Move a file ``source_key`` to ``destination_key``.
 
         :param source_key: The key to the object to be moved
-        :type source_key: str
 
         :param destination_key: The key to where the object will be moved to
-        :type destination_key: str
 
         :param destination_bucket:
             The destination bucket, defaults to the mounted bucket
-        :type destination_bucket: str
         """
         self.copy_file(source_key, destination_key, destination_bucket)
         self.delete_object(source_key)
 
     # ---------------------------- Search methods ----------------------------
 
-    @check_mounted
-    def search_in_bucket(
-        self,
-        search_string: str,
-        case_sensitive: bool = False,
-    ) -> Generator:
+    @staticmethod
+    def _escape_lucene_search(search_string: str) -> str:
         """
-        Simple search method using exact substrings in order to find certain
-        objects. Case insensitive by default. Does not utilise the HCI
+        Escape characters with a special meaning in Lucene queries.
 
-        :param search_string: Substring to be used in the search
-        :type search_string: str
+        :param search_string: String to escape
 
-        :param case_sensitive: Case sensitivity. Defaults to False
-        :type case_sensitive: bool, optional
-
-        :return: A generator of objects based on the search string
-        :rtype: Generator
-        """  # noqa: D400, D415
-        return self.fuzzy_search_in_bucket(search_string, case_sensitive, 100)
-
-    @check_mounted
-    def fuzzy_search_in_bucket(
-        self,
-        search_string: str,
-        case_sensitive: bool = False,
-        threshold: int = 80,
-    ) -> Generator:
+        :return: Escaped search string
         """
-        Fuzzy search implementation based on the `RapidFuzz` library.
-
-        :param search_string: Substring to be used in the search
-        :type search_string: str
-
-        :param case_sensitive: Case sensitivity. Defaults to False
-        :type case_sensitive: bool, optional
-
-        :param threshold: The fuzzy search similarity score. Defaults to 80
-        :type threshold: int, optional
-
-        :return: A generator of objects based on the search string
-        :rtype: Generator
-        """
-        msg = "This method is currently not implemented"
-        raise NotImplementedError(msg)
-        processor = None if case_sensitive else utils.default_process
-
-        full_list = peekable(self.list_objects())
-
-        full_list_names_only = peekable(
-            obj["Key"]
-            for obj in self.list_objects(
-                output_mode=HCPHandler.ListObjectsOutputMode.MINIMAL,
-                list_all_bucket_objects=True,
-            )
+        pattern = re.compile(r'(?:&&|\|\||[+\-!(){}\[\]^"~*?:=\\/|&])')
+        return pattern.sub(
+            lambda match: "".join("\\" + c for c in match.group(0)),
+            search_string,
         )
 
-        for _, score, index in process.extract_iter(
-            search_string,
-            full_list_names_only,
-            scorer=fuzz.partial_ratio,
-            processor=processor,
-        ):
-            if score >= threshold:
-                yield full_list[index]
+    def _build_mqe_query(
+        self,
+        search_string: str,
+        offset: int,
+        count: int,
+    ) -> bytes:
+        """
+        Build an XML request for the HCP Metadata Query Engine.
+
+        :param search_string: String to search for in object paths
+        :param offset: Zero-based result offset
+        :param count: Number of results to request
+
+        :return: XML request body
+        """
+        root = ET.Element("queryRequest")
+        obj = ET.SubElement(root, "object")
+
+        escaped_search = self._escape_lucene_search(search_string)
+
+        ET.SubElement(obj, "query").text = (
+            "+objectPath:(/*"
+            + escaped_search
+            + "*) +namespace:"
+            + str(self.bucket_name)
+            + "."
+            + str(self.tenant)
+        )
+        ET.SubElement(obj, "sort").text = "objectPath+asc"
+        ET.SubElement(obj, "count").text = str(count)
+        ET.SubElement(obj, "offset").text = str(offset)
+        ET.SubElement(
+            obj, "objectProperties"
+        ).text = "objectPath,size,changeTimeString"
+
+        return ET.tostring(
+            root,
+            encoding="utf-8",
+            xml_declaration=False,
+        )
+
+    @check_mounted
+    def mqe_search_in_bucket(
+        self,
+        search_string: str,
+        page_size: int = 1000,
+    ) -> Generator[dict[str, Any], Any]:
+        """
+        Search the mounted bucket using the HCP Metadata Query Engine.
+
+        This method uses the HCP built-in metadata index instead of listing and
+        searching objects locally.
+
+        :param search_string: Substring to search for in object paths
+        :param page_size:
+            Number of search results requested from HCP at a time.
+            Defaults to 1000
+
+        :raises NoBucketMountedError: If no bucket is mounted
+        :raises HTTPError:
+            If the HCP Metadata Query Engine request returns an unsuccessful
+            HTTP status code
+
+        :yield: Matching HCP objects
+        """
+        if not search_string:
+            return
+
+        offset = 0
+        endpoint = self.endpoint + "/query"
+        headers = {
+            "Content-Type": "application/xml",
+            "Accept": "application/json",
+            "Authorization": "HCP " + self.token,
+        }
+
+        while True:
+            query = self._build_mqe_query(
+                search_string,
+                offset,
+                page_size,
+            )
+
+            response = post(
+                endpoint,
+                data=query,
+                headers=headers,
+                verify=self.use_ssl,
+                timeout=60,
+            )
+            response.raise_for_status()
+
+            query_result: MQE_QueryResult = response.json().get(
+                "queryResult", {}
+            )
+            result_set = query_result.get("resultSet", [])
+
+            for result in result_set:
+                object_path = unquote(
+                    result.get("objectPath", "")
+                ).removeprefix("/")
+
+                if search_string in object_path:
+                    yield {
+                        "Key": object_path,
+                        "Size": result.get("size", ""),
+                        "LastModified": result.get("changeTimeString", ""),
+                    }
+
+            result_count = len(result_set)
+            offset += result_count
+
+            total_results = query_result.get("status", {}).get(
+                "totalResults",
+                offset,
+            )
+
+            if not result_count or offset >= total_results:
+                break
 
     # ---------------------------- ACL methods ----------------------------
 
@@ -1269,10 +1258,8 @@ class HCPHandler:
         Get the object Access Control List (ACL).
 
         :param key: The name of the object
-        :type key: str
 
         :return: Return the ACL in the shape of a dictionary
-        :rtype: dict
         """
         response: dict = self.s3_client.get_object_acl(
             Bucket=self.bucket_name,
@@ -1286,7 +1273,6 @@ class HCPHandler:
         Get the bucket Access Control List (ACL).
 
         :return: Return the ACL in the shape of a dictionary
-        :rtype: dict
         """
         response: dict = self.s3_client.get_bucket_acl(
             Bucket=self.bucket_name,
@@ -1305,19 +1291,17 @@ class HCPHandler:
         object.
 
         :param key: The name of the object
-        :type key: str
 
         :param user_ID: The user name. Can either be the DisplayName or user_ID
-        :type user_ID: str
 
         :param permission:
             What permission to be set. Valid options are:
-                * FULL_CONTROL
-                * WRITE
-                * WRITE_ACP
-                * READ
-                * READ_ACP\n
-        :type permission: str
+
+            * FULL_CONTROL
+            * WRITE
+            * WRITE_ACP
+            * READ
+            * READ_ACP
         """
         self.s3_client.put_object_acl(
             Bucket=self.bucket_name,
@@ -1338,12 +1322,12 @@ class HCPHandler:
 
         :param permission:
             What permission to be set. Valid options are:
-                * FULL_CONTROL
-                * WRITE
-                * WRITE_ACP
-                * READ
-                * READ_ACP\n
-        :type permission: str
+
+            * FULL_CONTROL
+            * WRITE
+            * WRITE_ACP
+            * READ
+            * READ_ACP
         """
         self.s3_client.put_bucket_acl(
             Bucket=self.bucket_name,
@@ -1369,7 +1353,6 @@ class HCPHandler:
         :param key_user_ID_permissions:
             The dictionary containing object name and user_id-permission
             dictionary
-        :type key_user_ID_permissions: dict[str, dict[str, str]]
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
             self.s3_client.put_object_acl(
@@ -1388,7 +1371,6 @@ class HCPHandler:
         :param user_ID_permissions:
             The dictionary containing the user name and the corresponding
             permission to be set to that user
-        :type user_ID_permissions: dict[str, str]
         """
         self.s3_client.put_bucket_acl(
             Bucket=self.bucket_name,

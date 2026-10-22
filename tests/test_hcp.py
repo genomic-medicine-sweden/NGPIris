@@ -1,12 +1,16 @@
-from collections.abc import Callable
 from filecmp import cmp
-from typing import Any
+from typing import TYPE_CHECKING, Any, Literal
 
-from conftest import CustomConfig
 from icecream import ic
 from pytest import fail
 
 from NGPIris import HCPHandler
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import TracebackType
+
+    from conftest import CustomConfig
 
 # ruff: noqa: S101, D103, E722, PT013, INP001
 
@@ -28,6 +32,44 @@ def _without_mounting(
         assert True
     else:  # pragma: no cover
         fail("Test failed")
+
+
+# --------------------------- Helper classes ---------------------------------
+class HandleUploadTests:
+    def __init__(
+        self,
+        custom_config: CustomConfig,
+        upload_type: Literal["file", "folder"],
+        folder_or_file_path: str,
+        key: str,
+    ) -> None:
+        self.custom_config: CustomConfig = custom_config
+        self.upload_type: Literal["file", "folder"] = upload_type
+        self.folder_or_file_path: str = folder_or_file_path
+        self.key: str = key
+
+    def __enter__(self):
+        match self.upload_type:
+            case "file":
+                upload_method = self.custom_config.hcp_h.upload_file
+            case "folder":
+                upload_method = self.custom_config.hcp_h.upload_folder
+
+        upload_method(self.folder_or_file_path, self.key)
+
+    def __exit__(
+        self,
+        exception_type: type[BaseException] | None,
+        exception_value: BaseException | None,
+        exception_traceback: TracebackType | None,
+    ) -> None:
+        match self.upload_type:
+            case "file":
+                delete_method = self.custom_config.hcp_h.delete_object
+            case "folder":
+                delete_method = self.custom_config.hcp_h.delete_folder
+
+        delete_method(self.key)
 
 
 # --------------------------- Test suite ---------------------------------------
@@ -184,16 +226,14 @@ def test_upload_nonexistent_file(custom_config: CustomConfig) -> None:
 def test_upload_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     key = str(custom_config.test_folder_path).split("/")[-2] + "/"
-    ic(key)
-    custom_config.hcp_h.upload_folder(
-        custom_config.test_folder_path,
-        key,
-    )
-    for obj in custom_config.hcp_h.list_objects(key):
-        if obj["IsFile"]:
-            custom_config.hcp_h.delete_object(obj["Key"])
-        else:
-            custom_config.hcp_h.delete_folder(obj["Key"])
+    with HandleUploadTests(
+        custom_config, "folder", custom_config.test_folder_path, key
+    ):
+        for obj in custom_config.hcp_h.list_objects(key):
+            if obj["IsFile"]:
+                custom_config.hcp_h.delete_object(obj["Key"])
+            else:
+                custom_config.hcp_h.delete_folder(obj["Key"])
 
 
 def test_upload_folder_without_mounting(custom_config: CustomConfig) -> None:
@@ -346,15 +386,14 @@ def test_delete_object_without_mounting(custom_config: CustomConfig) -> None:
 def test_delete_folder(custom_config: CustomConfig) -> None:
     test_mount_bucket(custom_config)
     key = str(custom_config.test_folder_path).split("/")[-2] + "/"
-    custom_config.hcp_h.upload_folder(
-        custom_config.test_folder_path,
-        key,
-    )
-    for obj in custom_config.hcp_h.list_objects(key):
-        if obj["IsFile"]:
-            custom_config.hcp_h.delete_object(obj["Key"])
-        else:
-            custom_config.hcp_h.delete_folder(obj["Key"])
+    with HandleUploadTests(
+        custom_config, "folder", custom_config.test_folder_path, key
+    ):
+        for obj in custom_config.hcp_h.list_objects(key):
+            if obj["IsFile"]:
+                custom_config.hcp_h.delete_object(obj["Key"])
+            else:
+                custom_config.hcp_h.delete_folder(obj["Key"])
 
 
 def test_delete_folder_with_sub_directory(custom_config: CustomConfig) -> None:

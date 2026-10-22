@@ -7,6 +7,7 @@ from urllib3 import disable_warnings
 
 from NGPIris.hci.helpers import get_index_response, get_query_response
 from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
 
 class HCIHandler:
@@ -21,22 +22,20 @@ class HCIHandler:
         Class for handling HCI requests.
 
         :param credentials:
-            If `credentials` is a `str`, then it will be interpreted as a path
-            to the JSON credentials file. If `credentials` is a `dict`, then a
-            dictionary with the appropriate HCI credentials is expected:
-            ```
-            {
-                "username" : "",
-                "password" : "",
-                "address" : "",
-                "auth_port" : "",
-                "api_port" : ""
-            }
-            ```
-        :type credentials: str | dict[str, str]
+            If ``credentials`` is a :py:type:`str`, then it will be interpreted as
+            a path to the JSON credentials file. If ``credentials`` is a
+            :py:type:`dict`, then a dictionary with the appropriate HCI
+            credentials is expected::
 
-        :param use_ssl: Boolean choice between using SSL, defaults to False
-        :type use_ssl: bool, optional
+                {
+                    "username" : "",
+                    "password" : "",
+                    "address" : "",
+                    "auth_port" : "",
+                    "api_port" : ""
+                }
+
+        :param use_ssl: Boolean choice between using SSL
         """
         if type(credentials) is str:
             credentials_handler = CredentialsHandler(credentials)
@@ -61,10 +60,13 @@ class HCIHandler:
 
         self.token = self._request_token()
 
-    @deprecated(
-        "`request_token` is depricated in favour of integrating its "
-        "functionality in the `HCIHandler` constructor"
+    _REQUEST_TOKEN_DEP_MSG = (
+        ":py:func:`request_token` is depricated in favor of integrating its "  # noqa: S105
+        "functionality into the :py:class:`HCIHandler` constructor"
     )
+
+    @_add_deprecation_in_doc_string(_REQUEST_TOKEN_DEP_MSG, "v5.6.7")
+    @deprecated(_REQUEST_TOKEN_DEP_MSG)
     def request_token(self) -> None:
         """
         Request a token from the HCI, which is stored in the HCIHandler object.
@@ -114,7 +116,6 @@ class HCIHandler:
         Retrieve a list of all index names.
 
         :return: A list of index names
-        :rtype: list[str]
         """
         response: Response = get_index_response(
             self.address,
@@ -130,10 +131,8 @@ class HCIHandler:
         the index name. Will return an empty dictionary if no index was found.
 
         :param index_name: The index name
-        :type index_name: str
 
         :return: A dictionary containing information about an index
-        :rtype: dict
         """
         response: Response = get_index_response(
             self.address,
@@ -153,10 +152,8 @@ class HCIHandler:
         Make query to an HCI index, with a dictionary.
 
         :param query_dict: Dictionary consisting of the query
-        :type query_dict: dict[str, str | list | dict]
 
         :return: Dictionary containing the raw query
-        :rtype: dict
         """
         return dict(
             get_query_response(
@@ -173,10 +170,8 @@ class HCIHandler:
         Make query to an HCI index, with prewritten query in a JSON file.
 
         :param query_path: Path to the JSON file
-        :type query_path: str
 
         :return: Dictionary containing the raw query
-        :rtype: dict
         """
         with Path(query_path).open() as inp:
             return dict(
@@ -199,18 +194,13 @@ class HCIHandler:
         Make a query to the HCI based on the parameters of this method.
 
         :param index_name: Name of the index
-        :type index_name: str
 
-        :param query_string: The Solr query string. Defaults to the empty string
-        :type query_string: str, optional
+        :param query_string: The Solr query string.
 
         :param facets:
             List of facets that should be returned included in the response.
-            Defaults to []
-        :type facets: list[str], optional
 
         :return: The response in the form of a dictionary
-        :rtype: dict
         """
         facetRequests = [{"fieldName": facet} for facet in facets]
         return self.raw_query(

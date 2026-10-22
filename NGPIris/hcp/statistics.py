@@ -25,7 +25,6 @@ class HCPStatistics(HCPHandler):
         Get namespace/bucket settings.
 
         :return: Namespace/bucket settings as a dictionary.
-        :rtype: dict
         """
         return self.get_response("/namespaces/" + self.bucket_name)  # pyright: ignore[reportOperatorIssue, reportAttributeAccessIssue]
 
@@ -35,7 +34,6 @@ class HCPStatistics(HCPHandler):
         Get namespace/bucket statistics.
 
         :return: Namespace/bucket statistics as a dictionary.
-        :rtype: dict
         """
         return self.get_response(  # pyright: ignore[reportAttributeAccessIssue]
             "/namespaces/" + self.bucket_name + "/statistics",  # pyright: ignore[reportOperatorIssue]
@@ -47,7 +45,6 @@ class HCPStatistics(HCPHandler):
         Get namespace/bucket permissions.
 
         :return: Namespace/bucket permissions as a dictionary.
-        :rtype: dict
         """
         return self.get_response(  # pyright: ignore[reportAttributeAccessIssue]
             "/namespaces/" + self.bucket_name + "/permissions",  # pyright: ignore[reportOperatorIssue]

@@ -1,37 +1,20 @@
 NGPIris.hci package
 ===================
 
-Submodules
-----------
-
-NGPIris.hci.exceptions module
------------------------------
-
-.. automodule:: NGPIris.hci.exceptions
-   :members:
-   :undoc-members:
-   :show-inheritance:
+This page contains everything related to the `NGPIris.hci` module and its submodules.
 
 NGPIris.hci.hci module
 ----------------------
 
 .. automodule:: NGPIris.hci.hci
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 NGPIris.hci.helpers module
 --------------------------
 
 .. automodule:: NGPIris.hci.helpers
    :members:
-   :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: NGPIris.hci
-   :members:
    :undoc-members:
-   :show-inheritance:

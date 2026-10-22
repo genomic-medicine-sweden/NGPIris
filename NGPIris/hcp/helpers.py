@@ -1,6 +1,7 @@
 import sys
+from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING, ParamSpec, TypeVar
+from typing import TYPE_CHECKING
 
 from tqdm import tqdm
 
@@ -47,16 +48,11 @@ def raise_path_error(path: str) -> None:
     Raise FileNotFoundError if the system path does not exist.
 
     :param path: Local system path
-    :type path: str
 
     :raises FileNotFoundError: If `path` does not exist
     """
     if not Path(path).exists():
         raise FileNotFoundError('"' + path + '"' + " does not exist")
-
-
-P = ParamSpec("P")
-R = TypeVar("R")
 
 
 def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
@@ -65,12 +61,11 @@ def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
     class methods, hence the possibly odd typing.
 
     :param method: An arbitrary class method of the `HCPHandler` class
-    :type method: Callable[ParamSpec("P"), TypeVar("R")]
 
     :return: A decorated class method of the `HCPHandler` class
-    :rtype: Callable[ParamSpec("P"), TypeVar("R")]
     """
 
+    @wraps(method)
     def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> R:
         self = args[0]
         if not self.bucket_name:  # pyright: ignore[reportAttributeAccessIssue]
@@ -92,14 +87,10 @@ def operation_response_code_handler(
     errors.
 
     :param response: The response dictionary from an S3 operation
-    :type response: dict
 
     :param operation:
         The type of operation that will be displayed in the error
         message.
-    :type operation: str
-
-    :rtype: None
     """
     metadata: dict = response.get("ResponseMetadata", {})
     if metadata:

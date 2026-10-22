@@ -1,10 +1,16 @@
 NGPIris.cli package
 ===================
 
-Module contents
----------------
+This page contains the CLI commands in NGPIris.
 
-.. automodule:: NGPIris.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
+CLI commands
+------------
+The following is an enumeration of all commands and subcommands provided with IRIS
+
+.. click:: NGPIris.cli:cli
+   :prog: iris
+   :nested: full
+
+.. click:: NGPIris.cli:iris_generate_credentials_file
+   :prog: iris_generate_credentials_file
+   :nested: full

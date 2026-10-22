@@ -1,45 +1,36 @@
 NGPIris.hcp package
 ===================
 
-Submodules
-----------
-
-NGPIris.hcp.exceptions module
------------------------------
-
-.. automodule:: NGPIris.hcp.exceptions
-   :members:
-   :undoc-members:
-   :show-inheritance:
+This page contains everything related to the `NGPIris.hcp` module and its submodules.
 
 NGPIris.hcp.hcp module
 ----------------------
 
 .. automodule:: NGPIris.hcp.hcp
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
+
+NGPIris.hcp.exceptions module
+-----------------------------
+
+.. automodule:: NGPIris.hcp.exceptions
+   :members:
+   :show-inheritance:
+   :undoc-members:
 
 NGPIris.hcp.helpers module
 --------------------------
 
 .. automodule:: NGPIris.hcp.helpers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 NGPIris.hcp.statistics module
 -----------------------------
 
 .. automodule:: NGPIris.hcp.statistics
    :members:
-   :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: NGPIris.hcp
-   :members:
    :undoc-members:
-   :show-inheritance:

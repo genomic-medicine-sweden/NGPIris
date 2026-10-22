@@ -4,11 +4,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import click
-from bitmath import Byte, TiB
+from bitmath import SI, Byte, TiB
 from boto3 import set_stream_logger
 from tabulate import tabulate
 
-from NGPIris import HCPHandler
+from NGPIris.hcp import HCPHandler
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -21,10 +21,8 @@ def add_trailing_slash(path: str) -> str:
     Add a trailing slash ("/") to `path`.
 
     :param path: Arbitrary string
-    :type path: str
 
     :return: Arbitrary string with `"/"` at the end
-    :rtype: str
     """
     if not path.endswith("/"):
         path += "/"
@@ -36,10 +34,8 @@ def create_HCPHandler(context: Context) -> HCPHandler:
     Returns a `HCPHandler` based on the given command `context`.
 
     :param context: The `click` context from the entered command
-    :type context: Context
 
     :return: An `HCPHandler` instance based on the given command `context`
-    :rtype: HCPHandler
     """
     if context.parent:
         parent_context = context.parent
@@ -164,6 +160,22 @@ def download_file(
             " use the -f / --force option"
         )
     hcp_h.download_file(source, downloaded_source.as_posix())
+
+
+def format_object_sizes(
+    objects: Generator[dict[str, Any], Any],
+) -> Generator[dict[str, Any], Any]:
+    """
+    Format object sizes into human-readable SI units for CLI output.
+
+    :param objects: Generator of objects with size metadata
+
+    :yield: Objects with formatted sizes
+    """
+    for obj in objects:
+        if obj.get("Size"):
+            obj["Size"] = str(Byte(int(obj["Size"])).best_prefix(system=SI))
+        yield obj
 
 
 def render_objects_table(
