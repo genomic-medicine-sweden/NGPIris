@@ -1,7 +1,7 @@
 import sys
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING, ParamSpec, TypeVar
+from typing import TYPE_CHECKING
 
 from tqdm import tqdm
 

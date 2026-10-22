@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import click
-from bitmath import Byte, TiB
+from bitmath import SI, Byte, TiB
 from boto3 import set_stream_logger
 from tabulate import tabulate
 
@@ -160,6 +160,22 @@ def download_file(
             " use the -f / --force option"
         )
     hcp_h.download_file(source, downloaded_source.as_posix())
+
+
+def format_object_sizes(
+    objects: Generator[dict[str, Any], Any],
+) -> Generator[dict[str, Any], Any]:
+    """
+    Format object sizes into human-readable SI units for CLI output.
+
+    :param objects: Generator of objects with size metadata
+
+    :yield: Objects with formatted sizes
+    """
+    for obj in objects:
+        if obj.get("Size"):
+            obj["Size"] = str(Byte(int(obj["Size"])).best_prefix(system=SI))
+        yield obj
 
 
 def render_objects_table(

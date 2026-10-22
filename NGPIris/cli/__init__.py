@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import click
-from bitmath import SI, Byte
 from tabulate import tabulate
 
 from NGPIris import HCPHandler
@@ -16,6 +15,7 @@ from NGPIris.cli.helpers import (
     download_file,
     download_folder,
     ensure_destination_dir,
+    format_object_sizes,
     render_objects_table,
 )
 from NGPIris.cli.sections import SectionedGroup
@@ -255,9 +255,11 @@ def delete(
                     + "(this list excludes any potential sub-folders):",
                 )
                 render_objects_table(
-                    hcp_h.list_objects(
-                        hcp_object,
-                        files_only=True,
+                    format_object_sizes(
+                        hcp_h.list_objects(
+                            hcp_object,
+                            files_only=True,
+                        )
                     ),
                     -1,
                 )
@@ -414,24 +416,6 @@ def list_objects(  # noqa: PLR0913
         for obj in objects:
             yield str(obj) + "\n"
 
-    def list_objects_generator(
-        hcp_h: HCPHandler,
-        path: str,
-        output_mode: HCPHandler.ListObjectsOutputMode,
-        files_only: bool,
-    ) -> Generator[dict[str, Any], Any]:
-        objects = hcp_h.list_objects(
-            path,
-            output_mode=output_mode,
-            files_only=files_only,
-        )
-        for obj in objects:
-            if obj.get("Size", 0):
-                obj["Size"] = str(
-                    Byte(obj.get("Size", 0)).best_prefix(system=SI)
-                )
-            yield obj
-
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
     output_mode = (
@@ -464,11 +448,12 @@ def list_objects(  # noqa: PLR0913
         )
     else:
         render_objects_table(
-            list_objects_generator(
-                hcp_h,
-                path_with_slash,
-                output_mode,
-                files_only,
+            format_object_sizes(
+                hcp_h.list_objects(
+                    path_with_slash,
+                    output_mode=output_mode,
+                    files_only=files_only,
+                )
             ),
             batch_size,
         )
@@ -688,103 +673,44 @@ def list_buckets(
 
 @cli.command(
     section="Search commands",
-    short_help=(
-        "Make a simple search using substrings in a bucket/namespace on "
-        "the HCP."
-    ),
+    short_help="Search objects using the HCP built-in metadata index.",
 )
 @click.argument("bucket")
 @click.argument("search_string")
 @click.option(
-    "-cs",
-    "--case_sensitive",
-    help="Use case sensitivity? Default value is False",
+    "-e",
+    "--extended-information",
+    help="Display additional information for each search result",
     default=False,
     is_flag=True,
 )
 @click.pass_context
-def simple_search(
+def search(
     context: Context,
     bucket: str,
     search_string: str,
-    case_sensitive: bool,
+    extended_information: bool,
 ) -> None:
     """
-    Make a simple search using substrings in a bucket/namespace on the HCP.
-
-    NOTE: This command does not use the HCI. Instead, it uses a linear search of
-    all the objects in the HCP. As such, this search might be slow.
+    Search objects in a bucket/namespace using the HCP metadata index.
 
     BUCKET is the name of the bucket in which to make the search.
 
-    SEARCH_STRING is any string that is to be used for the search.
+    SEARCH_STRING is the substring to search for in object paths.
     """
     hcp_h: HCPHandler = create_HCPHandler(context)
     hcp_h.mount_bucket(bucket)
-    list_of_results = hcp_h.search_in_bucket(
-        search_string,
-        case_sensitive=case_sensitive,
-    )
+    search_results = hcp_h.mqe_search_in_bucket(search_string)
+
     click.echo("Search results:")
-    render_objects_table(
-        list_of_results,
-        -1,
-    )
-
-
-@cli.command(
-    section="Search commands",
-    short_help=(
-        "Make a fuzzy search using a search string in a bucket/namespace"
-        "on the HCP."
-    ),
-)
-@click.argument("bucket")
-@click.argument("search_string")
-@click.option(
-    "-cs",
-    "--case_sensitive",
-    help="Use case sensitivity? Default value is False",
-    default=False,
-    is_flag=True,
-)
-@click.option(
-    "-t",
-    "--threshold",
-    help="Set the threshold for the fuzzy search score. Default value is 80",
-    default=80,
-)
-@click.pass_context
-def fuzzy_search(
-    context: Context,
-    bucket: str,
-    search_string: str,
-    case_sensitive: bool,
-    threshold: int,
-) -> None:
-    """
-    Make a fuzzy search using a search string in a bucket/namespace on the HCP.
-
-    NOTE: This command does not use the HCI. Instead, it uses the RapidFuzz
-    library in order to find objects in the HCP. As such, this search might be
-    slow.
-
-    BUCKET is the name of the bucket in which to make the search.
-
-    SEARCH_STRING is any string that is to be used for the search.
-    """
-    hcp_h: HCPHandler = create_HCPHandler(context)
-    hcp_h.mount_bucket(bucket)
-    list_of_results = hcp_h.fuzzy_search_in_bucket(
-        search_string,
-        case_sensitive=case_sensitive,
-        threshold=threshold,
-    )
-    click.echo("Search results:")
-    render_objects_table(
-        list_of_results,
-        -1,
-    )
+    if extended_information:
+        render_objects_table(
+            format_object_sizes(search_results),
+            -1,
+        )
+    else:
+        for result in search_results:
+            click.echo(result["Key"])
 
 
 # ---------------------------- Utility commands ----------------------------
