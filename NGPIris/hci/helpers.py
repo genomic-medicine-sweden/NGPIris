@@ -1,7 +1,9 @@
-from json import dumps
+from json import dumps, loads
 from typing import TYPE_CHECKING, Literal
 
 from requests import HTTPError, Response, get, post
+
+from NGPIris.hci.exceptions import HCI_ResponseError
 
 if TYPE_CHECKING:
     from NGPIris.hci import HCIHandler
@@ -9,7 +11,7 @@ if TYPE_CHECKING:
 # ruff: noqa: PYI051
 
 
-def get_or_post_response(
+def get_response(
     hci_handler: HCIHandler,
     request_type: Literal["GET", "POST"],
     api_endpoint: Literal[
@@ -69,7 +71,16 @@ def get_or_post_response(
     try:
         response.raise_for_status()
     except HTTPError as http_error:
-        raise Exception(http_error.response)
+        error_content = dict(loads(http_error.response.content))
+        error_msg = (
+            "\nstatusCode: "
+            + str(error_content.get("statusCode", ""))
+            + "\nerrorMessage: "
+            + str(error_content.get("errorMessage", ""))
+            + "\nerrorProperties: "
+            + str(error_content.get("errorProperties", ""))
+        )
+        raise HCI_ResponseError(error_msg) from http_error
 
     return response
 
@@ -82,7 +93,7 @@ def get_index_response(hci_handler: HCIHandler) -> Response:
 
     :return: A response containing information about the index
     """
-    return get_or_post_response(hci_handler, "GET", "/api/search/indexes/")
+    return get_response(hci_handler, "GET", "/api/search/indexes/")
 
 
 def get_query_response(
@@ -105,7 +116,7 @@ def get_query_response(
         "Content-Type": "application/json",
     }
 
-    return get_or_post_response(
+    return get_response(
         hci_handler,
         "POST",
         "/api/search/query/",
