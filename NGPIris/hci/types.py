@@ -1,4 +1,6 @@
-from typing import Literal, Required, TypedDict
+from typing import Literal, Required
+
+from typing_extensions import TypedDict
 
 # ------------------------------------------------------------------------------
 # `IndexResponse` and associated types
