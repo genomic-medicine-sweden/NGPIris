@@ -68,7 +68,9 @@ class SortField(TypedDict, total=False):
     `sortField` denote a field name and `sortOrder` denote how to sort this
     field.
 
-    See `Search result sorting <https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/administering-hitachi-content-search/configuring-your-user-s-search-experience/search-result-sorting>`__.
+    See `Search result sorting`_.
+
+    .. _Search result sorting: https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/administering-hitachi-content-search/configuring-your-user-s-search-experience/search-result-sorting
     """
 
     modelVersion: str
@@ -78,7 +80,10 @@ class SortField(TypedDict, total=False):
 
 class FilterQueries(TypedDict, total=False):
     """
-    See `Hitachi docs (assuming they haven't moved or deleted it) <https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/index-collections/query-settings/query-setting-configuration-options/configuring-filtering-in-query-settings>__.
+    See Hitachi docs (assuming they haven't moved or deleted it):
+    `Configuring filtering in query settings`_.
+
+    .. _Configuring filtering in query settings: https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/index-collections/query-settings/query-setting-configuration-options/configuring-filtering-in-query-settings
     """
 
     modelVersion: str
@@ -87,7 +92,10 @@ class FilterQueries(TypedDict, total=False):
 
 class CustomParameters(TypedDict, total=False):
     """
-    See `Hitachi docs (assuming they haven't moved or deleted it) <https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/index-collections/query-settings/query-setting-configuration-options/configuring-custom-parameters-in-query-settings>`__.
+    See Hitachi docs (assuming they haven't moved or deleted it):
+    `Configuring custom parameters in query settings`_.
+
+    .. _Configuring custom parameters in query settings: https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/index-collections/query-settings/query-setting-configuration-options/configuring-custom-parameters-in-query-settings.
     """
 
     modelVersion: str
