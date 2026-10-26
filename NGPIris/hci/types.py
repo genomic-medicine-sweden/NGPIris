@@ -2,6 +2,19 @@ from typing import Literal, Required
 
 from typing_extensions import TypedDict
 
+
+class Request(TypedDict, total=False):
+    """
+    Super type for all :py:class:`TypedDict` sub types that are requests.
+    """
+
+
+class Response(TypedDict, total=False):
+    """
+    Super type for all :py:class:`TypedDict` sub types that are responses.
+    """
+
+
 # ------------------------------------------------------------------------------
 # `IndexResponse` and associated types
 
@@ -23,7 +36,7 @@ class Field(TypedDict, total=False):
     facetMaxCount: int
 
 
-class IndexResponse(TypedDict, total=False):
+class IndexResponse(Response, total=False):
     """
     A typed dictionary based on HCI Search API docs.
     It models an API response when making a request to the `/indexes/` endpoint.
@@ -105,7 +118,7 @@ class CustomParameters(TypedDict, total=False):
     value: Required[str]
 
 
-class QueryRequest(TypedDict, total=False):
+class QueryRequest(Request, total=False):
     """
     A typed dictionary based on HCI Search API docs.
     It models an API request when making a request to the `/query/` endpoint.
@@ -213,7 +226,7 @@ class Facet(TypedDict, total=False):
     termCounts: Required[list[TermCount]]
 
 
-class QueryResponse(TypedDict, total=False):
+class QueryResponse(Response, total=False):
     """
     A typed dictionary based on HCI Search API docs.
     It models an API response when making a request to the `/query/` endpoint.
