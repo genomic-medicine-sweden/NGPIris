@@ -24,6 +24,7 @@ class Field(TypedDict, total=False):
 class IndexResponse(TypedDict, total=False):
     """
     A typed dictionary based on HCI Search API docs.
+    It models an API response when making a request to the `/indexes/` endpoint.
     """
 
     modelVersion: str
@@ -75,6 +76,11 @@ class CustomParameters(TypedDict, total=False):
 
 
 class QueryRequest(TypedDict, total=False):
+    """
+    A typed dictionary based on HCI Search API docs.
+    It models an API requst when making a request to the `/query/` endpoint.
+    """
+
     modelVersion: str
     indexName: Required[str]
     queryString: str
@@ -99,6 +105,10 @@ class Metadata(TypedDict, total=False, extra_items=list[str]):
 
 
 class Options(TypedDict, total=False):
+    """
+    The options for a given display field.
+    """
+
     modelVersion: str
     name: Required[
         Literal[
@@ -112,6 +122,11 @@ class Options(TypedDict, total=False):
 
 
 class DisplayField(TypedDict, total=False):
+    """
+    The names and values of display fields of a given query reponse.
+    These fields are the same ones that appear in the "HCI search app".
+    """
+
     modelVersion: str
     name: Required[str]
     type: Required[
@@ -134,6 +149,10 @@ class DisplayField(TypedDict, total=False):
 
 
 class Result(TypedDict, total=False):
+    """
+    The result data of a query response.
+    """
+
     metadata: Metadata
     relevance: float
     modelVersion: str
@@ -144,12 +163,20 @@ class Result(TypedDict, total=False):
 
 
 class TermCount(TypedDict, total=False):
+    """
+    Associated terms and their count in a facet.
+    """
+
     modelVersion: str
     term: Required[str]
     count: int
 
 
 class Facet(TypedDict, total=False):
+    """
+    Facet counts of a query response.
+    """
+
     modelVersion: str
     fieldName: Required[str]
     displayName: str
@@ -157,6 +184,11 @@ class Facet(TypedDict, total=False):
 
 
 class QueryResponse(TypedDict, total=False):
+    """
+    A typed dictionary based on HCI Search API docs.
+    It models an API response when making a request to the `/query/` endpoint.
+    """
+
     modelVersion: str
     indexName: Required[str]
     indexDisplayName: str
