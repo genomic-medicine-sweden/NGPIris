@@ -51,7 +51,6 @@ dev = [
     "shibuya>=2026.7.12",
     "sphinx-autodoc-typehints>=3.13.2",
     "sphinx-click>=6.2.0",
-    "sphinx-toolbox>=4.1.2",
     "sphinx>=9.1.0",
 ]
 
