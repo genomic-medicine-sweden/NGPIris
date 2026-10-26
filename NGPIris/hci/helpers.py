@@ -62,7 +62,7 @@ def get_response(
         case "POST":
             response = post(
                 url,
-                dumps(data),
+                data=dumps(data),
                 headers=headers,
                 verify=hci_handler.use_ssl,
                 timeout=15,
