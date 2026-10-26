@@ -102,7 +102,7 @@ class IndexResponse(TypedResponse):
 
 class FacetRequest(TypedInnerDict):
     modelVersion: str
-    fieldName: str
+    fieldName: Required[str]
     minCount: int
     maxCount: int
     termFilters: list[str]
@@ -111,24 +111,24 @@ class FacetRequest(TypedInnerDict):
 
 class SortField(TypedInnerDict):
     modelVersion: str
-    sortField: str
-    sortOrder: str
+    sortField: Required[str]
+    sortOrder: Required[str]
 
 
 class FilterQueries(TypedInnerDict):
     modelVersion: str
-    queryString: str
+    queryString: Required[str]
 
 
 class CustomParameters(TypedInnerDict):
     modelVersion: str
-    name: str
-    value: str
+    name: Required[str]
+    value: Required[str]
 
 
 class QueryRequest(TypedRequest):
     modelVersion: str
-    indexName: str
+    indexName: Required[str]
     queryString: str
     offset: int
     itemsToReturn: int
