@@ -108,18 +108,12 @@ def get_query_response(
 
     :return: A response containing information about the query
     """
-    if "indexName" not in query_dict:
-        msg = "Field indexName is missing in the query dictionary"
-        raise RuntimeError(msg)
-
-    extra_headers: dict[str, str] = {
-        "Content-Type": "application/json",
-    }
-
     return get_response(
         hci_handler,
         "POST",
         "/api/search/query/",
-        extra_headers=extra_headers,
+        extra_headers={
+            "Content-Type": "application/json",
+        },
         data=query_dict,
     )
