@@ -1,4 +1,4 @@
-from typing import Required, TypedDict
+from typing import Literal, Required, TypedDict
 
 query_response = {
     "modelVersion": str,
@@ -132,3 +132,67 @@ class Metadata(TypedDict, total=False, extra_items=list[str]):
     but each key will always have a value of type :py:type:`list[str]`.
     """
 
+
+class Options(TypedDict, total=False):
+    modelVersion: str
+    name: Literal[
+        "HIGHLIGHT",
+        "HIDE_FIELD_IF_NO_HIGHLIGHT",
+        "FULL_TEXT_HIGHLIGHT",
+        "EXPANDABLE",
+    ]
+    value: str
+
+
+class DisplayField(TypedDict, total=False):
+    modelVersion: str
+    name: str
+    type: Literal[
+        "TITLE",
+        "TITLE_ICON",
+        "LINK",
+        "SNIPPET",
+        "METADATA",
+        "LABELED_METADATA",
+        "IMAGE",
+        "AUDIO",
+        "VIDEO",
+        "HTML",
+        "DOCUMENT_METADATA",
+    ]
+    value: str
+    options: list[Options]
+
+
+class Result(TypedDict, total=False):
+    metadata: Metadata
+    relevance: int
+    modelVersion: str
+    id: str
+    title: str
+    link: str
+    displayFields: list[DisplayField]
+
+
+class TermCount(TypedDict, total=False):
+    modelVersion: str
+    term: str
+    count: int
+
+
+class Facet(TypedDict, total=False):
+    modelVersion: str
+    fieldName: str
+    displayName: str
+    termCounts: list[TermCount]
+
+
+class QueryResponse(TypedDict, total=False):
+    modelVersion: str
+    indexName: Required[str]
+    indexDisplayName: str
+    results: list[Result]
+    facets: list[Facet]
+    hitCount: int
+    jsonFacets: str
+    showHciID: bool
