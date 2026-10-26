@@ -117,12 +117,7 @@ class HCIHandler:
 
         :return: A list of index names
         """
-        response: Response = get_index_response(
-            self.address,
-            self.api_port,
-            self.token,
-            self.use_ssl,
-        )
+        response: Response = get_index_response(self)
         return [entry["name"] for entry in response.json()]
 
     def look_up_index(self, index_name: str) -> dict:
@@ -134,12 +129,7 @@ class HCIHandler:
 
         :return: A dictionary containing information about an index
         """
-        response: Response = get_index_response(
-            self.address,
-            self.api_port,
-            self.token,
-            self.use_ssl,
-        )
+        response: Response = get_index_response(self)
 
         for entry in response.json():
             if entry["name"] == index_name:
@@ -156,13 +146,7 @@ class HCIHandler:
         :return: Dictionary containing the raw query
         """
         return dict(
-            get_query_response(
-                query_dict,
-                self.address,
-                self.api_port,
-                self.token,
-                self.use_ssl,
-            ).json(),
+            get_query_response(query_dict, self).json(),
         )
 
     def raw_query_from_JSON(self, query_path: str) -> dict:
@@ -175,13 +159,7 @@ class HCIHandler:
         """
         with Path(query_path).open() as inp:
             return dict(
-                get_query_response(
-                    dict(load(inp)),
-                    self.address,
-                    self.api_port,
-                    self.token,
-                    self.use_ssl,
-                ).json(),
+                get_query_response(dict(load(inp)), self).json(),
             )
 
     def query(

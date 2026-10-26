@@ -1,64 +1,99 @@
 from json import dumps
+from typing import TYPE_CHECKING, Literal
 
-from requests import Response, get, post
+from requests import HTTPError, Response, get, post
+
+if TYPE_CHECKING:
+    from NGPIris.hci import HCIHandler
+
+# ruff: noqa: PYI051
 
 
-def get_index_response(
-    address: str,
-    api_port: str,
-    token: str,
-    use_ssl: bool,
+def get_or_post_response(
+    hci_handler: HCIHandler,
+    request_type: Literal["GET", "POST"],
+    api_endpoint: Literal[
+        "/auth/oauth/",
+        "/api/search/indexes/",
+        "/api/search/query/",
+    ]
+    | str,
+    api_endpoint_extension: str = "",
+    extra_headers: dict[str, str] | None = None,
+    data: dict | None = None,
 ) -> Response:
     """
-    Retrieve the index response given the address, API port and token.
+    TBD
 
-    :param address: The address where request is to be made
+    :param hci_handler:
 
-    :param api_port: The API port at the given address
+    :param api_endpoint:
 
-    :param token: The HCI token
+    :param api_endpoint_extension:
 
-    :param use_ssl: Boolean choice of using SSL
+    :param extra_headers:
 
     :return: A response containing information about the index
     """
-    url: str = "https://" + address + ":" + api_port + "/api/search/indexes/"
-    headers: dict[str, str] = {
+    if data is None:
+        data = {}
+    if extra_headers is None:
+        extra_headers = {}
+    url: str = (
+        "https://"
+        + hci_handler.address
+        + ":"
+        + hci_handler.api_port
+        + api_endpoint
+        + api_endpoint_extension
+    )
+    headers: dict[str, str] = extra_headers | {
         "Accept": "application/json",
-        "Authorization": "Bearer " + token,
+        "Authorization": "Bearer " + hci_handler.token,
     }
 
-    response: Response = get(url, headers=headers, verify=use_ssl, timeout=15)
+    match request_type:
+        case "GET":
+            response = get(
+                url, headers=headers, verify=hci_handler.use_ssl, timeout=15
+            )
+        case "POST":
+            response = post(
+                url,
+                dumps(data),
+                headers=headers,
+                verify=hci_handler.use_ssl,
+                timeout=15,
+            )
 
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except HTTPError as http_error:
+        raise Exception(http_error.response)
 
     return response
 
 
-def get_query_response(  # noqa: PLR0913
-    query_dict: dict[str, str | int | list | dict],
-    address: str,
-    api_port: str,
-    token: str,
-    use_ssl: bool,
-    path_extension: str = "",
+def get_index_response(hci_handler: HCIHandler) -> Response:
+    """
+    Retrieve the index response given the address, API port and token.
+
+    :param hci_handler:
+
+    :return: A response containing information about the index
+    """
+    return get_or_post_response(hci_handler, "GET", "/api/search/indexes/")
+
+
+def get_query_response(
+    query_dict: dict[str, str | int | list | dict], hci_handler: HCIHandler
 ) -> Response:
     """
     Retrieve the query response given the address, API port and token.
 
     :param query_dict: The query dictionary
 
-    :param address: The address where request is to be made
-
-    :param api_port: The API port at the given address
-
-    :param token: The HCI token
-
-    :param use_ssl: Boolean choice of using SSL
-
-    :param path_extension:
-        Possibly extend the request URL. Used for example when making SQL
-        requests.
+    :param hci_handler:
 
     :return: A response containing information about the query
     """
@@ -66,23 +101,14 @@ def get_query_response(  # noqa: PLR0913
         msg = "Field indexName is missing in the query dictionary"
         raise RuntimeError(msg)
 
-    url: str = (
-        "https://"
-        + address
-        + ":"
-        + api_port
-        + "/api/search/query/"
-        + path_extension
-    )
-    headers: dict[str, str] = {
+    extra_headers: dict[str, str] = {
         "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Bearer " + token,
     }
-    response: Response = post(
-        url, dumps(query_dict), headers=headers, verify=use_ssl, timeout=15
+
+    return get_or_post_response(
+        hci_handler,
+        "POST",
+        "/api/search/query/",
+        extra_headers=extra_headers,
+        data=query_dict,
     )
-
-    response.raise_for_status()
-
-    return response
