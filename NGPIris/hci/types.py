@@ -135,30 +135,34 @@ class Metadata(TypedDict, total=False, extra_items=list[str]):
 
 class Options(TypedDict, total=False):
     modelVersion: str
-    name: Literal[
-        "HIGHLIGHT",
-        "HIDE_FIELD_IF_NO_HIGHLIGHT",
-        "FULL_TEXT_HIGHLIGHT",
-        "EXPANDABLE",
+    name: Required[
+        Literal[
+            "HIGHLIGHT",
+            "HIDE_FIELD_IF_NO_HIGHLIGHT",
+            "FULL_TEXT_HIGHLIGHT",
+            "EXPANDABLE",
+        ]
     ]
-    value: str
+    value: Required[str]
 
 
 class DisplayField(TypedDict, total=False):
     modelVersion: str
-    name: str
-    type: Literal[
-        "TITLE",
-        "TITLE_ICON",
-        "LINK",
-        "SNIPPET",
-        "METADATA",
-        "LABELED_METADATA",
-        "IMAGE",
-        "AUDIO",
-        "VIDEO",
-        "HTML",
-        "DOCUMENT_METADATA",
+    name: Required[str]
+    type: Required[
+        Literal[
+            "TITLE",
+            "TITLE_ICON",
+            "LINK",
+            "SNIPPET",
+            "METADATA",
+            "LABELED_METADATA",
+            "IMAGE",
+            "AUDIO",
+            "VIDEO",
+            "HTML",
+            "DOCUMENT_METADATA",
+        ]
     ]
     value: str
     options: list[Options]
@@ -166,33 +170,33 @@ class DisplayField(TypedDict, total=False):
 
 class Result(TypedDict, total=False):
     metadata: Metadata
-    relevance: int
+    relevance: float
     modelVersion: str
     id: str
     title: str
     link: str
-    displayFields: list[DisplayField]
+    displayFields: Required[list[DisplayField]]
 
 
 class TermCount(TypedDict, total=False):
     modelVersion: str
-    term: str
+    term: Required[str]
     count: int
 
 
 class Facet(TypedDict, total=False):
     modelVersion: str
-    fieldName: str
+    fieldName: Required[str]
     displayName: str
-    termCounts: list[TermCount]
+    termCounts: Required[list[TermCount]]
 
 
 class QueryResponse(TypedDict, total=False):
     modelVersion: str
     indexName: Required[str]
     indexDisplayName: str
-    results: list[Result]
+    results: Required[list[Result]]
     facets: list[Facet]
-    hitCount: int
+    hitCount: Required[int]
     jsonFacets: str
     showHciID: bool
