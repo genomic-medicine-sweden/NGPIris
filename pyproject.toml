@@ -52,6 +52,7 @@ dev = [
     "sphinx-autodoc-typehints>=3.13.2",
     "sphinx-click>=6.2.0",
     "sphinx>=9.1.0",
+    "typing-extensions>=4.16.0",
 ]
 
 [project.scripts]
