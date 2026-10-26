@@ -1,50 +1,7 @@
 from typing import Literal, Required, TypedDict
 
-query_response = {
-    "modelVersion": str,
-    "indexName": str,
-    "indexDisplayName": str,
-    "results": [
-        {
-            "metadata": {
-                "additionalProp1": [str],
-                "additionalProp2": [str],
-                "additionalProp3": [str],
-            },
-            "relevance": int,
-            "modelVersion": str,
-            "id": str,
-            "title": str,
-            "link": str,
-            "displayFields": [
-                {
-                    "modelVersion": str,
-                    "name": str,
-                    "type": "TITLE, TITLE_ICON, LINK, SNIPPET, METADATA, LABELED_METADATA, IMAGE, AUDIO, VIDEO, HTML, DOCUMENT_METADATA",
-                    "value": str,
-                    "options": [
-                        {
-                            "modelVersion": str,
-                            "name": "HIGHLIGHT, HIDE_FIELD_IF_NO_HIGHLIGHT, FULL_TEXT_HIGHLIGHT, EXPANDABLE",
-                            "value": str,
-                        }
-                    ],
-                }
-            ],
-        }
-    ],
-    "facets": [
-        {
-            "modelVersion": str,
-            "fieldName": str,
-            "displayName": str,
-            "termCounts": [{"modelVersion": str, "term": str, "count": int}],
-        }
-    ],
-    "hitCount": int,
-    "jsonFacets": str,
-    "showHciID": bool,
-}
+# ------------------------------------------------------------------------------
+# `IndexResponse` and associated types
 
 
 class Field(TypedDict, total=False):
@@ -87,6 +44,10 @@ class IndexResponse(TypedDict, total=False):
     intshowHciIDint: bool
 
 
+# ------------------------------------------------------------------------------
+# `QueryRequest` and associated types
+
+
 class FacetRequest(TypedDict, total=False):
     modelVersion: str
     fieldName: Required[str]
@@ -124,6 +85,10 @@ class QueryRequest(TypedDict, total=False):
     filterQueries: list[FilterQueries]
     customParameters: list[CustomParameters]
     returnedFieldFilter: list[str]
+
+
+# ------------------------------------------------------------------------------
+# `QueryResponse` and associated types
 
 
 class Metadata(TypedDict, total=False, extra_items=list[str]):
@@ -200,3 +165,6 @@ class QueryResponse(TypedDict, total=False):
     hitCount: Required[int]
     jsonFacets: str
     showHciID: bool
+
+
+# ------------------------------------------------------------------------------
