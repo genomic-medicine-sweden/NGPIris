@@ -124,3 +124,11 @@ class QueryRequest(TypedDict, total=False):
     filterQueries: list[FilterQueries]
     customParameters: list[CustomParameters]
     returnedFieldFilter: list[str]
+
+
+class Metadata(TypedDict, total=False, extra_items=list[str]):
+    """
+    The keys of dictionary is entirely depandant on the content of the index,
+    but each key will always have a value of type :py:type:`list[str]`.
+    """
+
