@@ -50,6 +50,10 @@ class IndexResponse(TypedDict, total=False):
 
 
 class FacetRequest(TypedDict, total=False):
+    """
+    Used for specifying facet counts for a given field.
+    """
+
     modelVersion: str
     fieldName: Required[str]
     minCount: int
@@ -59,17 +63,33 @@ class FacetRequest(TypedDict, total=False):
 
 
 class SortField(TypedDict, total=False):
+    """
+    Used for sorting the order in which the query results appear.
+    `sortField` denote a field name and `sortOrder` denote how to sort this
+    field.
+
+    See `Search result sorting <https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/administering-hitachi-content-search/configuring-your-user-s-search-experience/search-result-sorting>`__.
+    """
+
     modelVersion: str
     sortField: Required[str]
-    sortOrder: Required[str]
+    sortOrder: Required[Literal["DESC", "ASC"]]
 
 
 class FilterQueries(TypedDict, total=False):
+    """
+    See `Hitachi docs (assuming they haven't moved or deleted it) <https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/index-collections/query-settings/query-setting-configuration-options/configuring-filtering-in-query-settings>__.
+    """
+
     modelVersion: str
     queryString: Required[str]
 
 
 class CustomParameters(TypedDict, total=False):
+    """
+    See `Hitachi docs (assuming they haven't moved or deleted it) <https://docs.hitachivantara.com/r/en-us/mk-hci007/latest/index-collections/query-settings/query-setting-configuration-options/configuring-custom-parameters-in-query-settings>`__.
+    """
+
     modelVersion: str
     name: Required[str]
     value: Required[str]
@@ -78,7 +98,7 @@ class CustomParameters(TypedDict, total=False):
 class QueryRequest(TypedDict, total=False):
     """
     A typed dictionary based on HCI Search API docs.
-    It models an API requst when making a request to the `/query/` endpoint.
+    It models an API request when making a request to the `/query/` endpoint.
     """
 
     modelVersion: str
