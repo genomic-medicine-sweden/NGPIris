@@ -1,18 +1,5 @@
 from typing import Required, TypedDict
 
-
-class TypedResponse(TypedDict, total=False):
-    pass
-
-
-class TypedRequest(TypedDict, total=False):
-    pass
-
-
-class TypedInnerDict(TypedDict, total=False):
-    pass
-
-
 query_response = {
     "modelVersion": str,
     "indexName": str,
@@ -60,7 +47,7 @@ query_response = {
 }
 
 
-class Field(TypedInnerDict):
+class Field(TypedDict, total=False):
     """
     A typed dictionary for modeling a field in the HCI.
     """
@@ -77,7 +64,7 @@ class Field(TypedInnerDict):
     facetMaxCount: int
 
 
-class IndexResponse(TypedResponse):
+class IndexResponse(TypedDict, total=False):
     """
     A typed dictionary based on HCI Search API docs.
     """
@@ -100,7 +87,7 @@ class IndexResponse(TypedResponse):
     intshowHciIDint: bool
 
 
-class FacetRequest(TypedInnerDict):
+class FacetRequest(TypedDict, total=False):
     modelVersion: str
     fieldName: Required[str]
     minCount: int
@@ -109,24 +96,24 @@ class FacetRequest(TypedInnerDict):
     facetPrefix: str
 
 
-class SortField(TypedInnerDict):
+class SortField(TypedDict, total=False):
     modelVersion: str
     sortField: Required[str]
     sortOrder: Required[str]
 
 
-class FilterQueries(TypedInnerDict):
+class FilterQueries(TypedDict, total=False):
     modelVersion: str
     queryString: Required[str]
 
 
-class CustomParameters(TypedInnerDict):
+class CustomParameters(TypedDict, total=False):
     modelVersion: str
     name: Required[str]
     value: Required[str]
 
 
-class QueryRequest(TypedRequest):
+class QueryRequest(TypedDict, total=False):
     modelVersion: str
     indexName: Required[str]
     queryString: str
