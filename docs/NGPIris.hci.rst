@@ -19,6 +19,15 @@ NGPIris.hci.helpers module
    :show-inheritance:
    :undoc-members:
 
+NGPIris.hci.exceptions module
+------------------------
+
+.. automodule:: NGPIris.hci.exceptions
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+
 NGPIris.hci.types module
 ------------------------
 
