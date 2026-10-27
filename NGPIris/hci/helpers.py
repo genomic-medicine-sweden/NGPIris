@@ -75,7 +75,7 @@ def get_response(
     data: dict | types.Request | None = None,
 ) -> Response:
     """
-    TBD
+    A general implementation of making requests to the HCI.
 
     :param hci_handler:
         The :py:class:`HCIHandler` object to be used to make the request
@@ -84,18 +84,22 @@ def get_response(
 
     :param api_endpoint: The specified API endpoint to make the request at
 
-    :param api_endpoint_extension: Optioanl extension of the API endpoint
+    :param api_endpoint_extension: Optional extension of the API endpoint
 
     :param extra_headers: Optional additional header values to the request
 
-    :param data: Optional data to be made.
+    :param data: Optional data to be made
 
-    :return: A response containing information about the index
+    :return: A response from the HCI
     """
     if data is None:
         data = {}
     if extra_headers is None:
         extra_headers = {}
+
+    if not (request_type == "POST" and data):
+        raise TypeError
+
     url: str = (
         "https://"
         + hci_handler.address
