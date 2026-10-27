@@ -82,3 +82,12 @@ def get_query_response(
     return from_response(
         make_query_request(query_dict, hci_handler), QueryResponse
     )
+
+
+def to_QueryRequest(dictionary: dict[str, Any]) -> QueryRequest:
+    """
+    Helper function for turning a :py:type:`dict` into a
+    :py:class:`QueryRequest`. It achieves this by a somewhat
+    *unorthodox* approach.
+    """
+    return QueryRequest(dictionary)  # pyright: ignore[reportArgumentType]
