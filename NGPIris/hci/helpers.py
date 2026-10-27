@@ -1,9 +1,13 @@
 from json import dumps, loads
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, overload
 
+from icecream import ic
 from requests import HTTPError, Response, get, post
+from typing_extensions import TypedDict
 
+from NGPIris.hci import types
 from NGPIris.hci.exceptions import HCI_ResponseError
+from NGPIris.hci.types import IndexResponse, QueryRequest, QueryResponse
 
 if TYPE_CHECKING:
     from NGPIris.hci import HCIHandler
@@ -26,19 +30,19 @@ def from_response(response: Response, to: type[QueryResponse]) -> QueryResponse:
 def from_response(
     response: Response, to: type[IndexResponse | QueryResponse]
 ) -> list[IndexResponse] | QueryResponse:
-    to_type = type(to)
-    if to_type is IndexResponse:
+    if to is IndexResponse:
         list_of_index_response_dicts: list[dict[str, Any]] = response.json()
-        index_responses: list[IndexResponse] = []
-        for index_response_dict in list_of_index_response_dicts:
-            index_responses.append(IndexResponse(dict(index_response_dict)))  # pyright: ignore[reportArgumentType]
-
+        index_responses: list[IndexResponse] = [
+            IndexResponse(dict(index_response_dict))  # pyright: ignore[reportArgumentType]
+            for index_response_dict in list_of_index_response_dicts
+        ]
         return index_responses
-    elif to_type is QueryResponse:  # noqa: RET505
+    elif to is QueryResponse:  # noqa: RET505
         as_dict = dict(response.json())
         return QueryResponse(as_dict)  # pyright: ignore[reportArgumentType]
 
-    raise RuntimeError
+    msg = "to_type = " + str(to)
+    raise RuntimeError(msg)
 
 
 def get_response(
@@ -52,7 +56,7 @@ def get_response(
     | str,
     api_endpoint_extension: str = "",
     extra_headers: dict[str, str] | None = None,
-    data: dict | None = None,
+    data: dict | types.Request | None = None,
 ) -> Response:
     """
     TBD
@@ -127,7 +131,7 @@ def get_index_response(hci_handler: HCIHandler) -> Response:
 
 
 def get_query_response(
-    query_dict: dict[str, str | int | list | dict], hci_handler: HCIHandler
+    query_dict: QueryRequest, hci_handler: HCIHandler
 ) -> Response:
     """
     Retrieve the query response given the address, API port and token.
