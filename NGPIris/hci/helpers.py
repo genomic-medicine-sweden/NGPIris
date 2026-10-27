@@ -78,12 +78,17 @@ def get_response(
     TBD
 
     :param hci_handler:
+        The :py:class:`HCIHandler` object to be used to make the request
 
-    :param api_endpoint:
+    :param request_type: The specified kind of request
 
-    :param api_endpoint_extension:
+    :param api_endpoint: The specified API endpoint to make the request at
 
-    :param extra_headers:
+    :param api_endpoint_extension: Optioanl extension of the API endpoint
+
+    :param extra_headers: Optional additional header values to the request
+
+    :param data: Optional data to be made.
 
     :return: A response containing information about the index
     """
@@ -140,6 +145,7 @@ def get_index_response(hci_handler: HCIHandler) -> Response:
     Retrieve the index response given the address, API port and token.
 
     :param hci_handler:
+        The :py:class:`HCIHandler` object to be used to make the request
 
     :return: A response containing information about the index
     """
@@ -155,6 +161,7 @@ def get_query_response(
     :param query_dict: The query dictionary
 
     :param hci_handler:
+        The :py:class:`HCIHandler` object to be used to make the request
 
     :return: A response containing information about the query
     """
