@@ -11,3 +11,7 @@ class DataNotSuppliedToPOST(Exception):
 
 class DataSuppliedToGET(Exception):
     pass
+
+
+class IndexNotFound(Exception):
+    pass
