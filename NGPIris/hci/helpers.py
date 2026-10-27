@@ -61,10 +61,10 @@ def from_response(
 def get_index_response(hci_handler: HCIHandler) -> list[IndexResponse]:
     """
     A short hand function equivalent to
-    ```
-    from_response(make_index_request(hci_handler), IndexResponse)
-    ```.
-    """
+    ::
+
+        from_response(make_index_request(hci_handler), IndexResponse)
+    """  # noqa: D400, D415
     return from_response(make_index_request(hci_handler), IndexResponse)
 
 
@@ -73,12 +73,10 @@ def get_query_response(
 ) -> QueryResponse:
     """
     A short hand function equivalent to
-    ```
-    from_response(
-        make_query_request(query_dict, hci_handler), QueryResponse
-    )
-    ```.
-    """
+    ::
+
+        from_response(make_query_request(query_dict, hci_handler), QueryResponse)
+    """  # noqa: D400, D415
     return from_response(
         make_query_request(query_dict, hci_handler), QueryResponse
     )
