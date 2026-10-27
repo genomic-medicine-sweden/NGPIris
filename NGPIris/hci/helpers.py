@@ -11,6 +11,36 @@ if TYPE_CHECKING:
 # ruff: noqa: PYI051
 
 
+@overload
+def from_response(
+    response: Response, to: type[IndexResponse]
+) -> list[IndexResponse]:
+    pass
+
+
+@overload
+def from_response(response: Response, to: type[QueryResponse]) -> QueryResponse:
+    pass
+
+
+def from_response(
+    response: Response, to: type[IndexResponse | QueryResponse]
+) -> list[IndexResponse] | QueryResponse:
+    to_type = type(to)
+    if to_type is IndexResponse:
+        list_of_index_response_dicts: list[dict[str, Any]] = response.json()
+        index_responses: list[IndexResponse] = []
+        for index_response_dict in list_of_index_response_dicts:
+            index_responses.append(IndexResponse(dict(index_response_dict)))  # pyright: ignore[reportArgumentType]
+
+        return index_responses
+    elif to_type is QueryResponse:  # noqa: RET505
+        as_dict = dict(response.json())
+        return QueryResponse(as_dict)  # pyright: ignore[reportArgumentType]
+
+    raise RuntimeError
+
+
 def get_response(
     hci_handler: HCIHandler,
     request_type: Literal["GET", "POST"],
