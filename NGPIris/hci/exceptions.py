@@ -3,3 +3,11 @@
 
 class HCI_ResponseError(Exception):
     pass
+
+
+class DataNotSuppliedToPOST(Exception):
+    pass
+
+
+class DataSuppliedToGET(Exception):
+    pass
