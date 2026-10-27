@@ -1,16 +1,13 @@
 from json import dumps, loads
 from typing import TYPE_CHECKING, Any, Literal, overload
 
-from icecream import ic
 from requests import HTTPError, Response, get, post
-from typing_extensions import TypedDict
 
-from NGPIris.hci import types
 from NGPIris.hci.exceptions import HCI_ResponseError
 from NGPIris.hci.types import IndexResponse, QueryRequest, QueryResponse
 
 if TYPE_CHECKING:
-    from NGPIris.hci import HCIHandler
+    from NGPIris.hci import HCIHandler, types
 
 # ruff: noqa: PYI051
 
@@ -30,6 +27,25 @@ def from_response(response: Response, to: type[QueryResponse]) -> QueryResponse:
 def from_response(
     response: Response, to: type[IndexResponse | QueryResponse]
 ) -> list[IndexResponse] | QueryResponse:
+    """
+    Helper function for turning a :py:class:`requests.Response` object into a
+    IRIS :py:class:`~NGPIris.hci.types.Response`. It achieves this by a somewhat
+    *unorthodox* approach.
+
+    NOTE: The return type for when :py:obj:`to` is
+    :py:class:`~NGPIris.hci.types.IndexResponse` is a
+    :py:type:`list[IndexResponse]`. This is due to the fact that the response
+    produced by :py:func:`get_index_response` is a list of individual index
+    responses. This is how the HCI works by design.
+
+    :param response: The incoming :py:class:`requests.Response`
+
+    :param to:
+        The expected sub type of :py:class:`~NGPIris.hci.types.Response` that
+        should be returned
+
+    :return: The response as the chosen kind based on :py:obj:`to`
+    """
     if to is IndexResponse:
         list_of_index_response_dicts: list[dict[str, Any]] = response.json()
         index_responses: list[IndexResponse] = [
