@@ -1,11 +1,24 @@
 from json import load
 from pathlib import Path
+from typing import Literal
 from warnings import deprecated
 
 from requests import Response, post
 from urllib3 import disable_warnings
 
-from NGPIris.hci.helpers import get_index_response, get_query_response
+from NGPIris.hci.exceptions import IndexNotFound
+from NGPIris.hci.helpers import (
+    get_index_response,
+    get_query_response,
+    to_QueryRequest,
+)
+from NGPIris.hci.types import (
+    FacetRequest,
+    IndexResponse,
+    QueryRequest,
+    QueryResponse,
+    SortField,
+)
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
@@ -117,10 +130,9 @@ class HCIHandler:
 
         :return: A list of index names
         """
-        response: Response = get_index_response(self)
-        return [entry["name"] for entry in response.json()]
+        return [entry["name"] for entry in get_index_response(self)]
 
-    def look_up_index(self, index_name: str) -> dict:
+    def look_up_index(self, index_name: str) -> IndexResponse:
         """
         Look up index information in the form of a dictionary by submitting
         the index name. Will return an empty dictionary if no index was found.
@@ -129,45 +141,47 @@ class HCIHandler:
 
         :return: A dictionary containing information about an index
         """
-        response: Response = get_index_response(self)
-
-        for entry in response.json():
+        for entry in get_index_response(self):
             if entry["name"] == index_name:
-                return dict(entry)
+                return entry
 
-        return {}
+        msg = "The index " + index_name + " could not be found"
+        raise IndexNotFound(msg)
 
-    def raw_query(self, query_dict: dict[str, str | int | list | dict]) -> dict:
+    def query(self, query_dict: QueryRequest) -> QueryResponse:
         """
-        Make query to an HCI index, with a dictionary.
+        Make query to an HCI index, with a :py:class:`QueryRequest` typed
+        dictionary.
 
-        :param query_dict: Dictionary consisting of the query
+        :param query_dict:
+            Dictionary consisting of the query. For more information see the
+            specification of :py:class:`QueryRequest`
 
-        :return: Dictionary containing the raw query
+        :return:
+            :py:class:`QueryResponse` typed dictionary containing the query
+            response
         """
-        return dict(
-            get_query_response(query_dict, self).json(),
-        )
+        return get_query_response(query_dict, self)
 
-    def raw_query_from_JSON(self, query_path: str) -> dict:
+    def query_from_JSON(self, query_path: str) -> QueryResponse:
         """
-        Make query to an HCI index, with prewritten query in a JSON file.
+        Make query to an HCI index, with pre-written query in a JSON file.
 
         :param query_path: Path to the JSON file
 
         :return: Dictionary containing the raw query
         """
         with Path(query_path).open() as inp:
-            return dict(
-                get_query_response(dict(load(inp)), self).json(),
-            )
+            return get_query_response(to_QueryRequest(load(inp)), self)
 
-    def query(
+    def basic_query(
         self,
         index_name: str,
         query_string: str = "",
-        facets: list[str] = [],  # noqa: B006
-    ) -> dict:
+        items_to_return: int = 0,
+        facets: list[str] | None = None,
+        sort_fields: list[tuple[str, Literal["DESC", "ASC"]]] | None = None,
+    ) -> QueryResponse:
         """
         Make a query to the HCI based on the parameters of this method.
 
@@ -175,16 +189,30 @@ class HCIHandler:
 
         :param query_string: The Solr query string.
 
+        :param items_to_return: Number of results that should be returned
+
         :param facets:
             List of facets that should be returned included in the response.
 
+        :param sort_fields:
+            List of tuples of fields and sort orders
+
         :return: The response in the form of a dictionary
         """
-        facetRequests = [{"fieldName": facet} for facet in facets]
-        return self.raw_query(
-            {
-                "indexName": index_name,
-                "queryString": query_string,
-                "facetRequests": facetRequests,
-            },
-        )
+        if sort_fields is None:
+            sort_fields = []
+        if facets is None:
+            facets = []
+
+        facetRequests = [FacetRequest({"fieldName": facet}) for facet in facets]
+        sortFields = [
+            SortField(sortField=sf, sortOrder=so) for sf, so in sort_fields
+        ]
+        query_dict: QueryRequest = {
+            "indexName": index_name,
+            "queryString": query_string,
+            "itemsToReturn": items_to_return,
+            "facetRequests": facetRequests,
+            "sortFields": sortFields,
+        }
+        return self.query(query_dict)
