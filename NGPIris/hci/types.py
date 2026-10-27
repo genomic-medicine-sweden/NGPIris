@@ -80,8 +80,8 @@ class FacetRequest(TypedDict, total=False):
 class SortField(TypedDict, total=False):
     """
     Used for sorting the order in which the query results appear.
-    `sortField` denote a field name and `sortOrder` denote how to sort this
-    field.
+    :py:attr:`sortField` denote a field name and :py:attr:`sortOrder` denote
+    how to sort this field.
 
     See `Search result sorting`_.
 
@@ -121,7 +121,8 @@ class CustomParameters(TypedDict, total=False):
 class QueryRequest(Request, total=False):
     """
     A typed dictionary based on HCI Search API docs.
-    It models an API request when making a request to the `/query/` endpoint.
+    It models an API request when making a request to the :py:obj:`/query/`
+    endpoint.
     """
 
     modelVersion: str
@@ -229,7 +230,8 @@ class Facet(TypedDict, total=False):
 class QueryResponse(Response, total=False):
     """
     A typed dictionary based on HCI Search API docs.
-    It models an API response when making a request to the `/query/` endpoint.
+    It models an API response when making a request to the :py:obj:`/query/`
+    endpoint.
     """
 
     modelVersion: str
