@@ -143,7 +143,7 @@ class QueryRequest(Request, total=False):
 
 class Metadata(TypedDict, total=False, extra_items=list[str]):
     """
-    The keys of dictionary is entirely depandant on the content of the index,
+    The keys of dictionary is entirely dependent on the content of the index,
     but each key will always have a value of type :py:type:`list[str]`.
     """
 
@@ -167,7 +167,7 @@ class Options(TypedDict, total=False):
 
 class DisplayField(TypedDict, total=False):
     """
-    The names and values of display fields of a given query reponse.
+    The names and values of display fields of a given query response.
     These fields are the same ones that appear in the "HCI search app".
     """
 
