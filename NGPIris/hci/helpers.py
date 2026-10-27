@@ -3,7 +3,11 @@ from typing import TYPE_CHECKING, Any, Literal, overload
 
 from requests import HTTPError, Response, get, post
 
-from NGPIris.hci.exceptions import HCI_ResponseError
+from NGPIris.hci.exceptions import (
+    DataNotSuppliedToPOST,
+    DataSuppliedToGET,
+    HCI_ResponseError,
+)
 from NGPIris.hci.types import IndexResponse, QueryRequest, QueryResponse
 
 if TYPE_CHECKING:
@@ -90,6 +94,13 @@ def get_response(
 
     :param data: Optional data to be made
 
+    :raise DataNotSuppliedToPOST:
+        If :py:obj:`request_type` is set to :py:obj:`"POST"` but no data is
+        supplied
+
+    :raise DataSuppliedToGET:
+        If :py:obj:`request_type` is set to :py:obj:`"GET"` and data is supplied
+
     :return: A response from the HCI
     """
     if data is None:
@@ -97,8 +108,13 @@ def get_response(
     if extra_headers is None:
         extra_headers = {}
 
-    if not (request_type == "POST" and data):
-        raise TypeError
+    if (request_type == "POST") and not data:
+        msg = "Request type is set to POST, but no data was supplied"
+        raise DataNotSuppliedToPOST(msg)
+
+    if request_type == "GET" and data:
+        msg = "Request type is set to POST, but data was also supplied"
+        raise DataSuppliedToGET(msg)
 
     url: str = (
         "https://"
