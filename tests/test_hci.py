@@ -21,11 +21,10 @@ def test_fail_index_look_up(custom_config: CustomConfig) -> None:
     assert not custom_config.hci_h.look_up_index("anIndexThatDoesNotExist")
 
 
-def test_make_simple_raw_query(custom_config: CustomConfig) -> None:
-    custom_config.hci_h.request_token()
+def test_make_simple_query(custom_config: CustomConfig) -> None:
     list_of_indexes = custom_config.hci_h.list_index_names()
     arbitrary_index = list_of_indexes[randint(0, len(list_of_indexes) - 1)]
-    result = custom_config.hci_h.raw_query(
+    result = custom_config.hci_h.query(
         {
             "indexName": arbitrary_index,
         },
@@ -33,11 +32,10 @@ def test_make_simple_raw_query(custom_config: CustomConfig) -> None:
     assert result["indexName"] == arbitrary_index
 
 
-def test_fail_raw_query(custom_config: CustomConfig) -> None:
-    custom_config.hci_h.request_token()
+def test_fail_query(custom_config: CustomConfig) -> None:
     query = {}
     try:
-        custom_config.hci_h.raw_query(query)
+        custom_config.hci_h.query(query)  # pyright: ignore[reportArgumentType]
     except:
         assert True
     else:  # pragma: no cover
