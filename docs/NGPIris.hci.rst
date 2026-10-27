@@ -20,7 +20,7 @@ NGPIris.hci.helpers module
    :undoc-members:
 
 NGPIris.hci.exceptions module
-------------------------
+-----------------------------
 
 .. automodule:: NGPIris.hci.exceptions
    :members:
