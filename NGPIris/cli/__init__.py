@@ -117,57 +117,6 @@ def copy(
 
 @cli.command(
     section="Object commands",
-    short_help="Move objects in a bucket/namespace on the HCP.",
-)
-@click.argument("bucket")
-@click.argument("source")
-@click.argument("destination")
-@click.option(
-    "-db",
-    "--destination_bucket",
-    help="Choose another destination bucket than the source bucket",
-    default="",
-)
-@click.option(
-    "-dr",
-    "--dry_run",
-    help=(
-        "Simulate the command execution without making actual changes. "
-        "Useful for testing and verification"
-    ),
-    is_flag=True,
-)
-@click.pass_context
-def move(
-    context: Context,
-    bucket: str,
-    source: str,
-    destination: str,
-    destination_bucket: str,
-    dry_run: bool,
-) -> None:
-    """
-    Move objects in a bucket/namespace on the HCP.
-
-    BUCKET is the bucket where SOURCE is.
-
-    SOURCE is the object to be moved.
-
-    DESTINATION is the destination path (the path where the object will be
-    moved to).
-    """
-    hcp_h: HCPHandler = create_HCPHandler(context)
-    hcp_h.mount_bucket(bucket)
-    if not dry_run:
-        hcp_h.move_file(source, destination, destination_bucket)
-    else:
-        click.echo(
-            'This command would have moved the file object "' + source + '"',
-        )
-
-
-@cli.command(
-    section="Object commands",
     short_help="Delete objects in a bucket/namespace on the HCP.",
 )
 @click.argument("bucket")
