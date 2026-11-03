@@ -1,6 +1,9 @@
-from typing import Literal, Required
+from typing import TYPE_CHECKING, Literal, Required
 
 from typing_extensions import TypedDict
+
+if TYPE_CHECKING:
+    from NGPIris.hci.query_string import QueryString
 
 
 class Request(TypedDict, total=False):
@@ -127,7 +130,7 @@ class QueryRequest(Request, total=False):
 
     modelVersion: str
     indexName: Required[str]
-    queryString: str
+    queryString: QueryString
     offset: int
     itemsToReturn: int
     facetRequests: list[FacetRequest]
