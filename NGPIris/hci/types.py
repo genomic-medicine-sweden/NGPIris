@@ -270,3 +270,31 @@ class QueryRequestTQS(Request, total=False):
     returnedFieldFilter: list[str]
 
 
+# ------------------------------------------------------------------------------
+# Helper functions for dealing with IRIS types
+
+
+def to_QueryRequest(dictionary: dict[str, Any]) -> QueryRequest:
+    """
+    Helper function for turning a :py:type:`dict` into a
+    :py:class:`QueryRequest`. It achieves this by a somewhat
+    *unorthodox* approach.
+    """
+    return QueryRequest(dictionary)  # pyright: ignore[reportArgumentType]
+
+
+def to_QueryRequestTQS(query_request: QueryRequest) -> QueryRequestTQS:
+    """
+    Helper function for turning a :py:class:`QueryRequest` into a
+    :py:class:`QueryRequestTQS`. It achieves this by a somewhat
+    *unorthodox* approach.
+    """
+    d = {}
+    for key, value in query_request.items():  # pyright: ignore[reportAssignmentType]
+        if key == "queryString":
+            value: QueryString
+            d[key] = value.to_str()
+        else:
+            d[key] = value
+
+    return QueryRequestTQS(d)  # pyright: ignore[reportArgumentType]

@@ -1,12 +1,18 @@
 from typing import TYPE_CHECKING, Any, overload
 
 from NGPIris.hci.hci_api_requests import make_index_request, make_query_request
-from NGPIris.hci.types import IndexResponse, QueryRequest, QueryResponse
+from NGPIris.hci.types import (
+    IndexResponse,
+    QueryRequest,
+    QueryRequestTQS,
+    QueryResponse,
+)
 
 if TYPE_CHECKING:
     from requests import Response
 
     from NGPIris.hci import HCIHandler
+    from NGPIris.hci.query_string import QueryString
 
 
 @overload
@@ -80,12 +86,3 @@ def get_query_response(
     return from_response(
         make_query_request(query_dict, hci_handler), QueryResponse
     )
-
-
-def to_QueryRequest(dictionary: dict[str, Any]) -> QueryRequest:
-    """
-    Helper function for turning a :py:type:`dict` into a
-    :py:class:`QueryRequest`. It achieves this by a somewhat
-    *unorthodox* approach.
-    """
-    return QueryRequest(dictionary)  # pyright: ignore[reportArgumentType]
