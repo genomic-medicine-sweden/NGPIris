@@ -10,14 +10,15 @@ from NGPIris.hci.exceptions import IndexNotFound
 from NGPIris.hci.helpers import (
     get_index_response,
     get_query_response,
-    to_QueryRequest,
 )
+from NGPIris.hci.query_string import QueryString
 from NGPIris.hci.types import (
     FacetRequest,
     IndexResponse,
     QueryRequest,
     QueryResponse,
     SortField,
+    to_QueryRequest,
 )
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
@@ -177,7 +178,7 @@ class HCIHandler:
     def basic_query(
         self,
         index_name: str,
-        query_string: str = "",
+        query_string: QueryString | None = None,
         items_to_return: int = 0,
         facets: list[str] | None = None,
         sort_fields: list[tuple[str, Literal["DESC", "ASC"]]] | None = None,
@@ -203,6 +204,8 @@ class HCIHandler:
             sort_fields = []
         if facets is None:
             facets = []
+        if query_string is None:
+            query_string = QueryString()
 
         facetRequests = [FacetRequest({"fieldName": facet}) for facet in facets]
         sortFields = [
