@@ -48,7 +48,8 @@ class Field(QueryString):
 
     def to_str(self) -> str:
         """
-        Method for turning a :py:class:`Field` into a string.
+        Method for turning a :py:class:`~NGPIris.hci.query_string.Field` into a
+        string.
         """
         return self.field_name + ":" + '"' + str(self.value) + '"'
 
