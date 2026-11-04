@@ -25,14 +25,14 @@ class QueryString(ABC):
 
     def __and__(self: QueryString, other: QueryString) -> QueryString:
         """
-        Definition of the :py:meth:`&` operator as on instance of
+        Definition of the :py:obj:`&` operator as on instance of
         :py:obj:`Operator("AND", self, other)`.
         """
         return Operator("AND", self, other)
 
     def __or__(self: QueryString, other: QueryString) -> QueryString:
         """
-        Definition of the :py:meth:`|` operator as on instance of
+        Definition of the :py:obj:`|` operator as on instance of
         :py:obj:`Operator("OR", self, other)`.
         """
         return Operator("OR", self, other)
@@ -66,7 +66,7 @@ class Operator(QueryString):
     Class representing an operator in the query string. Valid operators are
     :py:obj:`"AND"` and :py:obj:`"OR"`.
 
-    Using :py:meth:`&` and :py:meth:`|` is preferable to using the class
+    Using :py:obj:`&` and :py:obj:`|` is preferable to using the class
     constructor itself for readability.
 
     Example:
@@ -93,6 +93,9 @@ class Operator(QueryString):
     right: QueryString
 
     def to_str(self) -> str:
+        """
+        Method for turning a :py:class:`Operator` into a string.
+        """
         return (
             "("
             + self.left.to_str()
