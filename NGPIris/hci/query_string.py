@@ -98,9 +98,3 @@ class Operator(QueryString):
             + self.right.to_str()
             + ")"
         )
-
-
-"""
-def to_query_string(s: str) -> QueryString:
-    pass
- """
