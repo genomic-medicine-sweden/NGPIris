@@ -82,7 +82,7 @@ def get_query_response(
     ::
 
         from_response(make_query_request(query_dict, hci_handler), QueryResponse)
-    """  # noqa: D400, D415
+    """  # noqa: D400, D415, E501
     return from_response(
         make_query_request(query_dict, hci_handler), QueryResponse
     )
