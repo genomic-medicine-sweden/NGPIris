@@ -8,6 +8,7 @@ from NGPIris.hci.exceptions import (
     DataSuppliedToGET,
     HCI_ResponseError,
 )
+from NGPIris.hci.types import to_QueryRequestTQS
 
 if TYPE_CHECKING:
     from NGPIris.hci import HCIHandler, types
@@ -145,5 +146,5 @@ def make_query_request(
         extra_headers={
             "Content-Type": "application/json",
         },
-        data=query_dict,
+        data=to_QueryRequestTQS(query_dict),
     )
