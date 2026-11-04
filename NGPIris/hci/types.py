@@ -248,3 +248,25 @@ class QueryResponse(Response, total=False):
 
 
 # ------------------------------------------------------------------------------
+# `QueryRequestTQS`
+
+
+class QueryRequestTQS(Request, total=False):
+    """
+    A typed dictionary based on :py:class:`QueryRequest` but with the type of
+    :py:attr:`queryString` being transformed from :py:class:`QueryString` to
+    :py:type:`str`. TQS = Transformed QueryString.
+    """
+
+    modelVersion: str
+    indexName: Required[str]
+    queryString: str
+    offset: int
+    itemsToReturn: int
+    facetRequests: list[FacetRequest]
+    sortFields: list[SortField]
+    filterQueries: list[FilterQueries]
+    customParameters: list[CustomParameters]
+    returnedFieldFilter: list[str]
+
+
