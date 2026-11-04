@@ -1,11 +1,3 @@
-"""
-QueryString := Term | Operator
-Term := Field : Value
-Operator := QueryString AND QueryString | QueryString OR QueryString
-.
-"""
-
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Literal
 
@@ -107,3 +99,8 @@ class Operator(QueryString):
             + ")"
         )
 
+
+"""
+def to_query_string(s: str) -> QueryString:
+    pass
+ """
