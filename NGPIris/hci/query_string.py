@@ -10,18 +10,19 @@ from dataclasses import dataclass
 from typing import Literal
 
 
-class QueryString(ABC):
+@dataclass(frozen=True)
+class QueryString:
     """
     An abstract class representing a query string.
 
     For more information: https://lucene.apache.org/core/2_9_4/queryparsersyntax.html
     """
 
-    @abstractmethod
     def to_str(self) -> str:
         """
         Method for turning a :py:class:`QueryString` into a string.
         """
+        return ""
 
     def __and__(self: QueryString, other: QueryString) -> QueryString:
         """
