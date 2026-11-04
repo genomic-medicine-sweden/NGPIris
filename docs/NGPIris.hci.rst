@@ -27,6 +27,14 @@ NGPIris.hci.exceptions module
    :show-inheritance:
    :undoc-members:
 
+NGPIris.hci.query_string module
+-------------------------------
+
+.. automodule:: NGPIris.hci.query_string
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 
 NGPIris.hci.types module
 ------------------------
