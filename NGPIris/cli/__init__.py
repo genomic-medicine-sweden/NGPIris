@@ -1,4 +1,4 @@
-# ruff: noqa: SLF001
+# ruff: noqa: SLF001  # noqa: N999
 
 import sys
 from json import dump

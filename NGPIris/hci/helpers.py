@@ -4,7 +4,6 @@ from NGPIris.hci.hci_api_requests import make_index_request, make_query_request
 from NGPIris.hci.types import (
     IndexResponse,
     QueryRequest,
-    QueryRequestTQS,
     QueryResponse,
 )
 
@@ -12,7 +11,6 @@ if TYPE_CHECKING:
     from requests import Response
 
     from NGPIris.hci import HCIHandler
-    from NGPIris.hci.query_string import QueryString
 
 
 @overload

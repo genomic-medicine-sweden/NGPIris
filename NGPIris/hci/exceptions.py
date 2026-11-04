@@ -2,16 +2,24 @@
 
 
 class HCI_ResponseError(Exception):
-    pass
+    """
+    General Response Error from the HCI.
+    """
 
 
-class DataNotSuppliedToPOST(Exception):
-    pass
+class DataNotSuppliedToPOSTError(Exception):
+    """
+    Data was not supplied to a POST request.
+    """
 
 
-class DataSuppliedToGET(Exception):
-    pass
+class DataSuppliedToGETError(Exception):
+    """
+    Data was supplied to a GET request.
+    """
 
 
-class IndexNotFound(Exception):
-    pass
+class IndexNotFoundError(Exception):
+    """
+    The HCI index could not be found.
+    """

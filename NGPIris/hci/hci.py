@@ -6,7 +6,7 @@ from warnings import deprecated
 from requests import Response, post
 from urllib3 import disable_warnings
 
-from NGPIris.hci.exceptions import IndexNotFound
+from NGPIris.hci.exceptions import IndexNotFoundError
 from NGPIris.hci.helpers import (
     get_index_response,
     get_query_response,
@@ -36,8 +36,8 @@ class HCIHandler:
         Class for handling HCI requests.
 
         :param credentials:
-            If ``credentials`` is a :py:type:`str`, then it will be interpreted as
-            a path to the JSON credentials file. If ``credentials`` is a
+            If ``credentials`` is a :py:type:`str`, then it will be interpreted
+            as a path to the JSON credentials file. If ``credentials`` is a
             :py:type:`dict`, then a dictionary with the appropriate HCI
             credentials is expected::
 
@@ -147,7 +147,7 @@ class HCIHandler:
                 return entry
 
         msg = "The index " + index_name + " could not be found"
-        raise IndexNotFound(msg)
+        raise IndexNotFoundError(msg)
 
     def query(self, query_dict: QueryRequest) -> QueryResponse:
         """
