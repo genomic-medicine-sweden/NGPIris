@@ -1,5 +1,5 @@
-NGPIris.cli package
-===================
+The NGPIris CLI
+===============
 
 This page contains the CLI commands in NGPIris.
 
