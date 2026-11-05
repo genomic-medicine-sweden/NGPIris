@@ -35,8 +35,8 @@ def _without_mounting(
 
 
 # --------------------------- Helper classes ---------------------------------
-class HandleUploadTests:
-    def __init__(
+class HandleUploadTests:  # noqa: D101
+    def __init__(  # noqa: D107
         self,
         custom_config: CustomConfig,
         upload_type: Literal["file", "folder"],
@@ -48,7 +48,7 @@ class HandleUploadTests:
         self.folder_or_file_path: str = folder_or_file_path
         self.key: str = key
 
-    def __enter__(self):
+    def __enter__(self) -> None:  # noqa: D105
         match self.upload_type:
             case "file":
                 upload_method = self.custom_config.hcp_h.upload_file
@@ -57,7 +57,7 @@ class HandleUploadTests:
 
         upload_method(self.folder_or_file_path, self.key)
 
-    def __exit__(
+    def __exit__(  # noqa: D105
         self,
         exception_type: type[BaseException] | None,
         exception_value: BaseException | None,

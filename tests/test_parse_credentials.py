@@ -1,4 +1,8 @@
+from pytest import fail  # noqa: PT013
+
 from NGPIris.parse_credentials import CredentialsHandler
+
+# ruff: noqa: S101, INP001, D103, E722, PT016
 
 
 def incomplete_creds(path: str) -> None:
@@ -7,7 +11,7 @@ def incomplete_creds(path: str) -> None:
     except:
         assert True
     else:  # pragma: no cover
-        assert False
+        fail()
 
 
 def test_incomplete_creds_0() -> None:
@@ -30,7 +34,7 @@ def complete_creds(path: str) -> None:
     try:
         CredentialsHandler(path)
     except:  # pragma: no cover
-        assert False
+        fail()
     else:
         assert True
 
