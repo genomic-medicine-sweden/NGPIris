@@ -11,8 +11,8 @@ Welcome to the NGPIris package documentation! The following table contain docume
 .. toctree::
    :maxdepth: 2
 
-   NGPIris_base
    NGPIris.cli
+   NGPIris_base
    NGPIris.hci
    NGPIris.hcp
    NGPIris.parse_credentials
