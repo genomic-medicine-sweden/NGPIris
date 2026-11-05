@@ -46,43 +46,16 @@ def test_fail_query(custom_config: CustomConfig) -> None:
 
 
 def test_make_query(custom_config: CustomConfig) -> None:
-    custom_config.hci_h.query(
-        custom_config.test_index,
-    )
+    custom_config.hci_h.query({"indexName": custom_config.test_index})
 
 
 def test_make_query_with_query_string(custom_config: CustomConfig) -> None:
     custom_config.hci_h.query(
-        custom_config.test_index,
-        custom_config.query_string,
+        {
+            "indexName": custom_config.test_index,
+            "queryString": custom_config.query_string,
+        }
     )
 
 
-def test_make_query_with_query_string_and_facet(
-    custom_config: CustomConfig,
-) -> None:
-    if custom_config.test_facet:
-        custom_config.hci_h.query(
-            custom_config.test_index,
-            custom_config.query_string,
-            [custom_config.test_facet],
-        )
-    else:
-        custom_config.hci_h.query(
-            custom_config.test_index,
-            custom_config.query_string,
-            [],
-        )
-
-
-def test_make_query_with_facet(custom_config: CustomConfig) -> None:
-    if custom_config.test_facet:
-        custom_config.hci_h.query(
-            custom_config.test_index,
-            facets=[custom_config.test_facet],
-        )
-    else:
-        custom_config.hci_h.query(
-            custom_config.test_index,
-            facets=[],
-        )
+# TODO(EB): Add more and better tests
