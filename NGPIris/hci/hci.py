@@ -172,7 +172,7 @@ class HCIHandler:
         :return: Dictionary containing the raw query
         """
         with Path(query_path).open() as inp:
-            return get_query_response(to_QueryRequest(load(inp)), self)
+            return self.query(to_QueryRequest(load(inp)))
 
     def basic_query(
         self,
