@@ -6,6 +6,7 @@ from pathlib import Path
 from sys import setrecursionlimit
 from typing import TYPE_CHECKING, Any
 from urllib.parse import unquote
+from warnings import deprecated
 from xml.etree import ElementTree as ET
 
 from bitmath import SI, Byte, TiB
@@ -43,6 +44,7 @@ from NGPIris.hcp.helpers import (
     raise_path_error,
 )
 from NGPIris.parse_credentials import CredentialsHandler
+from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -53,6 +55,11 @@ if TYPE_CHECKING:
 
 _KB = 1024
 _MB = _KB * _KB
+
+_MOVE_FILE_DEP_MSG = (
+    ":py:meth:`move_file` has been deprecated due to resulting in "
+    "replication errors on the HCP."
+)
 
 
 class HCPHandler:
@@ -1093,12 +1100,14 @@ class HCPHandler:
             },
         )
 
+    @_add_deprecation_in_doc_string(_MOVE_FILE_DEP_MSG, "v5.7.0")
+    @deprecated(_MOVE_FILE_DEP_MSG)
     @check_mounted
     def move_file(
         self,
-        source_key: str,
-        destination_key: str,
-        destination_bucket: str = "",
+        source_key: str,  # noqa: ARG002
+        destination_key: str,  # noqa: ARG002
+        destination_bucket: str = "",  # noqa: ARG002
     ) -> None:
         """
         Move a file ``source_key`` to ``destination_key``.
@@ -1110,8 +1119,11 @@ class HCPHandler:
         :param destination_bucket:
             The destination bucket, defaults to the mounted bucket
         """
-        self.copy_file(source_key, destination_key, destination_bucket)
-        self.delete_object(source_key)
+        msg = (
+            "`move_file` has been deprecated since v5.7.0 and is therefore "
+            "unusable: \n" + _MOVE_FILE_DEP_MSG
+        )
+        raise DeprecationWarning(msg)
 
     # ---------------------------- Search methods ----------------------------
 

@@ -9,6 +9,11 @@ from NGPIris.hci.helpers import get_index_response, get_query_response
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
+_REQUEST_TOKEN_DEP_MSG = (
+    ":py:func:`request_token` is deprecated in favor of integrating its "  # noqa: S105
+    "functionality into the :py:class:`HCIHandler` constructor"
+)
+
 
 class HCIHandler:
     """
@@ -59,11 +64,6 @@ class HCIHandler:
             disable_warnings()
 
         self.token = self._request_token()
-
-    _REQUEST_TOKEN_DEP_MSG = (
-        ":py:func:`request_token` is depricated in favor of integrating its "  # noqa: S105
-        "functionality into the :py:class:`HCIHandler` constructor"
-    )
 
     @_add_deprecation_in_doc_string(_REQUEST_TOKEN_DEP_MSG, "v5.6.7")
     @deprecated(_REQUEST_TOKEN_DEP_MSG)

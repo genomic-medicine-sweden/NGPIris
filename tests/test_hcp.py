@@ -451,39 +451,5 @@ def test_copy_file_to_other_bucket(custom_config: CustomConfig) -> None:
     custom_config.hcp_h.delete_bucket("TempBucket")
 
 
-# move_file
-def test_move_file(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    key = str(custom_config.test_file_path).split("/")[-1]
-    custom_config.hcp_h.upload_file(
-        custom_config.test_file_path,
-        key,
-    )
-
-    custom_config.hcp_h.move_file(key, key + "_moved")
-
-    custom_config.hcp_h.delete_object(key + "_moved")
-
-
-def test_move_file_to_other_bucket(custom_config: CustomConfig) -> None:
-    test_mount_bucket(custom_config)
-    custom_config.hcp_h.create_bucket("TempBucket")
-    key = str(custom_config.test_file_path).split("/")[-1]
-    custom_config.hcp_h.upload_file(
-        custom_config.test_file_path,
-        key,
-    )
-
-    custom_config.hcp_h.move_file(
-        key,
-        key + "_moved",
-        "TempBucket",
-    )
-
-    custom_config.hcp_h.mount_bucket("TempBucket")
-    custom_config.hcp_h.delete_object(key + "_moved")
-    custom_config.hcp_h.delete_bucket("TempBucket")
-
-
 # ---------------------------- Search methods tests ----------------------------
 # N/A
