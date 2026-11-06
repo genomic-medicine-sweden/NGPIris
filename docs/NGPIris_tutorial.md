@@ -99,11 +99,23 @@ The information to be included in this credentials can be requested by your loca
 
 ## How to use the {term}`CLI`
 
+:::{note}
 See [_The NGPIris CLI_](NGPIris.cli) for more extensive information about the {term}`CLI`.
+:::
+
+- The base command `iris`
+- The `-c` flag
+- Other flags?
 
 ## How to use the Python package
 
+:::{note}
 For more extensive information about IRIS Python package, see [_NGPIris base package_](NGPIris_base).
+:::
+
+- Code block for importing the
+  - {py:class}`HCPHandler`
+  - {py:class}`HCIHandler`
 
 (communicating-with-ngpr)=
 
