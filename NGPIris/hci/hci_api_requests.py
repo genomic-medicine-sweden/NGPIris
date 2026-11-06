@@ -4,10 +4,11 @@ from typing import TYPE_CHECKING, Literal
 from requests import HTTPError, Response, get, post
 
 from NGPIris.hci.exceptions import (
-    DataNotSuppliedToPOST,
-    DataSuppliedToGET,
+    DataNotSuppliedToPOSTError,
+    DataSuppliedToGETError,
     HCI_ResponseError,
 )
+from NGPIris.hci.types import to_QueryRequestTQS
 
 if TYPE_CHECKING:
     from NGPIris.hci import HCIHandler, types
@@ -61,11 +62,11 @@ def get_response(
 
     if (request_type == "POST") and not data:
         msg = "Request type is set to POST, but no data was supplied"
-        raise DataNotSuppliedToPOST(msg)
+        raise DataNotSuppliedToPOSTError(msg)
 
     if request_type == "GET" and data:
         msg = "Request type is set to POST, but data was also supplied"
-        raise DataSuppliedToGET(msg)
+        raise DataSuppliedToGETError(msg)
 
     url: str = (
         "https://"
@@ -145,5 +146,5 @@ def make_query_request(
         extra_headers={
             "Content-Type": "application/json",
         },
-        data=query_dict,
+        data=to_QueryRequestTQS(query_dict),
     )
