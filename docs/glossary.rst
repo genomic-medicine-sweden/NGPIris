@@ -28,3 +28,10 @@ Glossary
     CLI
     Command-line interface
         See https://en.wikipedia.org/wiki/Command-line_interface
+
+    S3
+    AWS S3
+        See https://docs.aws.amazon.com/boto3/latest/reference/services/s3.html
+
+    REST API
+        See https://en.wikipedia.org/wiki/REST and https://en.wikipedia.org/wiki/API
