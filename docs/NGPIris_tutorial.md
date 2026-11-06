@@ -53,12 +53,20 @@ For more extensive information about IRIS Python package, see [_NGPIris base pac
 
 :::{tab-item} CLI
 :sync: cli
-Tab one
+
+```{code} console
+iris
+```
+
 :::
 
 :::{tab-item} Python
 :sync: python
-Tab two
+
+```{code} python
+x = 1
+```
+
 :::
 
 ::::
@@ -69,12 +77,20 @@ Tab two
 
 :::{tab-item} CLI
 :sync: cli
-Tab one
+
+```{code} console
+iris
+```
+
 :::
 
 :::{tab-item} Python
 :sync: python
-Tab two
+
+```{code} python
+x = 1
+```
+
 :::
 
 ::::
@@ -85,12 +101,20 @@ Tab two
 
 :::{tab-item} CLI
 :sync: cli
-Tab one
+
+```{code} console
+iris
+```
+
 :::
 
 :::{tab-item} Python
 :sync: python
-Tab two
+
+```{code} python
+x = 1
+```
+
 :::
 
 ::::
