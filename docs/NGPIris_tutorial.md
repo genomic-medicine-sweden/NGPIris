@@ -57,6 +57,8 @@ The backend of {py:mod}`NGPIris` is an implementation of {term}`HCP`'s own varia
 
 ## Installing {py:mod}`NGPIris`
 
+The simplest way to install {py:mod}`NGPIris` is by using `pip`. You might also want to create and select a {term}`virtual environment` before installation, to avoid potential cluttering.
+
 ::::{tab-set}
 
 :::{tab-item} pip
@@ -87,7 +89,13 @@ uv add NGPIris
 
 ### Prerequisites
 
-- NGPr creds
+In order to connect to the {term}`NGPr` and the {term}`NGPi`, you need to have a filled out credentials file:
+
+```{include} ../credentials/credentials_template.json
+:code: json
+```
+
+The information to be included in this credentials can be requested by your local {term}`GMC` admin.
 
 ## How to use the {term}`CLI`
 
