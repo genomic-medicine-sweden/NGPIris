@@ -55,6 +55,34 @@ Diagram of how an end user or application, the {term}`HCP`/{term}`NGPr` and the 
 
 ## Installing {py:mod}`NGPIris`
 
+::::{tab-set}
+
+:::{tab-item} pip
+
+```{code} sh
+pip install NGPIris
+```
+
+:::
+
+:::{tab-item} uv
+
+```{code} sh
+uv add NGPIris
+```
+
+:::
+
+:::{tab-item} git
+
+1. Clone this repository
+2. Open a terminal in your local copy of the repository
+3. Run `pip install .` at the root of the repository. This will install Iris along with the required Python packages in your current Python environment
+
+:::
+
+::::
+
 ### Prerequisites
 
 - NGPr creds
@@ -78,7 +106,7 @@ For more extensive information about IRIS Python package, see [_NGPIris base pac
 :::{tab-item} CLI
 :sync: cli
 
-```{code} console
+```{code} sh
 iris
 ```
 
@@ -102,7 +130,7 @@ x = 1
 :::{tab-item} CLI
 :sync: cli
 
-```{code} console
+```{code} sh
 iris
 ```
 
@@ -126,7 +154,7 @@ x = 1
 :::{tab-item} CLI
 :sync: cli
 
-```{code} console
+```{code} sh
 iris
 ```
 
