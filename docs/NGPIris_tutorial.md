@@ -1,9 +1,5 @@
 # NGPIris beginner's tutorial
 
-Welcome to the {py:mod}`NGPIris` beginner's tutorial! This tutorial will outline how to use IRIS from the most basic approach to more advanced use cases.
-
----
-
 ```{contents} Outline of the tutorial
 :depth: 3
 :backlinks: none
@@ -12,22 +8,90 @@ Welcome to the {py:mod}`NGPIris` beginner's tutorial! This tutorial will outline
 
 ---
 
-## The basics of communicating with NGPr
+## Introduction and purpose
 
-### How to use the CLI
+Welcome to the {py:mod}`NGPIris` beginner's tutorial! In this tutorial, we will show you how to get started with {py:mod}`NGPIris`.
+
+We will start by discussing the terminology used in {py:mod}`NGPIris` and what prerequisites are needed. Then we will cover how to install {py:mod}`NGPIris`, followed by an introduction on how to use the CLI and Python package respectively.
+
+What follows after that are some example use cases of {py:mod}`NGPIris` both in the CLI and as the Python code counterpart.
+
+:::{tip}
+Throughout this tutorial, there will be tabs for either viewing the CLI version or the Python version of a given example in sections like _[](#communicating-with-ngpr)_ and _[](#communicating-with-ngpi)_.
+:::
+
+### Terminology
+
+- HCP == NGPr
+- HCI == NGPi
+
+{term}`HCP`
+
+### Prerequisites
+
+- NGPr creds
+
+## Installing {py:mod}`NGPIris`
+
+## How to use the CLI
 
 See [_The NGPIris CLI_](NGPIris.cli) for more extensive information about the CLI.
 
-#### Upload and download objects
-
-#### List objects
-
-#### Delete objects
-
-### How to use the Python package
+## How to use the Python package
 
 For more extensive information about IRIS Python package, see [_NGPIris base package_](NGPIris_base).
 
-#### Upload and download objects
+(communicating-with-ngpr)=
+## The basics of communicating with NGPr
+
+### Upload and download objects
+
+::::{tab-set}
+
+:::{tab-item} CLI
+:sync: cli
+Tab one
+:::
+
+:::{tab-item} Python
+:sync: python
+Tab two
+:::
+
+::::
+
+### List objects
+
+::::{tab-set}
+
+:::{tab-item} CLI
+:sync: cli
+Tab one
+:::
+
+:::{tab-item} Python
+:sync: python
+Tab two
+:::
+
+::::
+
+### Delete objects
+
+::::{tab-set}
+
+:::{tab-item} CLI
+:sync: cli
+Tab one
+:::
+
+:::{tab-item} Python
+:sync: python
+Tab two
+:::
+
+::::
+
+(communicating-with-ngpi)=
 
 ## The basics of communicating with NGPi
