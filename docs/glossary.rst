@@ -14,16 +14,16 @@ Glossary
 
     NGPr
     NGPrepository
-        The NGP object storage solution for storing massive amounts of data. For more information (in Swedish), see https://genmed.se/arkitektur/ngprepository/
+        The :term:`NGP` object storage solution for storing massive amounts of data. For more information (in Swedish), see https://genmed.se/arkitektur/ngprepository/
 
     NGPi
     NGPintelligence
-        The NGP data index solution for querying data. For more information (in Swedish), see https://genmed.se/arkitektur/ngpintelligence/
+        The :term:`NGP` data index solution for querying data. For more information (in Swedish), see https://genmed.se/arkitektur/ngpintelligence/
 
     NGP
     National Genomics Platform
     Nationella Genomikplattformen
-        TBD
+        See https://genomicmedicine.se/it-informatik/nationella-genomikplattformen/
 
     CLI
     Command-line interface
@@ -35,3 +35,15 @@ Glossary
 
     REST API
         See https://en.wikipedia.org/wiki/REST and https://en.wikipedia.org/wiki/API
+
+    venv
+    Virtual environment
+        See https://docs.python.org/3/library/venv.html
+
+    GMC
+    Genomic Medicine Center
+        A node assoicated with :term:`GMS`. For more information see https://genomicmedicine.se/gmc-oversikt/
+
+    GMS
+    Genomic Medicine Sweden
+        See https://genomicmedicine.se/
