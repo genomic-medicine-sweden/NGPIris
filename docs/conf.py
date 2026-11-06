@@ -34,6 +34,12 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "myst_parser",
+    "sphinx_design",
+]
+
+myst_enable_extensions = [
+    "alert",
+    "colon_fence",
 ]
 
 source_suffix = {
