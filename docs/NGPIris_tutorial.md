@@ -6,21 +6,28 @@ Welcome to the {py:mod}`NGPIris` beginner's tutorial! This tutorial will outline
 
 ```{contents} Outline of the tutorial
 :depth: 3
-:backlinks: false
+:backlinks: none
+:local:
 ```
 
 ---
 
-## How to use the CLI
+## The basics of communicating with NGPr
 
-See [The NGPIris CLI](NGPIris.cli) for more extensive information about the CLI.
+### How to use the CLI
 
-### Upload and downloads
+See [_The NGPIris CLI_](NGPIris.cli) for more extensive information about the CLI.
 
-### List objects
+#### Upload and download objects
 
-###
+#### List objects
 
-## How to use the Python package
+#### Delete objects
 
-### Upload and downloads
+### How to use the Python package
+
+For more extensive information about IRIS Python package, see [_NGPIris base package_](NGPIris_base).
+
+#### Upload and download objects
+
+## The basics of communicating with NGPi
