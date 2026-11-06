@@ -53,6 +53,8 @@ Diagram of how an end user or application, the {term}`HCP`/{term}`NGPr` and the 
 
 {py:mod}`NGPIris` is meant to be the main way of accessing the {term}`NGPr` and {term}`NGPi` from either an end user or an application. It achieves this by either being used as a {term}`CLI` or as a Python package that can be implemented into any Python application such as a [Django](https://www.djangoproject.com/) web app for example.
 
+The backend of {py:mod}`NGPIris` is an implementation of {term}`HCP`'s own variant of {term}`S3` and the {term}`HCI`'s own {term}`REST API` for making queries among other things. As such, {py:mod}`NGPIris` becomes one standardized collection of Python classes, methods, etc. for the specialized purposes of the {term}`NGP`.
+
 ## Installing {py:mod}`NGPIris`
 
 ::::{tab-set}
