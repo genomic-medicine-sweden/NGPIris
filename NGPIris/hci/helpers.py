@@ -1,88 +1,91 @@
-from json import dumps
+from typing import TYPE_CHECKING, Any, overload
 
-from requests import Response, get, post
+from NGPIris.hci.hci_api_requests import make_index_request, make_query_request
+from NGPIris.hci.types import IndexResponse, QueryRequest, QueryResponse
+
+if TYPE_CHECKING:
+    from requests import Response
+
+    from NGPIris.hci import HCIHandler
 
 
-def get_index_response(
-    address: str,
-    api_port: str,
-    token: str,
-    use_ssl: bool,
-) -> Response:
+@overload
+def from_response(
+    response: Response, to: type[IndexResponse]
+) -> list[IndexResponse]:
+    pass
+
+
+@overload
+def from_response(response: Response, to: type[QueryResponse]) -> QueryResponse:
+    pass
+
+
+def from_response(
+    response: Response, to: type[IndexResponse | QueryResponse]
+) -> list[IndexResponse] | QueryResponse:
     """
-    Retrieve the index response given the address, API port and token.
+    Helper function for turning a :py:class:`requests.Response` object into a
+    IRIS :py:class:`~NGPIris.hci.types.Response`. It achieves this by a somewhat
+    *unorthodox* approach.
 
-    :param address: The address where request is to be made
+    NOTE: The return type for when :py:obj:`to` is
+    :py:class:`~NGPIris.hci.types.IndexResponse` is a
+    :py:type:`list[IndexResponse]`. This is due to the fact that the response
+    produced by :py:func:`get_index_response` is a list of individual index
+    responses. This is how the HCI works by design.
 
-    :param api_port: The API port at the given address
+    :param response: The incoming :py:class:`requests.Response`
 
-    :param token: The HCI token
+    :param to:
+        The expected sub type of :py:class:`~NGPIris.hci.types.Response` that
+        should be returned
 
-    :param use_ssl: Boolean choice of using SSL
-
-    :return: A response containing information about the index
+    :return: The response as the chosen kind based on :py:obj:`to`
     """
-    url: str = "https://" + address + ":" + api_port + "/api/search/indexes/"
-    headers: dict[str, str] = {
-        "Accept": "application/json",
-        "Authorization": "Bearer " + token,
-    }
+    if to is IndexResponse:
+        list_of_index_response_dicts: list[dict[str, Any]] = response.json()
+        index_responses: list[IndexResponse] = [
+            IndexResponse(dict(index_response_dict))  # pyright: ignore[reportArgumentType]
+            for index_response_dict in list_of_index_response_dicts
+        ]
+        return index_responses
+    elif to is QueryResponse:  # noqa: RET505
+        as_dict = dict(response.json())
+        return QueryResponse(as_dict)  # pyright: ignore[reportArgumentType]
 
-    response: Response = get(url, headers=headers, verify=use_ssl, timeout=15)
-
-    response.raise_for_status()
-
-    return response
+    msg = "to_type = " + str(to)
+    raise RuntimeError(msg)
 
 
-def get_query_response(  # noqa: PLR0913
-    query_dict: dict[str, str | int | list | dict],
-    address: str,
-    api_port: str,
-    token: str,
-    use_ssl: bool,
-    path_extension: str = "",
-) -> Response:
+def get_index_response(hci_handler: HCIHandler) -> list[IndexResponse]:
     """
-    Retrieve the query response given the address, API port and token.
+    A short hand function equivalent to
+    ::
 
-    :param query_dict: The query dictionary
+        from_response(make_index_request(hci_handler), IndexResponse)
+    """  # noqa: D400, D415
+    return from_response(make_index_request(hci_handler), IndexResponse)
 
-    :param address: The address where request is to be made
 
-    :param api_port: The API port at the given address
-
-    :param token: The HCI token
-
-    :param use_ssl: Boolean choice of using SSL
-
-    :param path_extension:
-        Possibly extend the request URL. Used for example when making SQL
-        requests.
-
-    :return: A response containing information about the query
+def get_query_response(
+    query_dict: QueryRequest, hci_handler: HCIHandler
+) -> QueryResponse:
     """
-    if "indexName" not in query_dict:
-        msg = "Field indexName is missing in the query dictionary"
-        raise RuntimeError(msg)
+    A short hand function equivalent to
+    ::
 
-    url: str = (
-        "https://"
-        + address
-        + ":"
-        + api_port
-        + "/api/search/query/"
-        + path_extension
-    )
-    headers: dict[str, str] = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Bearer " + token,
-    }
-    response: Response = post(
-        url, dumps(query_dict), headers=headers, verify=use_ssl, timeout=15
+        from_response(make_query_request(query_dict, hci_handler), QueryResponse)
+    """  # noqa: D400, D415
+    return from_response(
+        make_query_request(query_dict, hci_handler), QueryResponse
     )
 
-    response.raise_for_status()
 
-    return response
+def to_QueryRequest(dictionary: dict[str, Any]) -> QueryRequest:
+    """
+    Helper function for turning a :py:type:`dict` into a
+    :py:class:`QueryRequest`. It achieves this by a somewhat
+    *unorthodox* approach.
+    """
+    return QueryRequest(dictionary)  # pyright: ignore[reportArgumentType]

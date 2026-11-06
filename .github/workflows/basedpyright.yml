@@ -35,6 +35,6 @@ jobs:
         run: |
           uv sync
 
-      - name: Run `basedpyright NGPIris/`
+      - name: Run `basedpyright NGPIris/ tests/test_*.py`
         run: |
-          uv run basedpyright NGPIris/ >> $GITHUB_STEP_SUMMARY
+          uv run basedpyright NGPIris/ tests/test_*.py >> $GITHUB_STEP_SUMMARY

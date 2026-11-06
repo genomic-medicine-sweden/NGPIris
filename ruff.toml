@@ -8,6 +8,10 @@ extend-exclude = [
 [lint.flake8-annotations]
 suppress-dummy-args = true
 
+[lint.pylint]
+# If the number of argument to a funciton exceds this number, then complain
+max-args = 10
+
 [lint]
 # Add the all rules. By default, Ruff omits rules that overlap with the use of
 # a formatter, like Black, but we can override this behavior by explicitly

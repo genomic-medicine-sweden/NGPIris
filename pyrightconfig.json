@@ -1,15 +1,7 @@
 {
-  "include": [
-    "."
-  ],
-  "ignore": [
-    "typings/"
-  ],
-  "exclude": [
-    ".github",
-    ".venv",
-    "typings/"
-  ],
+  "include": ["NGPIris/", "tests/test_*.py"],
+  "ignore": ["typings/"],
+  "exclude": [".github", ".venv", "typings/"],
 
   "reportMissingImports": "error",
   "reportMissingTypeStubs": false,
@@ -17,5 +9,5 @@
 
   "typeCheckingMode": "standard",
 
-  "venv": ".venv"
+  "venv": ".venv",
 }

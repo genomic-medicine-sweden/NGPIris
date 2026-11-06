@@ -87,7 +87,7 @@ def cli(
     is_flag=True,
 )
 @click.pass_context
-def copy(  # noqa: PLR0913
+def copy(
     context: Context,
     bucket: str,
     source: str,
@@ -245,7 +245,7 @@ def delete(
     is_flag=True,
 )
 @click.pass_context
-def download(  # noqa: PLR0913
+def download(
     context: Context,
     bucket: str,
     source: str,
@@ -329,7 +329,7 @@ def download(  # noqa: PLR0913
     is_flag=True,
 )
 @click.pass_context
-def list_objects(  # noqa: PLR0913
+def list_objects(
     context: Context,
     bucket: str,
     path: str | None,
@@ -448,7 +448,7 @@ def list_objects(  # noqa: PLR0913
     default=5,
 )
 @click.pass_context
-def upload(  # noqa: PLR0913
+def upload(
     context: Context,
     bucket: str,
     source: str,
