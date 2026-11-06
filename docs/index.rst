@@ -18,5 +18,5 @@ Welcome to the NGPIris package documentation! The following table contain docume
    NGPIris.hcp
    NGPIris.parse_credentials
    NGPIris.utils
-   genindex
    glossary
+   genindex
