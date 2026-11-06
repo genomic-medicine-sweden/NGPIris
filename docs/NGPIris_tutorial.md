@@ -8,16 +8,16 @@
 
 ---
 
-## Introduction and purpose
+## Introduction
 
 Welcome to the {py:mod}`NGPIris` beginner's tutorial! In this tutorial, we will show you how to get started with {py:mod}`NGPIris`.
 
-We will start by discussing the terminology used in {py:mod}`NGPIris` and what prerequisites are needed. Then we will cover how to install {py:mod}`NGPIris`, followed by an introduction on how to use the CLI and Python package respectively.
+We will start by discussing the terminology used and what the purpose of {py:mod}`NGPIris` is. Then we will cover how to install {py:mod}`NGPIris`, followed by an introduction on how to use the CLI and Python package respectively.
 
 What follows after that are some example use cases of {py:mod}`NGPIris` both in the CLI and as the Python code counterpart.
 
 :::{tip}
-Throughout this tutorial, there will be tabs for either viewing the CLI version or the Python version of a given example in sections like _[](#communicating-with-ngpr)_ and _[](#communicating-with-ngpi)_.
+Throughout this tutorial, there will be tabs for either viewing the CLI version or the Python version of a given example in sections like _[](#communicating-with-ngpr)_ and _[](#communicating-with-ngpi)_. This is useful for comparing how CLI corresponds to a Python implementation.
 :::
 
 ### Terminology
@@ -27,11 +27,13 @@ Throughout this tutorial, there will be tabs for either viewing the CLI version 
 
 {term}`HCP`
 
+### The purpose of {py:mod}`NGPIris`
+
+## Installing {py:mod}`NGPIris`
+
 ### Prerequisites
 
 - NGPr creds
-
-## Installing {py:mod}`NGPIris`
 
 ## How to use the CLI
 
@@ -42,6 +44,7 @@ See [_The NGPIris CLI_](NGPIris.cli) for more extensive information about the CL
 For more extensive information about IRIS Python package, see [_NGPIris base package_](NGPIris_base).
 
 (communicating-with-ngpr)=
+
 ## The basics of communicating with NGPr
 
 ### Upload and download objects
