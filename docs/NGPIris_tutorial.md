@@ -42,8 +42,6 @@ The most important take-away is that when we refer to the {term}`HCP` we also re
 
 ### The purpose of {py:mod}`NGPIris`
 
-{py:mod}`NGPIris` is meant to be the main way of accessing the {term}`NGPr` and {term}`NGPi`.
-
 ```{figure} ./_static/Iris_HCP_HCI.png
 :figname: Iris_HCP_HCI
 :alt: Diagram of how an end user or application, the HCP and the HCI interact with each other via NGPIris
@@ -52,6 +50,8 @@ The most important take-away is that when we refer to the {term}`HCP` we also re
 
 Diagram of how an end user or application, the {term}`HCP`/{term}`NGPr` and the {term}`HCI`/{term}`NGPi` interact with each other via {py:mod}`NGPIris`.
 ```
+
+{py:mod}`NGPIris` is meant to be the main way of accessing the {term}`NGPr` and {term}`NGPi` from either an end user or an application. It achieves this by either being used as a {term}`CLI` or as a Python package that can be implemented into any Python application such as a [Django](https://www.djangoproject.com/) web app for example.
 
 ## Installing {py:mod}`NGPIris`
 
