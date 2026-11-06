@@ -45,6 +45,7 @@ filterwarnings = "ignore::urllib3.connectionpool.InsecureRequestWarning"
 dev = [
     "basedpyright >= 1.33.0",
     "icecream",
+    "myst-parser>=5.1.0",
     "pylint>=4.0.5",
     "pytest>=9.0.1",
     "ruff >= 0.14.5",
