@@ -310,7 +310,7 @@ Assume that `a/local/file.txt` is a file on your local filesystem.
 :sync: cli
 
 ```{code} sh
-iris -c path/to/credentials.json my_bucket a/local/file.txt /
+iris -c path/to/credentials.json upload my_bucket a/local/file.txt /
 ```
 
 :::
@@ -350,7 +350,7 @@ Assume that you wish to put your object in a folder called `a/path/on/the/bucket
 :sync: cli
 
 ```{code} sh
-iris -c path/to/credentials.json my_bucket a/local/file.txt a/path/on/the/bucket/
+iris -c path/to/credentials.json upload my_bucket a/local/file.txt a/path/on/the/bucket/
 ```
 
 :::
@@ -373,9 +373,9 @@ hcp_h.upload_file(
 )
 ```
 
-::::{seealso}
+```{seealso}
 {py:meth}`~NGPIris.HCPHandler.upload_folder`
-::::
+```
 
 :::
 
@@ -391,7 +391,7 @@ Assume that you wish to download an object `a/path/on/the/bucket/file.txt` to a 
 :sync: cli
 
 ```{code} sh
-iris -c path/to/credentials.json download a/path/on/the/bucket/file.txt a/local/path/
+iris -c path/to/credentials.json download my_bucket a/path/on/the/bucket/file.txt a/local/path/
 ```
 
 :::
@@ -418,9 +418,9 @@ hcp_h.download_file(
 )
 ```
 
-::::{seealso}
+```{seealso}
 {py:meth}`~NGPIris.HCPHandler.download_folder`
-::::
+```
 
 :::
 
@@ -428,13 +428,53 @@ hcp_h.download_file(
 
 ### Delete objects
 
+#### Deleting one object
+
 ::::{tab-set}
 
 :::{tab-item} CLI
 :sync: cli
 
 ```{code} sh
-iris -c path/to/credentials.json
+iris -c path/to/credentials.json delete -m file my_bucket my/file/to/be/deleted.txt
+```
+
+```{tip}
+The `-dr`/`--dry_run` flag can be used to simulate the outcome of running the command.
+```
+
+:::
+
+:::{tab-item} Python
+:sync: python
+
+```{code} python
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
+```
+
+:::
+
+::::
+
+#### Deleting a "folder"
+
+::::{tab-set}
+
+:::{tab-item} CLI
+:sync: cli
+
+```{code} sh
+iris -c path/to/credentials.json delete my_bucket my/folder/to/be/deleted/
+```
+
+```{tip}
+The `-dr`/`--dry_run` flag can be used to simulate the outcome of running the command.
+```
+
+```{note}
+Notice that `folder` is the default value for the `-m` flag, as such `-m folder` is not needed.
 ```
 
 :::
