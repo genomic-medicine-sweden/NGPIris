@@ -236,7 +236,7 @@ hcp_h.mount_bucket("my_bucket")
 :sync: cli
 
 ```{code} sh
-iris
+iris -c path/to/credentials.json list-buckets
 ```
 
 :::
@@ -245,7 +245,9 @@ iris
 :sync: python
 
 ```{code} python
-x = 1
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
 ```
 
 :::
@@ -269,7 +271,9 @@ iris
 :sync: python
 
 ```{code} python
-x = 1
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
 ```
 
 :::
@@ -295,7 +299,9 @@ iris
 :sync: python
 
 ```{code} python
-x = 1
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
 ```
 
 :::
@@ -319,7 +325,9 @@ iris
 :sync: python
 
 ```{code} python
-x = 1
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
 ```
 
 :::
