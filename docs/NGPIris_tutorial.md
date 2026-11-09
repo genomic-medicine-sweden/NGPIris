@@ -167,12 +167,48 @@ iris --debug
 ## How to use the Python package
 
 :::{seealso}
-For more extensive information about IRIS Python package, see [_NGPIris base package_](NGPIris_base).
+For more extensive information about {py:mod}`NGPIris` Python package, see [_NGPIris base package_](NGPIris_base).
 :::
 
-- Code block for importing the
-  - {py:class}`HCPHandler`
-  - {py:class}`HCIHandler`
+The primary imports of interest in the {py:mod}`NGPIris` Python package is the {py:class}`~NGPIris.HCPHandler` and {py:class}`~NGPIris.HCIHandler`. They can both be found in the base package {py:mod}`NGPIris`:
+
+```{code} python
+from NGPIris import HCPHandler, HCIHandler
+```
+
+Both classes only have one required argument to their constructors which is `credentials`. `credentials` can either be a {py:type}`str` or {py:type}`dict[str, str]`. If it is a {py:type}`str`, then that string should be a path to a [`credentials.json`](#prereq) file:
+
+```{code} python
+from NGPIris import HCPHandler, HCIHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
+
+hci_h = HCIHandler("path/to/credentials.json")
+```
+
+If it is a {py:type}`dict[str, str]` then the respective credential data for either the HCP or the HCI is expected:
+
+```{code} python
+from NGPIris import HCPHandler, HCIHandler
+
+hcp_h = HCPHandler(
+    {
+        "endpoint": "",
+        "username": "",
+        "password": "",
+    }
+)
+
+hci_h = HCIHandler(
+    {
+        "username": "",
+        "password": "",
+        "address": "",
+        "auth_port": "",
+        "api_port": "",
+    }
+)
+```
 
 (communicating-with-ngpr)=
 
