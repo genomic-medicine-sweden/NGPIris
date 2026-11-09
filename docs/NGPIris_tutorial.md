@@ -383,13 +383,15 @@ hcp_h.upload_file(
 
 ### Download objects
 
+Assume that you wish to download an object `a/path/on/the/bucket/file.txt` to a local filesystem path `a/local/path/`.
+
 ::::{tab-set}
 
 :::{tab-item} CLI
 :sync: cli
 
 ```{code} sh
-iris -c path/to/credentials.json
+iris -c path/to/credentials.json download a/path/on/the/bucket/file.txt a/local/path/
 ```
 
 :::
@@ -401,7 +403,24 @@ iris -c path/to/credentials.json
 from NGPIris import HCPHandler
 
 hcp_h = HCPHandler("path/to/credentials.json")
+
+hcp_h.mount_bucket("my_bucket")
+
+file_name = "file.txt"
+
+bucket_path = "a/path/on/the/bucket/"
+
+my_local_file_path = "a/local/path/"
+
+hcp_h.download_file(
+    bucket_path + file_name,
+    my_local_file_path + file_name,
+)
 ```
+
+::::{seealso}
+{py:meth}`~NGPIris.HCPHandler.download_folder`
+::::
 
 :::
 
