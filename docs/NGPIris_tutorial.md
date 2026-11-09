@@ -9,7 +9,7 @@
 ---
 
 :::{important}
-This tutorial was written for version v5.x.x
+This tutorial was written for version v5.7.0
 :::
 
 ## Introduction
