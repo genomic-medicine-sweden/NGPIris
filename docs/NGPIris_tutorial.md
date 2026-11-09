@@ -262,7 +262,9 @@ print(hcp_h.list_buckets())
 
 ::::
 
-### Upload and download objects
+(list-objs)=
+
+### List objects
 
 ::::{tab-set}
 
@@ -270,7 +272,7 @@ print(hcp_h.list_buckets())
 :sync: cli
 
 ```{code} sh
-iris
+iris -c path/to/credentials.json list-objects my_bucket
 ```
 
 :::
@@ -282,15 +284,17 @@ iris
 from NGPIris import HCPHandler
 
 hcp_h = HCPHandler("path/to/credentials.json")
+
+hcp_h.mount_bucket("my_bucket")
+
+print(list(hcp_h.list_objects()))
 ```
 
 :::
 
 ::::
 
-(list-objs)=
-
-### List objects
+### Upload and download objects
 
 ::::{tab-set}
 
@@ -298,7 +302,7 @@ hcp_h = HCPHandler("path/to/credentials.json")
 :sync: cli
 
 ```{code} sh
-iris
+iris -c path/to/credentials.json
 ```
 
 :::
@@ -324,7 +328,7 @@ hcp_h = HCPHandler("path/to/credentials.json")
 :sync: cli
 
 ```{code} sh
-iris
+iris -c path/to/credentials.json
 ```
 
 :::
