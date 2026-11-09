@@ -8,6 +8,10 @@
 
 ---
 
+:::{important}
+This tutorial was written for version v5.x.x
+:::
+
 ## Introduction
 
 Welcome to the {py:mod}`NGPIris` beginner's tutorial! In this tutorial, we will show you how to get started with {py:mod}`NGPIris`.
@@ -294,7 +298,90 @@ print(list(hcp_h.list_objects()))
 
 ::::
 
-### Upload and download objects
+### Upload objects
+
+Assume that `a/local/file.txt` is a file on your local filesystem.
+
+#### Uploading to the "root" of the bucket
+
+::::{tab-set}
+
+:::{tab-item} CLI
+:sync: cli
+
+```{code} sh
+iris -c path/to/credentials.json my_bucket a/local/file.txt /
+```
+
+:::
+
+:::{tab-item} Python
+:sync: python
+
+```{code} python
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
+
+hcp_h.mount_bucket("my_bucket")
+
+my_local_file = "a/local/file.txt"
+
+hcp_h.upload_file(my_local_file)
+```
+
+The default value for `key` in {py:meth}`~NGPIris.HCPHandler.upload_file` is the same as `local_file_path`, which means that `hcp_h.upload_file(my_local_file)` is equivalent to `hcp_h.upload_file(my_local_file, my_local_file)`.
+
+::::{seealso}
+{py:meth}`~NGPIris.HCPHandler.upload_folder`
+::::
+
+:::
+
+::::
+
+#### Uploading to a "folder" in the bucket
+
+Assume that you wish to put your object in a folder called `a/path/on/the/bucket/`.
+
+::::{tab-set}
+
+:::{tab-item} CLI
+:sync: cli
+
+```{code} sh
+iris -c path/to/credentials.json my_bucket a/local/file.txt a/path/on/the/bucket/
+```
+
+:::
+
+:::{tab-item} Python
+:sync: python
+
+```{code} python
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
+
+hcp_h.mount_bucket("my_bucket")
+
+my_local_file = "a/local/file.txt"
+
+hcp_h.upload_file(
+    my_local_file,
+    "a/path/on/the/bucket/" + my_local_file,
+)
+```
+
+::::{seealso}
+{py:meth}`~NGPIris.HCPHandler.upload_folder`
+::::
+
+:::
+
+::::
+
+### Download objects
 
 ::::{tab-set}
 
