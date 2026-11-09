@@ -156,6 +156,8 @@ Bucket_2
 We generally recommend the approach of using `-c` flag.
 :::
 
+### The `--debug` flag
+
 ## How to use the Python package
 
 :::{seealso}
