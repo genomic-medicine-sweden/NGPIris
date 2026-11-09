@@ -158,7 +158,7 @@ We generally recommend the approach of using `-c` flag.
 
 ## How to use the Python package
 
-:::{note}
+:::{seealso}
 For more extensive information about IRIS Python package, see [_NGPIris base package_](NGPIris_base).
 :::
 
