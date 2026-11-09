@@ -87,6 +87,8 @@ uv add NGPIris
 
 ::::
 
+(prereq)=
+
 ### Prerequisites
 
 In order to connect to the {term}`NGPr` and the {term}`NGPi`, you need to have a filled out credentials file:
@@ -99,13 +101,60 @@ The information to be included in this credentials can be requested by your loca
 
 ## How to use the {term}`CLI`
 
-:::{note}
+:::{seealso}
 See [_The NGPIris CLI_](NGPIris.cli) for more extensive information about the {term}`CLI`.
 :::
 
-- The base command `iris`
-- The `-c` flag
-- Other flags?
+The {term}`CLI` consist of one main command `iris`, which in turn consist of various sub commands. This section will focus on the `iris` command itself, while the sub commands are described in the upcoming sections.
+
+### Supplying credentials
+
+When we use `iris`, we need to supply [credentials](#prereq) in some way. There are two ways to do so: Either by supplying the `-c`/`--credentials` flag or by supplying the credentials to a prompt upon running a command. The `-c` flag accepts a path to your [`credentials.json`](#prereq) file.
+
+Let's look at an example where we attempt to [list the available buckets](#list-buckets) on the {term}`HCP`:
+
+::::{grid}
+
+:::{grid-item}
+
+Running `iris` with the `-c` flag along with a path to a credentials file:
+
+```{code} sh
+iris -c path/to/credentials.json list-buckets
+```
+
+:::
+
+:::{grid-item}
+Example of running `iris` and supplying credentials with prompts:
+
+```{code} sh
+iris list-buckets
+Please enter your tenant endpoint: my_example_tenant
+Please enter your base64 hashed username (a.k.a aws_access_key_id): my_example_user
+Please enter your md5 hashed password (a.k.a aws_secret_access_key):
+Repeat for confirmation:
+```
+
+:::{danger}
+Please note that the input `my_example_tenant` and `my_example_user` will be different for each each user.
+:::
+
+::::
+
+Either input should result in a table view of all buckets that your user is allowed to see:
+
+```{code} sh
+Bucket                                Ingested volume    Storage capacity used    Hard quota    Storage capacity used (%)    Soft quota (%)    Object count    Owner     Description
+------------------------------------  -----------------  -----------------------  ------------  ---------------------------  ----------------  --------------  --------  ------------
+Bucket_1
+Bucket_2
+...
+```
+
+:::{attention}
+We generally recommend the approach of using `-c` flag.
+:::
 
 ## How to use the Python package
 
@@ -120,6 +169,10 @@ For more extensive information about IRIS Python package, see [_NGPIris base pac
 (communicating-with-ngpr)=
 
 ## The basics of communicating with NGPr
+
+(list-buckets)=
+
+### Listing buckets
 
 ### Upload and download objects
 
