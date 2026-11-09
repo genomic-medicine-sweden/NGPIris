@@ -510,3 +510,13 @@ hcp_h.delete_folder("my/folder/to/be/deleted/")
 
 The following sections will provide basic examples of how to use {py:mod}`NGPIris` to perform operations on the {term}`NGPi`/{term}`HCI`. Unlike the examples shown in _[](#communicating-with-ngpr)_, the following examples will only be shown in Python code. This is because the communication with the {term}`HCI` is currently only available via the Python package and not the {term}`CLI`.
 
+### List index names
+
+```{code} python
+from NGPIris import HCIHandler
+
+hci_h = HCIHandler("path/to/credentials.json")
+
+print(hci_h.list_index_names())
+```
+
