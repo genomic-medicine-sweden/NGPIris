@@ -158,6 +158,12 @@ We generally recommend the approach of using `-c` flag.
 
 ### The `--debug` flag
 
+Sometimes we stumble upon new problems that that has not been foreseen during the development of {py:mod}`NGPIris`. As such, when {py:mod}`NGPIris` misbehaves it can be useful to get the full debug log in order to figure out where the problem originates. This can be achieved by supplying the `--debug` flag:
+
+```{code} sh
+iris --debug
+```
+
 ## How to use the Python package
 
 :::{seealso}
