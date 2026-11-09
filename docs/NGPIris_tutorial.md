@@ -198,6 +198,8 @@ x = 1
 
 ::::
 
+(list-objs)=
+
 ### List objects
 
 ::::{tab-set}
