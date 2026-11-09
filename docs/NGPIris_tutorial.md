@@ -512,6 +512,8 @@ The following sections will provide basic examples of how to use {py:mod}`NGPIri
 
 ### List index names
 
+The following example will show all indexes that are available to you:
+
 ```{code} python
 from NGPIris import HCIHandler
 
@@ -520,3 +522,30 @@ hci_h = HCIHandler("path/to/credentials.json")
 print(hci_h.list_index_names())
 ```
 
+### Look up index information
+
+In order to look up information about an index `"my_index"`, use the following:
+
+```{code} python
+from NGPIris import HCIHandler
+
+hci_h = HCIHandler("path/to/credentials.json")
+
+print(hci_h.look_up_index("my_index"))
+```
+
+### Making a query
+
+Making a query to an index require an understanding of how to write a query string. Behind the scenes, {term}`HCI` uses the [Apache Lucene](https://lucene.apache.org/core/2_9_4/queryparsersyntax.html) query string format. {py:mod}`NGPIris` has it's own implementation of this syntax in form of a [Domain Specific Language (DSL)](https://en.wikipedia.org/wiki/Domain-specific_language) called {py:class}`~NGPIris.hci.query_string.QueryString`.
+
+#### {py:class}`~NGPIris.hci.query_string.QueryString` explained
+
+The DSL consists of two main components: {py:class}`~NGPIris.hci.query_string.Field` and {py:class}`~NGPIris.hci.query_string.Operator`.
+
+#### An example query using {py:class}`~NGPIris.hci.query_string.QueryString`
+
+```{code} python
+from NGPIris import HCIHandler
+
+hci_h = HCIHandler("path/to/credentials.json")
+```
