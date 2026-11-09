@@ -452,6 +452,14 @@ The `-dr`/`--dry_run` flag can be used to simulate the outcome of running the co
 from NGPIris import HCPHandler
 
 hcp_h = HCPHandler("path/to/credentials.json")
+
+hcp_h.mount_bucket("my_bucket")
+
+hcp_h.delete_object("my/file/to/be/deleted.txt")
+```
+
+```{seealso}
+{py:meth}`~NGPIris.HCPHandler.delete_objects`
 ```
 
 :::
@@ -486,6 +494,10 @@ Notice that `folder` is the default value for the `-m` flag, as such `-m folder`
 from NGPIris import HCPHandler
 
 hcp_h = HCPHandler("path/to/credentials.json")
+
+hcp_h.mount_bucket("my_bucket")
+
+hcp_h.delete_folder("my/folder/to/be/deleted/")
 ```
 
 :::
