@@ -230,7 +230,7 @@ hcp_h.mount_bucket("my_bucket")
 
 ## The basics of communicating with NGPr
 
-The following sections will provide basic examples of how to use {py:mod}`NGPIris` both as a {term}`CLI` and as Python code.
+The following sections will provide basic examples of how to use {py:mod}`NGPIris` both as a {term}`CLI` and as Python code in order to perform operations on the {term}`NGPr`/{term}`HCP`.
 
 :::{tip}
 By using the tabs in the following subsections, you can compare the {term}`CLI` version or the Python version of a given example.
