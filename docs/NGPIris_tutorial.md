@@ -105,7 +105,7 @@ The information to be included in this credentials can be requested by your loca
 See [_The NGPIris CLI_](NGPIris.cli) for more extensive information about the {term}`CLI`.
 :::
 
-The {term}`CLI` consist of one main command `iris`, which in turn consist of various sub commands. This section will focus on the `iris` command itself, while the sub commands are described in the upcoming sections.
+The {term}`CLI` consist of one main command `iris`, which in turn consist of various sub commands. This section will focus on the `iris` command itself, while the sub commands are described in [the upcoming sections](#communicating-with-ngpr).
 
 ### Supplying credentials
 
@@ -226,6 +226,12 @@ hcp_h.mount_bucket("my_bucket")
 
 ## The basics of communicating with NGPr
 
+The following sections will provide basic examples of how to use {py:mod}`NGPIris` both as a {term}`CLI` and as Python code.
+
+:::{tip}
+By using the tabs in the following subsections, you can compare the {term}`CLI` version or the Python version of a given example.
+:::
+
 (list-buckets)=
 
 ### Listing buckets
@@ -248,6 +254,8 @@ iris -c path/to/credentials.json list-buckets
 from NGPIris import HCPHandler
 
 hcp_h = HCPHandler("path/to/credentials.json")
+
+print(hcp_h.list_buckets())
 ```
 
 :::
