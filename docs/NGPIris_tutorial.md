@@ -176,7 +176,7 @@ The primary imports of interest in the {py:mod}`NGPIris` Python package is the {
 from NGPIris import HCPHandler, HCIHandler
 ```
 
-Both classes only have one required argument to their constructors which is `credentials`. `credentials` can either be a {py:type}`str` or {py:type}`dict[str, str]`. If it is a {py:type}`str`, then that string should be a path to a [`credentials.json`](#prereq) file:
+Both classes only have one required argument in their respective constructor which is `credentials`. `credentials` can either be a {py:type}`str` or {py:type}`dict[str, str]`. If it is a {py:type}`str`, then that string should be a path to a [`credentials.json`](#prereq) file:
 
 ```{code} python
 from NGPIris import HCPHandler, HCIHandler
@@ -210,6 +210,18 @@ hci_h = HCIHandler(
 )
 ```
 
+### An important note regarding {py:class}`~NGPIris.HCPHandler`
+
+Most operations using the {py:class}`~NGPIris.HCPHandler` will require a bucket. To assign or "mount" a bucket do the following:
+
+```{code} python
+from NGPIris import HCPHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
+
+hcp_h.mount_bucket("my_bucket")
+```
+
 (communicating-with-ngpr)=
 
 ## The basics of communicating with NGPr
@@ -217,6 +229,24 @@ hci_h = HCIHandler(
 (list-buckets)=
 
 ### Listing buckets
+
+::::{tab-set}
+
+:::{tab-item} CLI
+:sync: cli
+
+```{code} sh
+iris
+```
+
+:::
+
+:::{tab-item} Python
+:sync: python
+
+```{code} python
+x = 1
+```
 
 ### Upload and download objects
 
