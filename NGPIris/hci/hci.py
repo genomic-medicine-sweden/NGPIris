@@ -6,18 +6,19 @@ from warnings import deprecated
 from requests import Response, post
 from urllib3 import disable_warnings
 
-from NGPIris.hci.exceptions import IndexNotFound
+from NGPIris.hci.exceptions import IndexNotFoundError
 from NGPIris.hci.helpers import (
     get_index_response,
     get_query_response,
-    to_QueryRequest,
 )
+from NGPIris.hci.query_string import QueryString
 from NGPIris.hci.types import (
     FacetRequest,
     IndexResponse,
     QueryRequest,
     QueryResponse,
     SortField,
+    to_QueryRequest,
 )
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
@@ -25,6 +26,12 @@ from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 _REQUEST_TOKEN_DEP_MSG = (
     ":py:func:`request_token` is deprecated in favor of integrating its "  # noqa: S105
     "functionality into the :py:class:`HCIHandler` constructor"
+)
+
+_QUERY_FROM_JSON_DEP_MSG = (
+    ":py:meth:`query_from_JSON` is deprecated due to "
+    "implementation issues in a type safe way with "
+    ":py:class:`~NGPIris.hci.query_string.QueryString`"
 )
 
 
@@ -40,8 +47,8 @@ class HCIHandler:
         Class for handling HCI requests.
 
         :param credentials:
-            If ``credentials`` is a :py:type:`str`, then it will be interpreted as
-            a path to the JSON credentials file. If ``credentials`` is a
+            If ``credentials`` is a :py:type:`str`, then it will be interpreted
+            as a path to the JSON credentials file. If ``credentials`` is a
             :py:type:`dict`, then a dictionary with the appropriate HCI
             credentials is expected::
 
@@ -146,7 +153,7 @@ class HCIHandler:
                 return entry
 
         msg = "The index " + index_name + " could not be found"
-        raise IndexNotFound(msg)
+        raise IndexNotFoundError(msg)
 
     def query(self, query_dict: QueryRequest) -> QueryResponse:
         """
@@ -163,6 +170,8 @@ class HCIHandler:
         """
         return get_query_response(query_dict, self)
 
+    @_add_deprecation_in_doc_string(_QUERY_FROM_JSON_DEP_MSG, "v5.7.0")
+    @deprecated(_QUERY_FROM_JSON_DEP_MSG)
     def query_from_JSON(self, query_path: str) -> QueryResponse:
         """
         Make query to an HCI index, with pre-written query in a JSON file.
@@ -171,13 +180,15 @@ class HCIHandler:
 
         :return: Dictionary containing the raw query
         """
+        msg = "This method has not been properly implemented yet"
+        raise NotImplementedError(msg)
         with Path(query_path).open() as inp:
             return self.query(to_QueryRequest(load(inp)))
 
     def basic_query(
         self,
         index_name: str,
-        query_string: str = "",
+        query_string: QueryString | None = None,
         items_to_return: int = 0,
         facets: list[str] | None = None,
         sort_fields: list[tuple[str, Literal["DESC", "ASC"]]] | None = None,
@@ -203,6 +214,8 @@ class HCIHandler:
             sort_fields = []
         if facets is None:
             facets = []
+        if query_string is None:
+            query_string = QueryString()
 
         facetRequests = [FacetRequest({"fieldName": facet}) for facet in facets]
         sortFields = [

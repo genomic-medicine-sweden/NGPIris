@@ -1,6 +1,9 @@
-from typing import Literal, Required
+from typing import TYPE_CHECKING, Any, Literal, Required
 
 from typing_extensions import TypedDict
+
+if TYPE_CHECKING:
+    from NGPIris.hci.query_string import QueryString
 
 
 class Request(TypedDict, total=False):
@@ -127,7 +130,7 @@ class QueryRequest(Request, total=False):
 
     modelVersion: str
     indexName: Required[str]
-    queryString: str
+    queryString: QueryString
     offset: int
     itemsToReturn: int
     facetRequests: list[FacetRequest]
@@ -245,3 +248,53 @@ class QueryResponse(Response, total=False):
 
 
 # ------------------------------------------------------------------------------
+# `QueryRequestTQS`
+
+
+class QueryRequestTQS(Request, total=False):
+    """
+    A typed dictionary based on :py:class:`QueryRequest` but with the type of
+    :py:attr:`queryString` being transformed from :py:class:`QueryString` to
+    :py:type:`str`. TQS = Transformed QueryString.
+    """
+
+    modelVersion: str
+    indexName: Required[str]
+    queryString: str
+    offset: int
+    itemsToReturn: int
+    facetRequests: list[FacetRequest]
+    sortFields: list[SortField]
+    filterQueries: list[FilterQueries]
+    customParameters: list[CustomParameters]
+    returnedFieldFilter: list[str]
+
+
+# ------------------------------------------------------------------------------
+# Helper functions for dealing with IRIS types
+
+
+def to_QueryRequest(dictionary: dict[str, Any]) -> QueryRequest:
+    """
+    Helper function for turning a :py:type:`dict` into a
+    :py:class:`QueryRequest`. It achieves this by a somewhat
+    *unorthodox* approach.
+    """
+    return QueryRequest(dictionary)  # pyright: ignore[reportArgumentType]
+
+
+def to_QueryRequestTQS(query_request: QueryRequest) -> QueryRequestTQS:
+    """
+    Helper function for turning a :py:class:`QueryRequest` into a
+    :py:class:`QueryRequestTQS`. It achieves this by a somewhat
+    *unorthodox* approach.
+    """
+    d = {}
+    for key, value in query_request.items():  # pyright: ignore[reportAssignmentType]
+        if key == "queryString":
+            value: QueryString
+            d[key] = value.to_str()
+        else:
+            d[key] = value
+
+    return QueryRequestTQS(d)  # pyright: ignore[reportArgumentType]
