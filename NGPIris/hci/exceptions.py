@@ -23,3 +23,9 @@ class IndexNotFoundError(Exception):
     """
     The HCI index could not be found.
     """
+
+
+class WrongJSONFormatError(Exception):
+    """
+    The format of the JSON data provided is not correct.
+    """

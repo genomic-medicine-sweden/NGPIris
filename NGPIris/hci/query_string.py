@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Literal
 
+from icecream import ic
+from parse import Result, compile, parse
+
 
 @dataclass(frozen=True)
 class QueryString:
@@ -99,3 +102,34 @@ class Operator(QueryString):
             + self.right.to_str()
             + ")"
         )
+
+
+_Field_parse_format = "Field({},{})"
+_Operator_parse_format = "Operator({},{},{})"
+_AND_parse_format = "{} & {}"
+_OR_parse_format = "{} | {}"
+
+_parse_formats = [
+    _Field_parse_format,
+    _Operator_parse_format,
+    _AND_parse_format,
+    _OR_parse_format,
+]
+
+_compiled_parse_formats = [
+    compile(parse_format) for parse_format in _parse_formats
+]
+
+
+def str_to_QueryString(s: str) -> QueryString:
+    fields_and_operators = s.split(" ")
+
+    qs = QueryString()
+    for field_or_operator in fields_and_operators:
+        ic(field_or_operator)
+        for compiled_parse_format in _compiled_parse_formats:
+            result = compiled_parse_format.parse(field_or_operator)
+            if type(result) is Result:
+                ic(result, compiled_parse_format)
+
+    return qs

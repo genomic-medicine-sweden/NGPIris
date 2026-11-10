@@ -6,7 +6,7 @@ from warnings import deprecated
 from requests import Response, post
 from urllib3 import disable_warnings
 
-from NGPIris.hci.exceptions import IndexNotFoundError
+from NGPIris.hci.exceptions import IndexNotFoundError, WrongJSONFormatError
 from NGPIris.hci.helpers import (
     get_index_response,
     get_query_response,
@@ -170,10 +170,16 @@ class HCIHandler:
 
         :param query_path: Path to the JSON file
 
-        :return: Dictionary containing the raw query
+        :return:
+            :py:class:`QueryResponse` typed dictionary containing the query
+            response
         """
         with Path(query_path).open() as inp:
-            return self.query(to_QueryRequest(load(inp)))
+            json_data = load(inp)
+            if type(json_data) is dict:
+                return self.query(to_QueryRequest(json_data))
+            msg = "Given JSON data is not a dictionary"
+            raise WrongJSONFormatError(msg)
 
     def basic_query(
         self,
