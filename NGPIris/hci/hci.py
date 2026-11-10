@@ -28,6 +28,12 @@ _REQUEST_TOKEN_DEP_MSG = (
     "functionality into the :py:class:`HCIHandler` constructor"
 )
 
+_QUERY_FROM_JSON_DEP_MSG = (
+    ":py:meth:`query_from_JSON` is deprecated due to "
+    "implementation issues in a type safe way with "
+    ":py:class:`~NGPIris.hci.query_string.QueryString`"
+)
+
 
 class HCIHandler:
     """
@@ -164,6 +170,8 @@ class HCIHandler:
         """
         return get_query_response(query_dict, self)
 
+    @_add_deprecation_in_doc_string(_QUERY_FROM_JSON_DEP_MSG, "v5.7.0")
+    @deprecated(_QUERY_FROM_JSON_DEP_MSG)
     def query_from_JSON(self, query_path: str) -> QueryResponse:
         """
         Make query to an HCI index, with pre-written query in a JSON file.
@@ -172,6 +180,8 @@ class HCIHandler:
 
         :return: Dictionary containing the raw query
         """
+        msg = "This method has not been properly implemented yet"
+        raise NotImplementedError(msg)
         with Path(query_path).open() as inp:
             return self.query(to_QueryRequest(load(inp)))
 
