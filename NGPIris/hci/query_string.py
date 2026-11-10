@@ -61,21 +61,20 @@ class Operator(QueryString):
     :py:obj:`"AND"` and :py:obj:`"OR"`.
 
     Using :py:obj:`&` and :py:obj:`|` is preferable to using the class
-    constructor itself for readability.
-
-    Example:
+    constructor itself for readability. Example:
     ::
+
         Field("Chromosome", "X") & Field("REF", "A") ==
-        Operator(
-            operator="AND",
-            left=Field(
-                field_name="Chromosome",
-                value="X"
-            ),
-            right=Field(
-                field_name="REF",
-                value="A"
-            )
+            Operator(
+                operator="AND",
+                left=Field(
+                    field_name="Chromosome",
+                    value="X"
+                ),
+                right=Field(
+                    field_name="REF",
+                    value="A"
+                )
         )
 
     For more information: https://lucene.apache.org/core/2_9_4/queryparsersyntax.html
