@@ -10,7 +10,7 @@ def __add_deprecation_in_doc_string[**P, R](
     deprecated_in: str,
 ) -> Callable[P, R]:
     deprecation_note = (
-        "\n.. version-deprecated:: "
+        "\n.. deprecated:: "
         + deprecated_in
         + "\n"
         + "   "
