@@ -236,6 +236,8 @@ The following sections will provide basic examples of how to use {py:mod}`NGPIri
 By using the tabs in the following subsections, you can compare the {term}`CLI` version or the Python version of a given example.
 :::
 
+The {term}`HCP` is the object storage solution for the {term}`NGP`. It supports its own implementation of AWS {term}`S3`, which {py:mod}`NGPIris` uses in order to communicate with the {term}`HCP`. The {term}`HCP` consists of "buckets"/"namespaces" which is where data is stored. For more information, see the [](./glossary.rst) entry for the {term}`HCP`.
+
 (list-buckets)=
 
 ### Listing buckets
@@ -510,6 +512,8 @@ hcp_h.delete_folder("my/folder/to/be/deleted/")
 
 The following sections will provide basic examples of how to use {py:mod}`NGPIris` to perform operations on the {term}`NGPi`/{term}`HCI`. Unlike the examples shown in _[](#communicating-with-ngpr)_, the following examples will only be shown in Python code. This is because the communication with the {term}`HCI` is currently only available via the Python package and not the {term}`CLI`.
 
+The {term}`HCI` is the service we use for organizing and structuring our data. We do that within a so called "index". Each index consists of a number of "fields". A field is a piece of information regarding the data it contains. For more information and extended information, see [the Solr Reference Guide](https://solr.apache.org/guide/solr/latest/getting-started/documents-fields-schema-design.html).
+
 ### List index names
 
 The following example will show all indexes that are available to you:
@@ -540,7 +544,52 @@ Making a query to an index require an understanding of how to write a query stri
 
 #### {py:class}`~NGPIris.hci.query_string.QueryString` explained
 
-The DSL consists of two main components: {py:class}`~NGPIris.hci.query_string.Field` and {py:class}`~NGPIris.hci.query_string.Operator`.
+The DSL consists of two main components: {py:class}`~NGPIris.hci.query_string.Field` and {py:class}`~NGPIris.hci.query_string.Operator`. {py:class}`~NGPIris.hci.query_string.Field` is a class that represent a field query in the {term}`HCI`. For example, suppose that we have an index containing the following:
+
+```{table} Contents of an index conceptualized as a table
+:name: index_content
+| Assembly | Chromosome | Gene | gNomen | cNomen | Type | Classification |
+|----------|------------|------|--------|--------|------|----------------|
+| GRCh38 | 1 | ISG15 | g.1014228G>A | c.248G>A | Substitution | Likely Pathogenic |
+| GRCh38 | 2 | PRAMEF1 | g.2569454G>A | n.863G>A | Substitution | Likely Pathogenic Pathogenic |
+| GRCh38 | 2 | PRAMEF33 | g.2581616A>T | n.911A>T | Substitution | Pathogenic |
+| GRCh38 | 3 | PRDM2  | g.2855782C>A | n.215G>T | Substitution | Benign |
+| GRCh38 | X | GPR157 | g.9101560C>T | c.*2859G>A | Substitution | Likely Benign |
+| GRCh38 | X | LNCTAM34A | g.9183752G>T | n.248G>T | Substitution | Benign |
+```
+
+```{note}
+Note that "[the index table](#index_content)" above is just a representation; in reality, the data is _not_ stored as a traditional [SQL](https://en.wikipedia.org/wiki/SQL) database. The data itself is also entirely artificial.
+```
+
+If we wish to find all entries in the index where the value of the field `Chromosome` is `2`, then we would write our query as {py:obj}`Field("Chromosome", 2)`. This equivalent to the following [Apache Lucene](https://lucene.apache.org/core/2_9_4/queryparsersyntax.html) query syntax: `Chromosome:2`. The result of this query would then be the following:
+
+:::{table} The index result with query `Field("Chromosome", 2)`
+:name: index_content_chr_2
+
+| Assembly | Chromosome | Gene     | gNomen       | cNomen   | Type         | Classification    |
+| -------- | ---------- | -------- | ------------ | -------- | ------------ | ----------------- |
+| GRCh38   | 2          | PRAMEF1  | g.2569454G>A | n.863G>A | Substitution | Likely Pathogenic |
+| GRCh38   | 2          | PRAMEF33 | g.2581616A>T | n.911A>T | Substitution | Pathogenic        |
+
+:::
+
+We can make our query more complex by adding {py:class}`~NGPIris.hci.query_string.Operator`s. Let's say that we want to find all entries where the field `Chromosome` is `2` **and** the field `Classification` is `Likely Pathogenic`, then our query would look like this:
+
+```{code} python
+Field("Chromosome", 2) & Field("Classification", "Likely Pathogenic")
+```
+
+The query's equivalent Lucene query syntax is `Chromosome:2 AND Classification:"Likely Pathogenic"`. The resulting entries is therefore:
+
+:::{table} The index result with query `Field("Chromosome", 2) & Field("Classification", "Likely Pathogenic")`
+:name: index_content_chr_2_class_lp
+
+| Assembly | Chromosome | Gene    | gNomen       | cNomen   | Type         | Classification    |
+| -------- | ---------- | ------- | ------------ | -------- | ------------ | ----------------- |
+| GRCh38   | 2          | PRAMEF1 | g.2569454G>A | n.863G>A | Substitution | Likely Pathogenic |
+
+:::
 
 #### An example query using {py:class}`~NGPIris.hci.query_string.QueryString`
 
