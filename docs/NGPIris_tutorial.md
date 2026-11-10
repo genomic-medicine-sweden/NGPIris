@@ -592,10 +592,23 @@ The query's equivalent Lucene query syntax is `Chromosome:2 AND Classification:"
 :::
 
 #### An example query using {py:class}`~NGPIris.hci.query_string.QueryString`
-The syntax for making this query with {py:mod}`NGPIris` is the following:
+
+The syntax for making performing the query `Field("Chromosome", 2) & Field("Classification", "Likely Pathogenic")` with {py:mod}`NGPIris` is the following:
 
 ```{code} python
 from NGPIris import HCIHandler
+from NGPIris.hci.query_string import Field
 
 hci_h = HCIHandler("path/to/credentials.json")
+
+print(
+    hci_h.basic_query(
+        index_name="my_index",
+        query_string=(
+            Field("Chromosome", 2)
+            & Field("Classification", "Likely Pathogenic")
+        ),
+        items_to_return=10,
+    )
+)
 ```
