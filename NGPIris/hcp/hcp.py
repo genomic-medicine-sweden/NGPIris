@@ -18,6 +18,7 @@ from botocore.exceptions import ClientError, EndpointConnectionError
 from parse import Result, parse
 from requests import get, post
 from requests.exceptions import HTTPError
+from typing_extensions import Generator  # noqa: UP035
 from urllib3 import disable_warnings
 
 from NGPIris.hcp.exceptions import (
@@ -47,8 +48,6 @@ from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
     from botocore.paginate import PageIterator, Paginator
 
     from NGPIris.hcp.types import MQE_QueryResult
