@@ -592,6 +592,7 @@ The query's equivalent Lucene query syntax is `Chromosome:2 AND Classification:"
 :::
 
 #### An example query using {py:class}`~NGPIris.hci.query_string.QueryString`
+The syntax for making this query with {py:mod}`NGPIris` is the following:
 
 ```{code} python
 from NGPIris import HCIHandler
