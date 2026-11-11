@@ -2,6 +2,12 @@ from dataclasses import dataclass
 from typing import Literal
 
 
+class WhiteSpaceInWildCardSearchError(Exception):
+    """
+    Error for when a whitespace is found in a wildcard search.
+    """
+
+
 @dataclass(frozen=True)
 class QueryString:
     """
@@ -51,7 +57,19 @@ class Field(QueryString):
         Method for turning a :py:class:`~NGPIris.hci.query_string.Field` into a
         string.
         """
-        return self.field_name + ":" + '"' + str(self.value) + '"'
+        value = str(self.value)
+
+        # If a wildcard is used, then we can't format it as a Lucene term
+        if ("*" in value) or ("?" in value):
+            if " " in value:
+                msg = (
+                    'Whitespace was found in "'
+                    + value
+                    + '" which cannot be processed in a wildcard search'
+                )
+                raise WhiteSpaceInWildCardSearchError(msg)
+            return self.field_name + ":" + value
+        return self.field_name + ":" + '"' + value + '"'
 
 
 @dataclass(frozen=True)
