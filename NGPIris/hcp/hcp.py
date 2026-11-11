@@ -44,7 +44,8 @@ from NGPIris.hcp.helpers import (
     progress_bar_handler,
     raise_path_error,
 )
-from NGPIris.parse_credentials import CredentialsHandler
+
+# from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
 if TYPE_CHECKING:

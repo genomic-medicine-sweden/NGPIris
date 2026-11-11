@@ -6,6 +6,7 @@ from warnings import deprecated
 from requests import Response, post
 from urllib3 import disable_warnings
 
+# from NGPIris.credentials import CredentialsHandler
 from NGPIris.hci.exceptions import IndexNotFoundError
 from NGPIris.hci.helpers import (
     get_index_response,
@@ -20,7 +21,6 @@ from NGPIris.hci.types import (
     SortField,
     to_QueryRequest,
 )
-from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
 _REQUEST_TOKEN_DEP_MSG = (
