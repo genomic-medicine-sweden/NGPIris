@@ -66,17 +66,15 @@ class HCIHandler:
             credentials_handler = CredentialsHandler(credentials)
             self.hci = credentials_handler.hci
 
+            self.address = self.hci["address"]
             self.username = self.hci["username"]
             self.password = self.hci["password"]
-            self.address = self.hci["address"]
-            self.auth_port = self.hci["auth_port"]
-            self.api_port = self.hci["api_port"]
+            self.realm = self.hci.get("realm", "LOCAL")
         elif type(credentials) is dict:
+            self.address = credentials["address"]
             self.username = credentials["username"]
             self.password = credentials["password"]
-            self.address = credentials["address"]
-            self.auth_port = credentials["auth_port"]
-            self.api_port = credentials["api_port"]
+            self.realm = self.hci.get("realm", "LOCAL")
 
         self.use_ssl = use_ssl
 
@@ -106,16 +104,32 @@ class HCIHandler:
         :raises ConnectionError:
             If there was a problem when requesting a token
         """
-        url = "https://" + self.address + ":" + self.auth_port + "/auth/oauth/"
-        data = {
-            "grant_type": "password",
-            "username": self.username,
-            "password": self.password,
-            "scope": "*",
-            "client_secret": "hci-client",
-            "client_id": "hci-client",
-            "realm": "LOCAL",
-        }
+        match self.realm:
+            case "HCI":
+                url = (
+                    "https://keycloak."
+                    + self.address
+                    + "/realms/"
+                    + self.realm
+                    + "/protocol/openid-connect/token"
+                )
+                data = {
+                    "grant_type": "client_credentials",
+                    "client_id": self.username,
+                    "client_secret": self.password,
+                    "realm": self.realm,
+                }
+            case _:  # Same as "LOCAL"
+                url = "https://" + self.address + ":8000" + "/auth/oauth/"
+                data = {
+                    "grant_type": "password",
+                    "username": self.username,
+                    "password": self.password,
+                    "scope": "*",
+                    "client_secret": "hci-client",
+                    "client_id": "hci-client",
+                    "realm": "LOCAL",
+                }
         try:
             response: Response = post(
                 url, data=data, verify=self.use_ssl, timeout=15

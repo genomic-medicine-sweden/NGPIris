@@ -21,7 +21,6 @@ def get_response(
     hci_handler: HCIHandler,
     request_type: Literal["GET", "POST"],
     api_endpoint: Literal[
-        "/auth/oauth/",
         "/api/search/indexes/",
         "/api/search/query/",
     ]
@@ -68,14 +67,23 @@ def get_response(
         msg = "Request type is set to POST, but data was also supplied"
         raise DataSuppliedToGETError(msg)
 
-    url: str = (
-        "https://"
-        + hci_handler.address
-        + ":"
-        + hci_handler.api_port
-        + api_endpoint
-        + api_endpoint_extension
-    )
+    match hci_handler.realm:
+        case "HCI":
+            url = (
+                "https://hci."
+                + hci_handler.address
+                + api_endpoint
+                + api_endpoint_extension
+            )
+        case _:  # Same as "LOCAL"
+            url = (
+                "https://"
+                + hci_handler.address
+                + ":8888"
+                + api_endpoint
+                + api_endpoint_extension
+            )
+
     headers: dict[str, str] = extra_headers | {
         "Accept": "application/json",
         "Authorization": "Bearer " + hci_handler.token,
