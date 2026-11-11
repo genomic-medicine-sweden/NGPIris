@@ -6,15 +6,15 @@ if TYPE_CHECKING:
 
 def __add_deprecation_in_doc_string[**P, R](
     function: Callable[P, R],
-    deprecatation_message: str,
+    deprecation_message: str,
     deprecated_in: str,
 ) -> Callable[P, R]:
     deprecation_note = (
-        "\n.. version-deprecated:: "
+        "\n.. deprecated:: "
         + deprecated_in
         + "\n"
         + "   "
-        + deprecatation_message
+        + deprecation_message
         + "\n"
     )
     doc_string = function.__doc__
@@ -25,19 +25,19 @@ def __add_deprecation_in_doc_string[**P, R](
 
 
 def _add_deprecation_in_doc_string[**P, R](
-    deprecatation_message: str,
+    deprecation_message: str,
     deprecated_in: str = "[Unknown]",
 ) -> Callable[..., Callable[P, R]]:
     """
     Decorator for adding deprecation message to API documentation.
 
-    :param deprecatation_message: Deprecration message
+    :param deprecation_message: Deprecation message
     :param deprecated_in: Version where the object was deprecated
     """
 
     def decorator(function: Callable[P, R]) -> Callable[P, R]:
         return __add_deprecation_in_doc_string(
-            function, deprecatation_message, deprecated_in
+            function, deprecation_message, deprecated_in
         )
 
     return decorator

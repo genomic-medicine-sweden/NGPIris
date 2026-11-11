@@ -1,10 +1,10 @@
-NGPIris.parse\_credentials package
-==================================
+``NGPIris.parse_credentials`` package
+======================================
 
-This page contains everything related to the `NGPIris.parse\_credentials` module and its submodules.
+This page contains everything related to the ``NGPIris.parse\_credentials`` module and its submodules.
 
-NGPIris.parse\_credentials.parse\_credentials module
-----------------------------------------------------
+``NGPIris.parse_credentials.parse_credentials`` module
+--------------------------------------------------------
 
 .. automodule:: NGPIris.parse_credentials.parse_credentials
    :members:

@@ -1,7 +1,7 @@
-NGPIris.cli package
-===================
+The NGPIris CLI
+===============
 
-This page contains the CLI commands in NGPIris.
+This page lists all CLI commands and subcommands in :py:mod:`NGPIris`. The descriptions in this list are the same when providing the ``--help`` flag.
 
 CLI commands
 ------------

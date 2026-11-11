@@ -23,6 +23,14 @@ Iris can be installed via PyPi by running the following:
 pip install NGPIris
 ```
 
+or
+
+```bash
+uv add NGPIris
+```
+
+if you have the uv package manager installed.
+
 If you wish, you can also install NGP Iris with the following steps:
 
 1. Clone this repository
@@ -69,7 +77,7 @@ A thorough package documentation can be found in the technical documentation pag
 
 ## Basic usage
 
-Iris can be used as a Python package or by using the command line. The following sections cover some examples of how Iris might be used as a package and how to use its various commands. However, we highly recommend checking out the [tutorial](/docs/Tutorial.md) containing more example use cases.
+Iris can be used as a Python package or by using the command line. The following sections cover some examples of how Iris might be used as a package and how to use its various commands. However, we highly recommend reading out the [tutorial](/docs/NGPIris_tutorial.md) containing more example use cases and explanations.
 
 ### As a Python package
 

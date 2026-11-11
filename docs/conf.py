@@ -33,7 +33,21 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
+    "myst_parser",
+    "sphinx_design",
+    "sphinx_copybutton",
 ]
+
+myst_enable_extensions = [
+    "alert",
+    "colon_fence",
+]
+
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "markdown",
+}
+
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
