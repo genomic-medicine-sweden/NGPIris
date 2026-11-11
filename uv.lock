@@ -473,7 +473,7 @@ wheels = [
 
 [[package]]
 name = "ngpiris"
-version = "5.7.0.dev1"
+version = "5.7.0.dev2"
 source = { editable = "." }
 dependencies = [
     { name = "bitmath" },
@@ -484,6 +484,7 @@ dependencies = [
     { name = "ruff" },
     { name = "tabulate" },
     { name = "tqdm" },
+    { name = "typing-extensions" },
     { name = "urllib3" },
 ]
 
@@ -501,7 +502,6 @@ dev = [
     { name = "sphinx-click" },
     { name = "sphinx-copybutton" },
     { name = "sphinx-design" },
-    { name = "typing-extensions" },
 ]
 
 [package.metadata]
@@ -514,6 +514,7 @@ requires-dist = [
     { name = "ruff", specifier = ">=0.14.5" },
     { name = "tabulate", specifier = ">=0.9.0" },
     { name = "tqdm", specifier = ">=4.66.2" },
+    { name = "typing-extensions", specifier = ">=4.16.0" },
     { name = "urllib3", specifier = "==2.8.0" },
 ]
 
@@ -531,7 +532,6 @@ dev = [
     { name = "sphinx-click", specifier = ">=6.2.0" },
     { name = "sphinx-copybutton", specifier = ">=0.5.2" },
     { name = "sphinx-design", specifier = ">=0.7.0" },
-    { name = "typing-extensions", specifier = ">=4.16.0" },
 ]
 
 [[package]]
