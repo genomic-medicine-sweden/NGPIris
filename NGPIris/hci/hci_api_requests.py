@@ -98,15 +98,19 @@ def get_response(
     try:
         response.raise_for_status()
     except HTTPError as http_error:
-        error_content = dict(loads(http_error.response.content))
-        error_msg = (
-            "\nstatusCode: "
-            + str(error_content.get("statusCode", ""))
-            + "\nerrorMessage: "
-            + str(error_content.get("errorMessage", ""))
-            + "\nerrorProperties: "
-            + str(error_content.get("errorProperties", ""))
-        )
+        error_response = http_error.response
+        if error_response:
+            error_content = dict(loads(error_response.content))
+            error_msg = (
+                "\nstatusCode: "
+                + str(error_content.get("statusCode", ""))
+                + "\nerrorMessage: "
+                + str(error_content.get("errorMessage", ""))
+                + "\nerrorProperties: "
+                + str(error_content.get("errorProperties", ""))
+            )
+        else:
+            error_msg = "An unknown error occurred"
         raise HCI_ResponseError(error_msg) from http_error
 
     return response
