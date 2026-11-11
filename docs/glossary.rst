@@ -10,7 +10,7 @@ Glossary
 
     HCI
     Hitachi Content Intelligence
-        A Hitachi product used for the :term:`NGPi`. For more information see
+        A Hitachi product used for the :term:`NGPi`.
 
     NGPr
     NGPrepository
