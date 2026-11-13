@@ -551,7 +551,7 @@ The DSL consists of two main components: {py:class}`~NGPIris.hci.query_string.Fi
 | Assembly | Chromosome | Gene | gNomen | cNomen | Type | Classification |
 |----------|------------|------|--------|--------|------|----------------|
 | GRCh38 | 1 | ISG15 | g.1014228G>A | c.248G>A | Substitution | Likely Pathogenic |
-| GRCh38 | 2 | PRAMEF1 | g.2569454G>A | n.863G>A | Substitution | Likely Pathogenic Pathogenic |
+| GRCh38 | 2 | PRAMEF1 | g.2569454G>A | n.863G>A | Substitution | Likely Pathogenic |
 | GRCh38 | 2 | PRAMEF33 | g.2581616A>T | n.911A>T | Substitution | Pathogenic |
 | GRCh38 | 3 | PRDM2  | g.2855782C>A | n.215G>T | Substitution | Benign |
 | GRCh38 | X | GPR157 | g.9101560C>T | c.*2859G>A | Substitution | Likely Benign |
