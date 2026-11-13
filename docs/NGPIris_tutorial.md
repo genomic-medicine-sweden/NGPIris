@@ -196,21 +196,20 @@ If it is a {py:type}`dict[str, str]` then the respective credential data for eit
 from NGPIris import HCPHandler, HCIHandler
 
 hcp_h = HCPHandler(
-    {
-        "endpoint": "",
-        "username": "",
-        "password": "",
-    }
+  {
+    "endpoint": "",
+    "username": "",
+    "password": "",
+  }
 )
 
 hci_h = HCIHandler(
-    {
-        "username": "",
-        "password": "",
-        "address": "",
-        "auth_port": "",
-        "api_port": "",
-    }
+  {
+    "address": "",
+    "username": "",
+    "password": "",
+    "realm": ""
+  }
 )
 ```
 
