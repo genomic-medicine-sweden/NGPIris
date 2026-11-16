@@ -409,14 +409,11 @@ hcp_h = HCPHandler("path/to/credentials.json")
 hcp_h.mount_bucket("my_bucket")
 
 file_name = "file.txt"
-
 bucket_path = "a/path/on/the/bucket/"
-
-my_local_file_path = "a/local/path/"
 
 hcp_h.download_file(
     bucket_path + file_name,
-    my_local_file_path + file_name,
+    "a/local/path/" + file_name,
 )
 ```
 
