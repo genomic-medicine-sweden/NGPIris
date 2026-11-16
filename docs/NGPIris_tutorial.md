@@ -366,11 +366,12 @@ hcp_h = HCPHandler("path/to/credentials.json")
 
 hcp_h.mount_bucket("my_bucket")
 
-my_local_file = "a/local/file.txt"
+local_file_path = "a/local/"
+local_file_name = "file.txt"
 
 hcp_h.upload_file(
-    my_local_file,
-    "a/path/on/the/bucket/" + my_local_file,
+    local_file_path + local_file_name, # == "a/local/file.txt"
+    "a/path/on/the/bucket/" + local_file_name,
 )
 ```
 
