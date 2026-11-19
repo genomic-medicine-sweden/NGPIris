@@ -21,6 +21,7 @@ extend-select = ["ALL"]
 # For more information on each rule, see https://docs.astral.sh/ruff/rules/ and
 # use the search box
 ignore = [
+    "CPY001",
     "UP006",
     "T201",
     "TD003",
