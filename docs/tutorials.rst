@@ -7,3 +7,4 @@ The following table lists all tutorials related to :py:mod:`NGPIris`.
     :maxdepth: 2
 
     NGPIris_tutorial
+    python_package_tutorial
