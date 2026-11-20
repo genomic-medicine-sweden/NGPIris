@@ -2,6 +2,8 @@
 
 NGP IRIS, or just Iris, is a tool for interacting with NGPr, which is a Hitachi Content Platform (HCP), and NGPi, which is a Hitachi Content Intelligence (HCI).
 
+The Iris Python package aims to be a [type safe](https://en.wikipedia.org/wiki/Type_safety) package for type driven Python development. It also features a [CommandLine Interface (CLI)](#-as-a-command-line-tool).
+
 ## Getting started
 
 If you are new to using Iris, check out the beginner's tutorial that can be found in [iris package documentation](#compiling-the-documentation).
@@ -36,31 +38,7 @@ If you wish, you can also install NGP Iris with the following steps:
 
 ### NGPr credentials
 
-In order to use Iris, a JSON file containing your credentials for NGPr is required. The template of the JSON file can be found in [credentials/credentials_template.json](credentials/credentials_template.json). Depending on your needs, you can either enter
-
-- only the credentials for the HCP
-- only for the HCI _**or**_ both.
-
-Do note that you can't leave some parts of either the HCP or HCI credentials empty:
-
-```JSON
-{
-  "hcp" : {
-      "endpoint" : "some_endpoint",
-      "username" : "",
-      "password" : ""
-  },
-  "hci" : {
-      "username" : "some_user",
-      "password" : "some_password",
-      "address" : "some_address",
-      "auth_port" : "some_auth_port",
-      "api_port" : "some_api_port"
-  }
-}
-```
-
-This will prompt Iris to complain about incomplete credentials (since the entries `username` and `password` in the `hcp` section are empty). Of course, the same error would occur if the reverse between the `hcp` and `hci` sections would be true.
+In order to use Iris, a JSON file containing your credentials for NGPr is required. The template of the JSON file can be found in [credentials/credentials_template.json](credentials/credentials_template.json). Depending on your needs, you can either enter only the credentials for the HCP, only for the HCI _**or**_ both.
 
 > [!NOTE]
 > The `username` field is equivalent to `aws_access_key_id` and `password` is equivalent to `aws_secret_access_key`
@@ -74,7 +52,7 @@ A thorough package documentation can be found in the technical documentation pag
 
 ## Basic usage
 
-Iris can be used as a Python package or by using the command line. The following sections cover some examples of how Iris might be used as a package and how to use its various commands. However, we highly recommend reading out the [tutorial](/docs/NGPIris_tutorial.md) containing more example use cases and explanations.
+Iris can be used as a Python package or by using the command line. The following sections cover some examples of how Iris might be used as a package and how to use its various commands. However, we highly recommend reading out the beginner's tutorial containing more example use cases and explanations. This tutorial can be found after [compiling the documentation](#compiling-the-documentation).
 
 ### As a Python package
 
