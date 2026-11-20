@@ -44,6 +44,8 @@ myst_enable_extensions = [
     "colon_fence",
 ]
 
+suppress_warnings = ["docutils"]
+
 source_suffix = {
     ".rst": "restructuredtext",
     ".md": "markdown",
