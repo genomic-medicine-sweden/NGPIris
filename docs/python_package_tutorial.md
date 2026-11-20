@@ -16,4 +16,28 @@ This tutorial was written for version v5.7.0
 
 Welcome to the {py:mod}`NGPIris` Python package tutorial!
 
-##
+## Example
+
+```{code} python
+from NGPIris import HCPHandler, HCIHandler
+
+hcp_h = HCPHandler("path/to/credentials.json")
+
+hci_h = HCIHandler("path/to/credentials.json")
+```
+
+:::{dropdown} Show datatypes
+:animate: fade-in-slide-down
+:icon: code
+:color: primary
+
+::::{dropdown} `HCPHandler`
+:animate: fade-in-slide-down
+
+```{eval-rst}
+.. autoclass:: NGPIris.HCPHandler
+  :no-index:
+```
+
+::::
+:::
