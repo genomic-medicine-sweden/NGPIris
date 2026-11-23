@@ -36,6 +36,7 @@ from NGPIris.hcp.exceptions import (
     SubfolderError,
     UnableToParseEndpointError,
     UnallowedCharacterError,
+    UnknownBucketError,
 )
 from NGPIris.hcp.helpers import (
     check_mounted,
@@ -329,10 +330,15 @@ class HCPHandler:
         except EndpointConnectionError:  # pragma: no cover
             raise
         except ClientError as e:
-            status_code = e.response["ResponseMetadata"].get(
-                "HTTPStatusCode",
-                -1,
-            )
+            response_metadata = e.response.get("ResponseMetadata")
+            if response_metadata:
+                status_code = response_metadata.get(
+                    "HTTPStatusCode",
+                    -1,
+                )
+            else:
+                msg = "An unknown error when connecting to the bucket occurred"
+                raise UnknownBucketError(msg) from e
             match status_code:
                 case 404:
                     raise BucketNotFoundError(
