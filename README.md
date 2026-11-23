@@ -72,6 +72,13 @@ This will prompt Iris to complain about incomplete credentials (since the entrie
 
 A thorough package documentation can be found in the technical documentation pages. In order to compile the documentation, see [here](#compiling-the-documentation).
 
+### Compiling type annotations for `boto3`
+
+1. Generate type annotations locally: `uvx --with 'boto3==1.*.*' mypy-boto3-builder` for the current version of `boto3`
+2. Select `boto3-stubs` AWS SDK.
+3. Add S3 service. You might need to de-select other auxiliary services.
+4. The the generated install command such as `uv add --dev vendored/types_boto3_custom-1.43.94-py3-none-any.whl` for `boto3==1.43.94`
+
 ## Basic usage
 
 Iris can be used as a Python package or by using the command line. The following sections cover some examples of how Iris might be used as a package and how to use its various commands. However, we highly recommend reading out the [tutorial](/docs/NGPIris_tutorial.md) containing more example use cases and explanations.
