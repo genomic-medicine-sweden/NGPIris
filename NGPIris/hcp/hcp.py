@@ -19,6 +19,8 @@ from parse import Result, parse
 from requests import get, post
 from requests.exceptions import HTTPError
 from types_boto3_s3.type_defs import (
+    AccessControlPolicyTypeDef,
+    DeleteTypeDef,
     GetBucketAclOutputTypeDef,
     GetObjectAclOutputTypeDef,
 )
@@ -983,13 +985,13 @@ class HCPHandler:
 
         result = ""
         if object_list:
-            deletion_dict = {"Objects": object_list}
+            deletion_dict = DeleteTypeDef({"Objects": object_list})
             response = self.s3_client.delete_objects(
                 Bucket=self._get_mounted_bucket(),
                 Delete=deletion_dict,
             )
 
-            operation_response_code_handler(response, "Delete", deletion_dict)
+            operation_response_code_handler(response, "Delete")  # pyright: ignore[reportArgumentType]
 
             deleted_files: list = [d.get("Key") for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
