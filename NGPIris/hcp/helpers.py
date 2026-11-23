@@ -201,7 +201,7 @@ def progress_bar_handler[**P, R](
     method_kwargs: dict,
 ) -> None:
     """
-    Helper function for progressbar logic.
+    Helper function for progress bar logic.
     """
 
     def _progress_bar_handler(*args: P.args, **kwargs: P.kwargs) -> None:
@@ -212,7 +212,7 @@ def progress_bar_handler[**P, R](
                 unit_scale=True,
                 desc=desc,
             ) as pbar:
-                kwargs["Callback"] = lambda bytes_transferred: pbar.update(
+                kwargs["Callback"] = lambda bytes_transferred: pbar.update(  # noqa: PLW0108
                     bytes_transferred,
                 )
                 method(*args, **kwargs)
