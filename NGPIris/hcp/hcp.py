@@ -541,8 +541,6 @@ class HCPHandler:
     @check_mounted
     def get_object_metadata(self, key: str) -> dict:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Retrieve object metadata.
 
         :param key: The object name
@@ -573,8 +571,6 @@ class HCPHandler:
 
     def raise_error_if_object_is_file(self, object_path: str) -> None:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Raises an error if ``object_path`` is a file.
 
         :param object_path: The path to the object
@@ -587,8 +583,6 @@ class HCPHandler:
 
     def raise_error_if_object_is_folder(self, object_path: str) -> None:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Raises an error if ``object_path`` is a folder.
 
         :param object_path: The path to the object
@@ -602,8 +596,6 @@ class HCPHandler:
     @check_mounted
     def object_exists(self, key: str) -> bool:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Check if a given object is in the mounted bucket.
 
         :param key: The object name
