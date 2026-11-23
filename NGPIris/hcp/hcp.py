@@ -519,7 +519,6 @@ class HCPHandler:
 
     # ---------------------------- Object primitive methods --------------------
 
-    @check_mounted
     def get_object(self, key: str) -> dict:
         """
         Get object data and metadata.
@@ -543,7 +542,6 @@ class HCPHandler:
         else:
             return response
 
-    @check_mounted
     def get_object_metadata(self, key: str) -> dict:
         """
         Retrieve object metadata.
@@ -600,7 +598,6 @@ class HCPHandler:
             msg = "The object " + object_path + " is a folder"
             raise IsFolderObjectError(msg)
 
-    @check_mounted
     def object_exists(self, key: str) -> bool:
         """
         Check if a given object is in the mounted bucket.
@@ -625,7 +622,6 @@ class HCPHandler:
 
     # ---------------------------- Object methods ----------------------------
 
-    @check_mounted
     def list_objects(  # noqa: C901
         self,
         path_key: str = "",
@@ -679,7 +675,7 @@ class HCPHandler:
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             Prefix=path_key,
             Delimiter="/",
         )
@@ -748,7 +744,7 @@ class HCPHandler:
             {
                 "Key": key,
                 "Filename": filename,
-                "Bucket": self.bucket_name,
+                "Bucket": self._get_mounted_bucket(),
                 "Config": self.transfer_config,
             },
         )
@@ -901,7 +897,7 @@ class HCPHandler:
             {
                 "Filename": local_file_path,
                 "Key": key,
-                "Bucket": self.bucket_name,
+                "Bucket": self._get_mounted_bucket(),
                 "Config": config,
             },
         )
@@ -988,7 +984,7 @@ class HCPHandler:
         if object_list:
             deletion_dict = {"Objects": object_list}
             response: dict = self.s3_client.delete_objects(
-                Bucket=self.bucket_name,
+                Bucket=self._get_mounted_bucket(),
                 Delete=deletion_dict,
             )
 
@@ -1062,7 +1058,7 @@ class HCPHandler:
 
         # Delete the folder object itself separately
         self.s3_client.delete_object(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             Key=key,
         )
 
@@ -1096,9 +1092,9 @@ class HCPHandler:
                 "Key": destination_key,
                 "Bucket": destination_bucket
                 if destination_bucket
-                else self.bucket_name,
+                else self._get_mounted_bucket(),
                 "CopySource": {
-                    "Bucket": self.bucket_name,
+                    "Bucket": self._get_mounted_bucket(),
                     "Key": source_key,
                 },
             },
@@ -1170,7 +1166,7 @@ class HCPHandler:
             "+objectPath:(/*"
             + escaped_search
             + "*) +namespace:"
-            + str(self.bucket_name)
+            + str(self._get_mounted_bucket())
             + "."
             + str(self.tenant)
         )
@@ -1278,7 +1274,7 @@ class HCPHandler:
         :return: Return the ACL in the shape of a dictionary
         """
         response: dict = self.s3_client.get_object_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             Key=key,
         )
         return response
@@ -1291,7 +1287,7 @@ class HCPHandler:
         :return: Return the ACL in the shape of a dictionary
         """
         response: dict = self.s3_client.get_bucket_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
         )
         return response
 
@@ -1320,7 +1316,7 @@ class HCPHandler:
             * READ_ACP
         """
         self.s3_client.put_object_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             Key=key,
             AccessControlPolicy=create_access_control_policy(
                 {user_ID: permission},
@@ -1346,7 +1342,7 @@ class HCPHandler:
             * READ_ACP
         """
         self.s3_client.put_bucket_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             AccessControlPolicy=create_access_control_policy(
                 {user_ID: permission},
             ),
@@ -1372,7 +1368,7 @@ class HCPHandler:
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
             self.s3_client.put_object_acl(
-                Bucket=self.bucket_name,
+                Bucket=self._get_mounted_bucket(),
                 Key=key,
                 AccessControlPolicy=create_access_control_policy(
                     user_ID_permissions,
@@ -1389,7 +1385,7 @@ class HCPHandler:
             permission to be set to that user
         """
         self.s3_client.put_bucket_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             AccessControlPolicy=create_access_control_policy(
                 user_ID_permissions,
             ),
