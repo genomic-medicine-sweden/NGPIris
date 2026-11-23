@@ -2,8 +2,8 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from botocore.exceptions import ClientError
 from tqdm import tqdm
+from types_boto3_s3.type_defs import AccessControlPolicyTypeDef
 
 from NGPIris.hcp.exceptions import (
     MetadataCouldNotBeFoundError,
@@ -16,13 +16,14 @@ from NGPIris.hcp.exceptions import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from botocore.exceptions import ClientError
     from types_boto3_s3.type_defs import DeleteObjectOutputTypeDef
 
 
-def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  # noqa: D103
-    access_control_policy: dict[str, list] = {
-        "Grants": [],
-    }
+def create_access_control_policy(
+    user_ID_permissions: dict[str, str],
+) -> AccessControlPolicyTypeDef:
+    grants = []
     for user_ID, permission in user_ID_permissions.items():
         if permission not in [
             "FULL_CONTROL",
@@ -40,8 +41,12 @@ def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  
             },
             "Permission": permission,
         }
-        access_control_policy["Grants"].append(grantee)
-    return access_control_policy
+        grants.append(grantee)
+    return AccessControlPolicyTypeDef(
+        {
+            "Grants": grants,
+        }
+    )
 
 
 def raise_path_error(path: str) -> None:
