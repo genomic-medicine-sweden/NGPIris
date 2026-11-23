@@ -19,7 +19,6 @@ from parse import Result, parse
 from requests import get, post
 from requests.exceptions import HTTPError
 from types_boto3_s3.type_defs import (
-    AccessControlPolicyTypeDef,
     DeleteTypeDef,
     GetBucketAclOutputTypeDef,
     GetObjectAclOutputTypeDef,
@@ -1090,9 +1089,7 @@ class HCPHandler:
             self.s3_client.copy,
             {
                 "Key": destination_key,
-                "Bucket": destination_bucket
-                if destination_bucket
-                else self._get_mounted_bucket(),
+                "Bucket": destination_bucket or self._get_mounted_bucket(),
                 "CopySource": {
                     "Bucket": self._get_mounted_bucket(),
                     "Key": source_key,
