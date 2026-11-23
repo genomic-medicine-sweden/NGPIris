@@ -18,6 +18,10 @@ from botocore.exceptions import ClientError, EndpointConnectionError
 from parse import Result, parse
 from requests import get, post
 from requests.exceptions import HTTPError
+from types_boto3_s3.type_defs import (
+    GetBucketAclOutputTypeDef,
+    GetObjectAclOutputTypeDef,
+)
 from typing_extensions import Generator  # noqa: UP035
 from urllib3 import disable_warnings
 
@@ -1256,7 +1260,7 @@ class HCPHandler:
 
     # ---------------------------- ACL methods ----------------------------
 
-    def get_object_acl(self, key: str) -> dict:
+    def get_object_acl(self, key: str) -> GetObjectAclOutputTypeDef:
         """
         Get the object Access Control List (ACL).
 
@@ -1264,22 +1268,20 @@ class HCPHandler:
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response = self.s3_client.get_object_acl(
+        return self.s3_client.get_object_acl(
             Bucket=self._get_mounted_bucket(),
             Key=key,
         )
-        return response
 
-    def get_bucket_acl(self) -> dict:
+    def get_bucket_acl(self) -> GetBucketAclOutputTypeDef:
         """
         Get the bucket Access Control List (ACL).
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response = self.s3_client.get_bucket_acl(
+        return self.s3_client.get_bucket_acl(
             Bucket=self._get_mounted_bucket(),
         )
-        return response
 
     def modify_single_object_acl(
         self,
