@@ -159,3 +159,4 @@ __pycache__
 .coverage
 
 .idea*
+/vendored
