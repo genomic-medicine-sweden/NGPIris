@@ -39,6 +39,7 @@ from NGPIris.hcp.exceptions import (
     UnknownBucketError,
 )
 from NGPIris.hcp.helpers import (
+    client_error_response_code_handler,
     create_access_control_policy,
     operation_response_code_handler,
     progress_bar_handler,
@@ -535,7 +536,9 @@ class HCPHandler:
                 ),
             )
         except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
+            error = e.response.get("Error")
+            error_code = error.get("Code", "Unknown") if error else "Unknown"
+            if error_code == "NoSuchKey":
                 msg = "The object " + key + " does not exist"
                 raise ObjectDoesNotExistError(msg) from e
             raise
@@ -557,9 +560,8 @@ class HCPHandler:
                 )
             )
         except ClientError as e:
-            rm: dict = e.response
-            operation_response_code_handler(
-                rm, "Get object metadata", key, self.bucket_name
+            client_error_response_code_handler(
+                e, "Get object metadata", key, self.bucket_name
             )
             # This `raise` is most likely useless, but acts as fallback
             # if `operation_response_code_handler` does not raise any exception
@@ -709,7 +711,6 @@ class HCPHandler:
                         key, file_object_metadata, True, output_mode
                     )
 
-    @check_mounted
     def download_file(
         self,
         key: str,
@@ -749,7 +750,6 @@ class HCPHandler:
             },
         )
 
-    @check_mounted
     def download_folder(
         self,
         folder_key: str,
@@ -835,7 +835,6 @@ class HCPHandler:
         SIMPLE = "simple"
         EQUAL_PARTS = "equal_parts"
 
-    @check_mounted
     def upload_file(
         self,
         local_file_path: str,
@@ -902,7 +901,6 @@ class HCPHandler:
             },
         )
 
-    @check_mounted
     def upload_folder(
         self,
         local_folder_path: str,
@@ -960,7 +958,6 @@ class HCPHandler:
                     equal_parts=equal_parts,
                 )
 
-    @check_mounted
     def delete_objects(self, keys: list[str]) -> str:
         """
         Delete a list of objects on the mounted bucket.
@@ -983,14 +980,14 @@ class HCPHandler:
         result = ""
         if object_list:
             deletion_dict = {"Objects": object_list}
-            response: dict = self.s3_client.delete_objects(
+            response = self.s3_client.delete_objects(
                 Bucket=self._get_mounted_bucket(),
                 Delete=deletion_dict,
             )
 
             operation_response_code_handler(response, "Delete", deletion_dict)
 
-            deleted_files: list = [d["Key"] for d in response["Deleted"]]
+            deleted_files: list = [d.get("Key") for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
                 deleted_files,
             )
@@ -1003,7 +1000,6 @@ class HCPHandler:
 
         return result
 
-    @check_mounted
     def delete_object(self, key: str) -> str:
         """
         Delete a single object in the mounted bucket.
@@ -1016,7 +1012,6 @@ class HCPHandler:
         """
         return self.delete_objects([key])
 
-    @check_mounted
     def delete_folder(self, key: str) -> str:
         """
         Delete a folder of objects in the mounted bucket.
@@ -1064,7 +1059,6 @@ class HCPHandler:
 
         return result
 
-    @check_mounted
     def copy_file(
         self,
         source_key: str,
@@ -1102,7 +1096,6 @@ class HCPHandler:
 
     @_add_deprecation_in_doc_string(_MOVE_FILE_DEP_MSG, "v5.7.0")
     @deprecated(_MOVE_FILE_DEP_MSG)
-    @check_mounted
     def move_file(
         self,
         source_key: str,  # noqa: ARG002
@@ -1183,7 +1176,6 @@ class HCPHandler:
             xml_declaration=False,
         )
 
-    @check_mounted
     def mqe_search_in_bucket(
         self,
         search_string: str,
@@ -1264,7 +1256,6 @@ class HCPHandler:
 
     # ---------------------------- ACL methods ----------------------------
 
-    @check_mounted
     def get_object_acl(self, key: str) -> dict:
         """
         Get the object Access Control List (ACL).
@@ -1273,25 +1264,23 @@ class HCPHandler:
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response: dict = self.s3_client.get_object_acl(
+        response = self.s3_client.get_object_acl(
             Bucket=self._get_mounted_bucket(),
             Key=key,
         )
         return response
 
-    @check_mounted
     def get_bucket_acl(self) -> dict:
         """
         Get the bucket Access Control List (ACL).
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response: dict = self.s3_client.get_bucket_acl(
+        response = self.s3_client.get_bucket_acl(
             Bucket=self._get_mounted_bucket(),
         )
         return response
 
-    @check_mounted
     def modify_single_object_acl(
         self,
         key: str,
@@ -1323,7 +1312,6 @@ class HCPHandler:
             ),
         )
 
-    @check_mounted
     def modify_single_bucket_acl(self, user_ID: str, permission: str) -> None:
         r"""
         Modify permissions for a user in the Access Control List (ACL) for the
@@ -1348,7 +1336,6 @@ class HCPHandler:
             ),
         )
 
-    @check_mounted
     def modify_object_acl(
         self,
         key_user_ID_permissions: dict[str, dict[str, str]],
@@ -1375,7 +1362,6 @@ class HCPHandler:
                 ),
             )
 
-    @check_mounted
     def modify_bucket_acl(self, user_ID_permissions: dict[str, str]) -> None:
         """
         Modify permissions for multiple users for the mounted bucket.

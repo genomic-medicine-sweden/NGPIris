@@ -1,13 +1,12 @@
 import sys
-from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from botocore.exceptions import ClientError
 from tqdm import tqdm
 
 from NGPIris.hcp.exceptions import (
     MetadataCouldNotBeFoundError,
-    NoBucketMountedError,
     NoStatusCodeSuppliedError,
     ObjectDoesNotExistError,
     OperationNotPermittedError,
@@ -16,6 +15,8 @@ from NGPIris.hcp.exceptions import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from types_boto3_s3.type_defs import DeleteObjectOutputTypeDef
 
 
 def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  # noqa: D103
@@ -55,8 +56,8 @@ def raise_path_error(path: str) -> None:
         raise FileNotFoundError('"' + path + '"' + " does not exist")
 
 
-def operation_response_code_handler(
-    response: dict,
+def client_error_response_code_handler(
+    error: ClientError,
     operation: str,
     obj: str | dict | None = None,
     bucket: str | None = None,
@@ -71,7 +72,7 @@ def operation_response_code_handler(
         The type of operation that will be displayed in the error
         message.
     """
-    metadata: dict = response.get("ResponseMetadata", {})
+    metadata = error.response.get("ResponseMetadata", {})
     if metadata:
         status_code: int | None = metadata.get("HTTPStatusCode")
         match status_code:
@@ -117,7 +118,73 @@ def operation_response_code_handler(
                 )
                 raise UnknownStatusCodeError(msg)
     else:
-        msg = "MetadataCouldNotBeFoundError.__doc__"
+        msg = str(MetadataCouldNotBeFoundError.__doc__)
+        raise MetadataCouldNotBeFoundError(msg)
+
+
+def operation_response_code_handler(
+    response: DeleteObjectOutputTypeDef,
+    operation: str,
+    obj: str | dict | None = None,
+    bucket: str | None = None,
+) -> None:
+    """
+    Check for status codes from response. If it's anything but 200, raise
+    errors.
+
+    :param response: The response dictionary from an S3 operation
+
+    :param operation:
+        The type of operation that will be displayed in the error
+        message.
+    """
+    metadata = response.get("ResponseMetadata", {})
+    if metadata:
+        status_code: int | None = metadata.get("HTTPStatusCode")
+        match status_code:
+            case 200:
+                pass
+            case 403:
+                msg = (
+                    "You do not have enough permissions (status code 403) for "
+                    "the following operation: " + operation
+                )
+                raise OperationNotPermittedError(msg)
+            case 404:
+                match obj:
+                    case str():
+                        bucket_str = "' in bucket '" + bucket if bucket else ""
+                        msg = (
+                            "The object '"
+                            + obj
+                            + bucket_str
+                            + "' that was part of the operation could not be "
+                            "found"
+                        )
+                    case dict():
+                        msg = (
+                            "The object that was part of the operation could"
+                            "not be found: " + str(obj)
+                        )
+                    case _:
+                        msg = (
+                            "An object that was part of the operation could "
+                            "not be found"
+                        )
+                raise ObjectDoesNotExistError(msg)
+            case None:
+                msg = "No status code was supplied in the operation response"
+                raise NoStatusCodeSuppliedError(msg)
+            case _:
+                msg = (
+                    "The status code "
+                    + str(status_code)
+                    + " is not among known status codes. Please report this to "
+                    + "the NGP development team"
+                )
+                raise UnknownStatusCodeError(msg)
+    else:
+        msg = str(MetadataCouldNotBeFoundError.__doc__)
         raise MetadataCouldNotBeFoundError(msg)
 
 
