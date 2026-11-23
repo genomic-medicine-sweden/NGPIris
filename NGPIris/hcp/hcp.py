@@ -39,7 +39,6 @@ from NGPIris.hcp.exceptions import (
     UnknownBucketError,
 )
 from NGPIris.hcp.helpers import (
-    check_mounted,
     create_access_control_policy,
     operation_response_code_handler,
     progress_bar_handler,
@@ -261,6 +260,12 @@ class HCPHandler:
             raise
 
         return dict(response.json())
+
+    def _get_mounted_bucket(self) -> str:
+        if not self.bucket_name:
+            msg = "No bucket is mounted"
+            raise NoBucketMountedError(msg)
+        return self.bucket_name
 
     # ---------------------------- User methods ----------------------------
 
@@ -526,7 +531,7 @@ class HCPHandler:
         try:
             response = dict(
                 self.s3_client.get_object(
-                    Bucket=self.bucket_name,
+                    Bucket=self._get_mounted_bucket(),
                     Key=key,
                 ),
             )
@@ -549,7 +554,9 @@ class HCPHandler:
         """
         try:
             metadata_response = dict(
-                self.s3_client.head_object(Bucket=self.bucket_name, Key=key)
+                self.s3_client.head_object(
+                    Bucket=self._get_mounted_bucket(), Key=key
+                )
             )
         except ClientError as e:
             rm: dict = e.response

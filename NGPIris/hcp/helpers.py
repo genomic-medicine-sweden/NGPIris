@@ -55,27 +55,6 @@ def raise_path_error(path: str) -> None:
         raise FileNotFoundError('"' + path + '"' + " does not exist")
 
 
-def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
-    """
-    Decorator for checking if a bucket is mounted. This is meant to be used by
-    class methods, hence the possibly odd typing.
-
-    :param method: An arbitrary class method of the `HCPHandler` class
-
-    :return: A decorated class method of the `HCPHandler` class
-    """
-
-    @wraps(method)
-    def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> R:
-        self = args[0]
-        if not self.bucket_name:  # pyright: ignore[reportAttributeAccessIssue]
-            msg = "No bucket is mounted"
-            raise NoBucketMountedError(msg)
-        return method(*args, **kwargs)
-
-    return check_if_mounted
-
-
 def operation_response_code_handler(
     response: dict,
     operation: str,
