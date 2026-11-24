@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -220,3 +222,18 @@ def progress_bar_handler[**P, R](
             method(*args, **kwargs)
 
     _progress_bar_handler(**method_kwargs)  # pyright: ignore[reportCallIssue]
+
+
+def add_content_md5_to_headers(params: dict, **kwargs) -> None:  # noqa: ARG001
+    """
+    Function for adding the Content-MD5 header to the
+    `before-call.s3.DeleteObjects` event. The reason for this is because the HCP
+    requires it and is not supplied automatically since `boto3==1.36.0`.
+    """
+    # Hash the exact serialized XML request body, not the Python Delete dict.
+    digest = hashlib.md5(
+        params["body"],
+        usedforsecurity=False,
+    ).digest()
+
+    params["headers"]["Content-MD5"] = base64.b64encode(digest).decode("ascii")
