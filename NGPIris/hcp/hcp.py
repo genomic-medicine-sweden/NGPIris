@@ -44,6 +44,7 @@ from NGPIris.hcp.exceptions import (
     UnknownBucketError,
 )
 from NGPIris.hcp.helpers import (
+    add_content_md5_to_headers,
     client_error_response_code_handler,
     create_access_control_policy,
     operation_response_code_handler,
@@ -203,6 +204,12 @@ class HCPHandler:
             endpoint_url=self.endpoint,
             verify=self.use_ssl,
             config=s3_config,
+        )
+
+        self.s3_client.meta.events.register(
+            "before-call.s3.DeleteObjects",
+            add_content_md5_to_headers,
+            unique_id="delete-objects-content-md5",
         )
 
         if custom_config_path:  # pragma: no cover
