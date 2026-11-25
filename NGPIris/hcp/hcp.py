@@ -47,7 +47,7 @@ from NGPIris.hcp.helpers import (
     add_content_md5_to_headers,
     client_error_response_code_handler,
     create_access_control_policy,
-    operation_response_code_handler,
+    delete_object_response_code_handler,
     progress_bar_handler,
     raise_path_error,
 )
@@ -576,7 +576,7 @@ class HCPHandler:
                 e, "Get object metadata", key, self.bucket_name
             )
             # This `raise` is most likely useless, but acts as fallback
-            # if `operation_response_code_handler` does not raise any exception
+            # if `client_error_response_code_handler` does not raise any exception
             raise
         else:
             return metadata_response
@@ -997,7 +997,7 @@ class HCPHandler:
                 Delete=deletion_dict,
             )
 
-            operation_response_code_handler(response, "Delete")  # pyright: ignore[reportArgumentType]
+            delete_object_response_code_handler(response)  # pyright: ignore[reportArgumentType]
 
             deleted_files: list = [d.get("Key") for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
