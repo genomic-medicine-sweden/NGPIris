@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from icecream import ic
 from tqdm import tqdm
 from types_boto3_s3.type_defs import (
     AccessControlPolicyTypeDef,
@@ -29,6 +28,10 @@ if TYPE_CHECKING:
 def create_access_control_policy(
     user_ID_permissions: dict[str, str],
 ) -> AccessControlPolicyTypeDef:
+    """
+    Creates a `AccessControlPolicyTypeDef` typed dictionary for given
+    `user_ID_permissions`.
+    """
     grants = []
     for user_ID, permission in user_ID_permissions.items():
         if permission not in [
