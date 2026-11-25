@@ -744,7 +744,7 @@ def iris_generate_credentials_file(path: str, name: str) -> None:
         },
     }
 
-    name = name.split(".")[0] + ".json"
+    name = name.split(".", maxsplit=1)[0] + ".json"
     if path:
         if not path[-1] == "/":
             path += "/"

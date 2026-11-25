@@ -70,6 +70,12 @@ class BucketForbiddenError(Exception):
     """
 
 
+class UnknownBucketError(Exception):
+    """
+    An unknown error when connecting to the bucket occurred.
+    """
+
+
 # -------------- Bucket object exceptions --------------
 
 

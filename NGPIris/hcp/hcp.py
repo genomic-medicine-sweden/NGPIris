@@ -18,6 +18,11 @@ from botocore.exceptions import ClientError, EndpointConnectionError
 from parse import Result, parse
 from requests import get, post
 from requests.exceptions import HTTPError
+from types_boto3_s3.type_defs import (
+    DeleteTypeDef,
+    GetBucketAclOutputTypeDef,
+    GetObjectAclOutputTypeDef,
+)
 from typing_extensions import Generator  # noqa: UP035
 from urllib3 import disable_warnings
 
@@ -36,11 +41,13 @@ from NGPIris.hcp.exceptions import (
     SubfolderError,
     UnableToParseEndpointError,
     UnallowedCharacterError,
+    UnknownBucketError,
 )
 from NGPIris.hcp.helpers import (
-    check_mounted,
+    add_content_md5_to_headers,
+    client_error_response_code_handler,
     create_access_control_policy,
-    operation_response_code_handler,
+    delete_object_response_code_handler,
     progress_bar_handler,
     raise_path_error,
 )
@@ -199,6 +206,12 @@ class HCPHandler:
             config=s3_config,
         )
 
+        self.s3_client.meta.events.register(
+            "before-call.s3.DeleteObjects",
+            add_content_md5_to_headers,
+            unique_id="delete-objects-content-md5",
+        )
+
         if custom_config_path:  # pragma: no cover
             ini_config = ConfigParser()
             ini_config.read(custom_config_path)
@@ -261,6 +274,12 @@ class HCPHandler:
 
         return dict(response.json())
 
+    def _get_mounted_bucket(self) -> str:
+        if not self.bucket_name:
+            msg = "No bucket is mounted"
+            raise NoBucketMountedError(msg)
+        return self.bucket_name
+
     # ---------------------------- User methods ----------------------------
 
     def get_users(self) -> list[str]:
@@ -283,7 +302,7 @@ class HCPHandler:
             self.get_MAPI_request("/userAccounts/" + username)
             .get("roles", {})
             .get("role")
-        )  # pytype: disable=bad-return-type
+        )
 
     def is_user_admin(self, username: str) -> bool:
         """
@@ -329,10 +348,15 @@ class HCPHandler:
         except EndpointConnectionError:  # pragma: no cover
             raise
         except ClientError as e:
-            status_code = e.response["ResponseMetadata"].get(
-                "HTTPStatusCode",
-                -1,
-            )
+            response_metadata = e.response.get("ResponseMetadata")
+            if response_metadata:
+                status_code = response_metadata.get(
+                    "HTTPStatusCode",
+                    -1,
+                )
+            else:
+                msg = "An unknown error when connecting to the bucket occurred"
+                raise UnknownBucketError(msg) from e
             match status_code:
                 case 404:
                     raise BucketNotFoundError(
@@ -508,7 +532,6 @@ class HCPHandler:
 
     # ---------------------------- Object primitive methods --------------------
 
-    @check_mounted
     def get_object(self, key: str) -> dict:
         """
         Get object data and metadata.
@@ -520,23 +543,22 @@ class HCPHandler:
         try:
             response = dict(
                 self.s3_client.get_object(
-                    Bucket=self.bucket_name,
+                    Bucket=self._get_mounted_bucket(),
                     Key=key,
                 ),
             )
         except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
+            error = e.response.get("Error")
+            error_code = error.get("Code", "Unknown") if error else "Unknown"
+            if error_code == "NoSuchKey":
                 msg = "The object " + key + " does not exist"
                 raise ObjectDoesNotExistError(msg) from e
             raise
         else:
             return response
 
-    @check_mounted
     def get_object_metadata(self, key: str) -> dict:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Retrieve object metadata.
 
         :param key: The object name
@@ -545,15 +567,17 @@ class HCPHandler:
         """
         try:
             metadata_response = dict(
-                self.s3_client.head_object(Bucket=self.bucket_name, Key=key)
+                self.s3_client.head_object(
+                    Bucket=self._get_mounted_bucket(), Key=key
+                )
             )
         except ClientError as e:
-            rm: dict = e.response
-            operation_response_code_handler(
-                rm, "Get object metadata", key, self.bucket_name
+            client_error_response_code_handler(
+                e, "Get object metadata", key, self.bucket_name
             )
             # This `raise` is most likely useless, but acts as fallback
-            # if `operation_response_code_handler` does not raise any exception
+            # if `client_error_response_code_handler` does not raise any
+            # exception
             raise
         else:
             return metadata_response
@@ -567,8 +591,6 @@ class HCPHandler:
 
     def raise_error_if_object_is_file(self, object_path: str) -> None:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Raises an error if ``object_path`` is a file.
 
         :param object_path: The path to the object
@@ -581,8 +603,6 @@ class HCPHandler:
 
     def raise_error_if_object_is_folder(self, object_path: str) -> None:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Raises an error if ``object_path`` is a folder.
 
         :param object_path: The path to the object
@@ -593,11 +613,8 @@ class HCPHandler:
             msg = "The object " + object_path + " is a folder"
             raise IsFolderObjectError(msg)
 
-    @check_mounted
     def object_exists(self, key: str) -> bool:
         """
-        [PRIMITIVE OBJECT METHOD].
-
         Check if a given object is in the mounted bucket.
 
         :param key: The object name
@@ -620,7 +637,6 @@ class HCPHandler:
 
     # ---------------------------- Object methods ----------------------------
 
-    @check_mounted
     def list_objects(  # noqa: C901
         self,
         path_key: str = "",
@@ -674,7 +690,7 @@ class HCPHandler:
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             Prefix=path_key,
             Delimiter="/",
         )
@@ -708,7 +724,6 @@ class HCPHandler:
                         key, file_object_metadata, True, output_mode
                     )
 
-    @check_mounted
     def download_file(
         self,
         key: str,
@@ -743,12 +758,11 @@ class HCPHandler:
             {
                 "Key": key,
                 "Filename": filename,
-                "Bucket": self.bucket_name,
+                "Bucket": self._get_mounted_bucket(),
                 "Config": self.transfer_config,
             },
         )
 
-    @check_mounted
     def download_folder(
         self,
         folder_key: str,
@@ -834,7 +848,6 @@ class HCPHandler:
         SIMPLE = "simple"
         EQUAL_PARTS = "equal_parts"
 
-    @check_mounted
     def upload_file(
         self,
         local_file_path: str,
@@ -896,12 +909,11 @@ class HCPHandler:
             {
                 "Filename": local_file_path,
                 "Key": key,
-                "Bucket": self.bucket_name,
+                "Bucket": self._get_mounted_bucket(),
                 "Config": config,
             },
         )
 
-    @check_mounted
     def upload_folder(
         self,
         local_folder_path: str,
@@ -959,7 +971,6 @@ class HCPHandler:
                     equal_parts=equal_parts,
                 )
 
-    @check_mounted
     def delete_objects(self, keys: list[str]) -> str:
         """
         Delete a list of objects on the mounted bucket.
@@ -981,15 +992,15 @@ class HCPHandler:
 
         result = ""
         if object_list:
-            deletion_dict = {"Objects": object_list}
-            response: dict = self.s3_client.delete_objects(
-                Bucket=self.bucket_name,
+            deletion_dict = DeleteTypeDef({"Objects": object_list})
+            response = self.s3_client.delete_objects(
+                Bucket=self._get_mounted_bucket(),
                 Delete=deletion_dict,
             )
 
-            operation_response_code_handler(response, "Delete", deletion_dict)
+            delete_object_response_code_handler(response)  # pyright: ignore[reportArgumentType]
 
-            deleted_files: list = [d["Key"] for d in response["Deleted"]]
+            deleted_files: list = [d.get("Key") for d in response["Deleted"]]
             result += "The following was successfully deleted: \n" + "\n".join(
                 deleted_files,
             )
@@ -1002,7 +1013,6 @@ class HCPHandler:
 
         return result
 
-    @check_mounted
     def delete_object(self, key: str) -> str:
         """
         Delete a single object in the mounted bucket.
@@ -1015,7 +1025,6 @@ class HCPHandler:
         """
         return self.delete_objects([key])
 
-    @check_mounted
     def delete_folder(self, key: str) -> str:
         """
         Delete a folder of objects in the mounted bucket.
@@ -1057,13 +1066,12 @@ class HCPHandler:
 
         # Delete the folder object itself separately
         self.s3_client.delete_object(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             Key=key,
         )
 
         return result
 
-    @check_mounted
     def copy_file(
         self,
         source_key: str,
@@ -1089,11 +1097,9 @@ class HCPHandler:
             self.s3_client.copy,
             {
                 "Key": destination_key,
-                "Bucket": destination_bucket
-                if destination_bucket
-                else self.bucket_name,
+                "Bucket": destination_bucket or self._get_mounted_bucket(),
                 "CopySource": {
-                    "Bucket": self.bucket_name,
+                    "Bucket": self._get_mounted_bucket(),
                     "Key": source_key,
                 },
             },
@@ -1101,7 +1107,6 @@ class HCPHandler:
 
     @_add_deprecation_in_doc_string(_MOVE_FILE_DEP_MSG, "v5.7.0")
     @deprecated(_MOVE_FILE_DEP_MSG)
-    @check_mounted
     def move_file(
         self,
         source_key: str,  # noqa: ARG002
@@ -1165,7 +1170,7 @@ class HCPHandler:
             "+objectPath:(/*"
             + escaped_search
             + "*) +namespace:"
-            + str(self.bucket_name)
+            + str(self._get_mounted_bucket())
             + "."
             + str(self.tenant)
         )
@@ -1182,7 +1187,6 @@ class HCPHandler:
             xml_declaration=False,
         )
 
-    @check_mounted
     def mqe_search_in_bucket(
         self,
         search_string: str,
@@ -1263,8 +1267,7 @@ class HCPHandler:
 
     # ---------------------------- ACL methods ----------------------------
 
-    @check_mounted
-    def get_object_acl(self, key: str) -> dict:
+    def get_object_acl(self, key: str) -> GetObjectAclOutputTypeDef:
         """
         Get the object Access Control List (ACL).
 
@@ -1272,25 +1275,21 @@ class HCPHandler:
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response: dict = self.s3_client.get_object_acl(
-            Bucket=self.bucket_name,
+        return self.s3_client.get_object_acl(
+            Bucket=self._get_mounted_bucket(),
             Key=key,
         )
-        return response
 
-    @check_mounted
-    def get_bucket_acl(self) -> dict:
+    def get_bucket_acl(self) -> GetBucketAclOutputTypeDef:
         """
         Get the bucket Access Control List (ACL).
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response: dict = self.s3_client.get_bucket_acl(
-            Bucket=self.bucket_name,
+        return self.s3_client.get_bucket_acl(
+            Bucket=self._get_mounted_bucket(),
         )
-        return response
 
-    @check_mounted
     def modify_single_object_acl(
         self,
         key: str,
@@ -1315,14 +1314,13 @@ class HCPHandler:
             * READ_ACP
         """
         self.s3_client.put_object_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             Key=key,
             AccessControlPolicy=create_access_control_policy(
                 {user_ID: permission},
             ),
         )
 
-    @check_mounted
     def modify_single_bucket_acl(self, user_ID: str, permission: str) -> None:
         r"""
         Modify permissions for a user in the Access Control List (ACL) for the
@@ -1341,13 +1339,12 @@ class HCPHandler:
             * READ_ACP
         """
         self.s3_client.put_bucket_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             AccessControlPolicy=create_access_control_policy(
                 {user_ID: permission},
             ),
         )
 
-    @check_mounted
     def modify_object_acl(
         self,
         key_user_ID_permissions: dict[str, dict[str, str]],
@@ -1367,14 +1364,13 @@ class HCPHandler:
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
             self.s3_client.put_object_acl(
-                Bucket=self.bucket_name,
+                Bucket=self._get_mounted_bucket(),
                 Key=key,
                 AccessControlPolicy=create_access_control_policy(
                     user_ID_permissions,
                 ),
             )
 
-    @check_mounted
     def modify_bucket_acl(self, user_ID_permissions: dict[str, str]) -> None:
         """
         Modify permissions for multiple users for the mounted bucket.
@@ -1384,7 +1380,7 @@ class HCPHandler:
             permission to be set to that user
         """
         self.s3_client.put_bucket_acl(
-            Bucket=self.bucket_name,
+            Bucket=self._get_mounted_bucket(),
             AccessControlPolicy=create_access_control_policy(
                 user_ID_permissions,
             ),

@@ -1,13 +1,17 @@
+import base64
+import hashlib
 import sys
-from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tqdm import tqdm
+from types_boto3_s3.type_defs import (
+    AccessControlPolicyTypeDef,
+    ResponseMetadataTypeDef,
+)
 
 from NGPIris.hcp.exceptions import (
     MetadataCouldNotBeFoundError,
-    NoBucketMountedError,
     NoStatusCodeSuppliedError,
     ObjectDoesNotExistError,
     OperationNotPermittedError,
@@ -17,11 +21,18 @@ from NGPIris.hcp.exceptions import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from botocore.exceptions import ClientError
+    from types_boto3_s3.type_defs import DeleteObjectOutputTypeDef
 
-def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  # noqa: D103
-    access_control_policy: dict[str, list] = {
-        "Grants": [],
-    }
+
+def create_access_control_policy(
+    user_ID_permissions: dict[str, str],
+) -> AccessControlPolicyTypeDef:
+    """
+    Creates a `AccessControlPolicyTypeDef` typed dictionary for given
+    `user_ID_permissions`.
+    """
+    grants = []
     for user_ID, permission in user_ID_permissions.items():
         if permission not in [
             "FULL_CONTROL",
@@ -39,8 +50,12 @@ def create_access_control_policy(user_ID_permissions: dict[str, str]) -> dict:  
             },
             "Permission": permission,
         }
-        access_control_policy["Grants"].append(grantee)
-    return access_control_policy
+        grants.append(grantee)
+    return AccessControlPolicyTypeDef(
+        {
+            "Grants": grants,
+        }
+    )
 
 
 def raise_path_error(path: str) -> None:
@@ -55,44 +70,12 @@ def raise_path_error(path: str) -> None:
         raise FileNotFoundError('"' + path + '"' + " does not exist")
 
 
-def check_mounted[**P, R](method: Callable[P, R]) -> Callable[P, R]:
-    """
-    Decorator for checking if a bucket is mounted. This is meant to be used by
-    class methods, hence the possibly odd typing.
-
-    :param method: An arbitrary class method of the `HCPHandler` class
-
-    :return: A decorated class method of the `HCPHandler` class
-    """
-
-    @wraps(method)
-    def check_if_mounted(*args: P.args, **kwargs: P.kwargs) -> R:
-        self = args[0]
-        if not self.bucket_name:  # pyright: ignore[reportAttributeAccessIssue]
-            msg = "No bucket is mounted"
-            raise NoBucketMountedError(msg)
-        return method(*args, **kwargs)
-
-    return check_if_mounted
-
-
-def operation_response_code_handler(
-    response: dict,
+def _response_metadata_code_handler(
+    metadata: ResponseMetadataTypeDef | None,
     operation: str,
     obj: str | dict | None = None,
     bucket: str | None = None,
 ) -> None:
-    """
-    Check for status codes from response. If it's anything but 200, raise
-    errors.
-
-    :param response: The response dictionary from an S3 operation
-
-    :param operation:
-        The type of operation that will be displayed in the error
-        message.
-    """
-    metadata: dict = response.get("ResponseMetadata", {})
     if metadata:
         status_code: int | None = metadata.get("HTTPStatusCode")
         match status_code:
@@ -138,8 +121,47 @@ def operation_response_code_handler(
                 )
                 raise UnknownStatusCodeError(msg)
     else:
-        msg = "MetadataCouldNotBeFoundError.__doc__"
+        msg = str(MetadataCouldNotBeFoundError.__doc__)
         raise MetadataCouldNotBeFoundError(msg)
+
+
+def client_error_response_code_handler(
+    error: ClientError,
+    operation: str,
+    obj: str | dict | None = None,
+    bucket: str | None = None,
+) -> None:
+    """
+    Check for status codes from response. If it's anything but 200, raise
+    errors.
+
+    :param response: The response dictionary from an S3 operation
+
+    :param operation:
+        The type of operation that will be displayed in the error
+        message.
+    """
+    metadata = error.response.get("ResponseMetadata")
+    _response_metadata_code_handler(metadata, operation, obj, bucket)  # pyright: ignore[reportArgumentType]
+
+
+def delete_object_response_code_handler(
+    response: DeleteObjectOutputTypeDef,
+    obj: str | dict | None = None,
+    bucket: str | None = None,
+) -> None:
+    """
+    Check for status codes from response. If it's anything but 200, raise
+    errors.
+
+    :param response: The response dictionary from an S3 operation
+
+    :param operation:
+        The type of operation that will be displayed in the error
+        message.
+    """
+    metadata = response.get("ResponseMetadata")
+    _response_metadata_code_handler(metadata, "Delete", obj, bucket)
 
 
 def progress_bar_handler[**P, R](
@@ -150,7 +172,7 @@ def progress_bar_handler[**P, R](
     method_kwargs: dict,
 ) -> None:
     """
-    Helper function for progressbar logic.
+    Helper function for progress bar logic.
     """
 
     def _progress_bar_handler(*args: P.args, **kwargs: P.kwargs) -> None:
@@ -161,7 +183,7 @@ def progress_bar_handler[**P, R](
                 unit_scale=True,
                 desc=desc,
             ) as pbar:
-                kwargs["Callback"] = lambda bytes_transferred: pbar.update(
+                kwargs["Callback"] = lambda bytes_transferred: pbar.update(  # noqa: PLW0108
                     bytes_transferred,
                 )
                 method(*args, **kwargs)
@@ -169,3 +191,18 @@ def progress_bar_handler[**P, R](
             method(*args, **kwargs)
 
     _progress_bar_handler(**method_kwargs)  # pyright: ignore[reportCallIssue]
+
+
+def add_content_md5_to_headers(params: dict, **kwargs) -> None:  # noqa: ARG001
+    """
+    Function for adding the Content-MD5 header to the
+    `before-call.s3.DeleteObjects` event. The reason for this is because the HCP
+    requires it and is not supplied automatically since `boto3==1.36.0`.
+    """
+    # Hash the exact serialized XML request body, not the Python Delete dict.
+    digest = hashlib.md5(
+        params["body"],
+        usedforsecurity=False,
+    ).digest()
+
+    params["headers"]["Content-MD5"] = base64.b64encode(digest).decode("ascii")

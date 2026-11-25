@@ -1,5 +1,4 @@
 from NGPIris import HCPHandler
-from NGPIris.hcp.helpers import check_mounted
 
 
 class HCPStatistics(HCPHandler):
@@ -19,16 +18,14 @@ class HCPStatistics(HCPHandler):
         """
         super().__init__(credentials_path, use_ssl, custom_config_path)
 
-    @check_mounted
     def get_namespace_settings(self) -> dict:
         """
         Get namespace/bucket settings.
 
         :return: Namespace/bucket settings as a dictionary.
         """
-        return self.get_response("/namespaces/" + self.bucket_name)  # pyright: ignore[reportOperatorIssue, reportAttributeAccessIssue]
+        return self.get_response("/namespaces/" + self._get_mounted_bucket())  # pyright: ignore[reportOperatorIssue, reportAttributeAccessIssue]
 
-    @check_mounted
     def get_namespace_statistics(self) -> dict:
         """
         Get namespace/bucket statistics.
@@ -36,10 +33,9 @@ class HCPStatistics(HCPHandler):
         :return: Namespace/bucket statistics as a dictionary.
         """
         return self.get_response(  # pyright: ignore[reportAttributeAccessIssue]
-            "/namespaces/" + self.bucket_name + "/statistics",  # pyright: ignore[reportOperatorIssue]
+            "/namespaces/" + self._get_mounted_bucket() + "/statistics",  # pyright: ignore[reportOperatorIssue]
         )
 
-    @check_mounted
     def get_namespace_permissions(self) -> dict:
         """
         Get namespace/bucket permissions.
@@ -47,5 +43,5 @@ class HCPStatistics(HCPHandler):
         :return: Namespace/bucket permissions as a dictionary.
         """
         return self.get_response(  # pyright: ignore[reportAttributeAccessIssue]
-            "/namespaces/" + self.bucket_name + "/permissions",  # pyright: ignore[reportOperatorIssue]
+            "/namespaces/" + self._get_mounted_bucket() + "/permissions",  # pyright: ignore[reportOperatorIssue]
         )
