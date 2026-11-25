@@ -576,7 +576,8 @@ class HCPHandler:
                 e, "Get object metadata", key, self.bucket_name
             )
             # This `raise` is most likely useless, but acts as fallback
-            # if `client_error_response_code_handler` does not raise any exception
+            # if `client_error_response_code_handler` does not raise any
+            # exception
             raise
         else:
             return metadata_response
