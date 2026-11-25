@@ -4,8 +4,12 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from icecream import ic
 from tqdm import tqdm
-from types_boto3_s3.type_defs import AccessControlPolicyTypeDef
+from types_boto3_s3.type_defs import (
+    AccessControlPolicyTypeDef,
+    ResponseMetadataTypeDef,
+)
 
 from NGPIris.hcp.exceptions import (
     MetadataCouldNotBeFoundError,
@@ -63,6 +67,61 @@ def raise_path_error(path: str) -> None:
         raise FileNotFoundError('"' + path + '"' + " does not exist")
 
 
+def _response_metadata_code_handler(
+    metadata: ResponseMetadataTypeDef | None,
+    operation: str,
+    obj: str | dict | None = None,
+    bucket: str | None = None,
+) -> None:
+    if metadata:
+        status_code: int | None = metadata.get("HTTPStatusCode")
+        match status_code:
+            case 200:
+                pass
+            case 403:
+                msg = (
+                    "You do not have enough permissions (status code 403) for "
+                    "the following operation: " + operation
+                )
+                raise OperationNotPermittedError(msg)
+            case 404:
+                match obj:
+                    case str():
+                        bucket_str = "' in bucket '" + bucket if bucket else ""
+                        msg = (
+                            "The object '"
+                            + obj
+                            + bucket_str
+                            + "' that was part of the operation could not be "
+                            "found"
+                        )
+                    case dict():
+                        msg = (
+                            "The object that was part of the operation could"
+                            "not be found: " + str(obj)
+                        )
+                    case _:
+                        msg = (
+                            "An object that was part of the operation could "
+                            "not be found"
+                        )
+                raise ObjectDoesNotExistError(msg)
+            case None:
+                msg = "No status code was supplied in the operation response"
+                raise NoStatusCodeSuppliedError(msg)
+            case _:
+                msg = (
+                    "The status code "
+                    + str(status_code)
+                    + " is not among known status codes. Please report this to "
+                    + "the NGP development team"
+                )
+                raise UnknownStatusCodeError(msg)
+    else:
+        msg = str(MetadataCouldNotBeFoundError.__doc__)
+        raise MetadataCouldNotBeFoundError(msg)
+
+
 def client_error_response_code_handler(
     error: ClientError,
     operation: str,
@@ -79,59 +138,12 @@ def client_error_response_code_handler(
         The type of operation that will be displayed in the error
         message.
     """
-    metadata = error.response.get("ResponseMetadata", {})
-    if metadata:
-        status_code: int | None = metadata.get("HTTPStatusCode")
-        match status_code:
-            case 200:
-                pass
-            case 403:
-                msg = (
-                    "You do not have enough permissions (status code 403) for "
-                    "the following operation: " + operation
-                )
-                raise OperationNotPermittedError(msg)
-            case 404:
-                match obj:
-                    case str():
-                        bucket_str = "' in bucket '" + bucket if bucket else ""
-                        msg = (
-                            "The object '"
-                            + obj
-                            + bucket_str
-                            + "' that was part of the operation could not be "
-                            "found"
-                        )
-                    case dict():
-                        msg = (
-                            "The object that was part of the operation could"
-                            "not be found: " + str(obj)
-                        )
-                    case _:
-                        msg = (
-                            "An object that was part of the operation could "
-                            "not be found"
-                        )
-                raise ObjectDoesNotExistError(msg)
-            case None:
-                msg = "No status code was supplied in the operation response"
-                raise NoStatusCodeSuppliedError(msg)
-            case _:
-                msg = (
-                    "The status code "
-                    + str(status_code)
-                    + " is not among known status codes. Please report this to "
-                    + "the NGP development team"
-                )
-                raise UnknownStatusCodeError(msg)
-    else:
-        msg = str(MetadataCouldNotBeFoundError.__doc__)
-        raise MetadataCouldNotBeFoundError(msg)
+    metadata = error.response.get("ResponseMetadata")
+    _response_metadata_code_handler(metadata, operation, obj, bucket)  # pyright: ignore[reportArgumentType]
 
 
-def operation_response_code_handler(
+def delete_object_response_code_handler(
     response: DeleteObjectOutputTypeDef,
-    operation: str,
     obj: str | dict | None = None,
     bucket: str | None = None,
 ) -> None:
@@ -145,54 +157,8 @@ def operation_response_code_handler(
         The type of operation that will be displayed in the error
         message.
     """
-    metadata = response.get("ResponseMetadata", {})
-    if metadata:
-        status_code: int | None = metadata.get("HTTPStatusCode")
-        match status_code:
-            case 200:
-                pass
-            case 403:
-                msg = (
-                    "You do not have enough permissions (status code 403) for "
-                    "the following operation: " + operation
-                )
-                raise OperationNotPermittedError(msg)
-            case 404:
-                match obj:
-                    case str():
-                        bucket_str = "' in bucket '" + bucket if bucket else ""
-                        msg = (
-                            "The object '"
-                            + obj
-                            + bucket_str
-                            + "' that was part of the operation could not be "
-                            "found"
-                        )
-                    case dict():
-                        msg = (
-                            "The object that was part of the operation could"
-                            "not be found: " + str(obj)
-                        )
-                    case _:
-                        msg = (
-                            "An object that was part of the operation could "
-                            "not be found"
-                        )
-                raise ObjectDoesNotExistError(msg)
-            case None:
-                msg = "No status code was supplied in the operation response"
-                raise NoStatusCodeSuppliedError(msg)
-            case _:
-                msg = (
-                    "The status code "
-                    + str(status_code)
-                    + " is not among known status codes. Please report this to "
-                    + "the NGP development team"
-                )
-                raise UnknownStatusCodeError(msg)
-    else:
-        msg = str(MetadataCouldNotBeFoundError.__doc__)
-        raise MetadataCouldNotBeFoundError(msg)
+    metadata = response.get("ResponseMetadata")
+    _response_metadata_code_handler(metadata, "Delete", obj, bucket)
 
 
 def progress_bar_handler[**P, R](
