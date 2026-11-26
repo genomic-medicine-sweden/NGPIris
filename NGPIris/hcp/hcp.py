@@ -17,7 +17,6 @@ from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
 from parse import Result, parse
 from requests import get, post
-from requests.exceptions import HTTPError
 from typing_extensions import Generator  # noqa: UP035
 from urllib3 import disable_warnings
 
@@ -29,8 +28,6 @@ from NGPIris.hcp.exceptions import (
     IsFolderObjectError,
     NoBucketMountedError,
     NotAValidTenantError,
-    NotFoundError,
-    NotSufficientPermissionsError,
     ObjectAlreadyExistError,
     ObjectDoesNotExistError,
     SubfolderError,
@@ -40,10 +37,12 @@ from NGPIris.hcp.exceptions import (
 from NGPIris.hcp.helpers import (
     check_mounted,
     create_access_control_policy,
+    make_MAPI_request,
     operation_response_code_handler,
     progress_bar_handler,
     raise_path_error,
 )
+from NGPIris.hcp.types import ModifyBucketOptions, POSTRequestData
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
 
@@ -232,34 +231,35 @@ class HCPHandler:
 
         :return: The response as a dictionary
         """
-        url = self.base_request_url + path_extension
-        headers = {
-            "Authorization": "HCP " + self.token,
-            "Cookie": "hcp-ns-auth=" + self.token,
-            "Accept": "application/json",
-        }
-        response = get(
-            url,
-            headers=headers,
-            verify=self.use_ssl,
-            timeout=60,
+        return make_MAPI_request(
+            self.base_request_url + path_extension,
+            self.token,
+            self.use_ssl,
+            "GET",
         )
 
-        try:
-            response.raise_for_status()
-        except HTTPError as http_e:
-            if response.status_code == 403:  # noqa: PLR2004
-                msg = (
-                    "You lack the sufficient permissions needed for your "
-                    "request"
-                )
-                raise NotSufficientPermissionsError(msg) from http_e
-            if response.status_code == 404:  # noqa: PLR2004
-                msg = "The request URL " + str(url) + " could not be found"
-                raise NotFoundError(msg) from http_e
-            raise
+    def post_MAPI_request(
+        self,
+        path_extension: str = "",
+        post_data: POSTRequestData | None = None,
+    ) -> None:
+        """
+        Make a POST request to the HCP in order to use the builtin MAPI.
 
-        return dict(response.json())
+        :param path_extension:
+            Extension for the base request URL
+
+        """
+        if post_data is None:
+            post_data = {}
+        make_MAPI_request(
+            self.base_request_url + path_extension,
+            self.token,
+            self.use_ssl,
+            "POST",
+            additional_headers={"Content-Type": "application/json"},
+            post_data=post_data,
+        )
 
     # ---------------------------- User methods ----------------------------
 
@@ -384,6 +384,17 @@ class HCPHandler:
         # would have thrown an error
         self.s3_client.delete_bucket(
             Bucket=bucket,
+        )
+
+    def modify_bucket(self, bucket: str, options: ModifyBucketOptions) -> None:
+        """
+        Modify a specified bucket.
+
+        :param bucket: The bucket to be modified
+        """
+        self.post_MAPI_request(
+            "/namespaces/" + bucket + "/",
+            options,
         )
 
     class ListBucketsOutputMode(Enum):
