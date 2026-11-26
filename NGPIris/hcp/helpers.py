@@ -1,17 +1,34 @@
 import sys
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, overload
 
+from icecream import ic
+from requests import HTTPError, Response, get, post
 from tqdm import tqdm
 
+from NGPIris.hci.exceptions import (
+    DataNotSuppliedToPOSTError,
+    DataSuppliedToGETError,
+)
 from NGPIris.hcp.exceptions import (
+    IncorrectPostDataError,
     MetadataCouldNotBeFoundError,
     NoBucketMountedError,
     NoStatusCodeSuppliedError,
+    NotFoundError,
+    NotSufficientPermissionsError,
     ObjectDoesNotExistError,
     OperationNotPermittedError,
     UnknownStatusCodeError,
+)
+from NGPIris.hcp.types import (
+    ModifyBucketOptions,
+    ModifyBucketOptionsTHQ,
+    POSTRequestData,
+    from_ModifyBucketOptions_to_dict,
+    from_ModifyBucketOptionsTHQ_to_dict,
+    from_POSTRequestData_to_dict,
 )
 
 if TYPE_CHECKING:
@@ -169,3 +186,84 @@ def progress_bar_handler[**P, R](
             method(*args, **kwargs)
 
     _progress_bar_handler(**method_kwargs)  # pyright: ignore[reportCallIssue]
+
+
+@overload
+def make_MAPI_request(
+    url: str,
+    token: str,
+    use_ssl: bool,
+    request_type: Literal["GET"],
+    additional_headers: dict[str, str] | None = None,
+    post_data: None = None,
+) -> dict[Any, Any]: ...
+@overload
+def make_MAPI_request(
+    url: str,
+    token: str,
+    use_ssl: bool,
+    request_type: Literal["POST"],
+    additional_headers: dict[str, str] | None = None,
+    post_data: POSTRequestData | None = None,
+) -> None: ...
+def make_MAPI_request(
+    url: str,
+    token: str,
+    use_ssl: bool,
+    request_type: Literal["GET", "POST"],
+    additional_headers: dict[str, str] | None = None,
+    post_data: POSTRequestData | None = None,
+) -> dict[Any, Any] | None:
+    if post_data is None:
+        post_data = {}
+    if additional_headers is None:
+        additional_headers = {}
+
+    if (request_type == "POST") and not post_data:
+        msg = "Request type is set to POST, but no data was supplied"
+        raise DataNotSuppliedToPOSTError(msg)
+
+    if (request_type == "GET") and post_data:
+        msg = "Request type is set to GET, but data was also supplied"
+        raise DataSuppliedToGETError(msg)
+
+    base_headers = {
+        "Authorization": "HCP " + token,
+        "Cookie": "hcp-ns-auth=" + token,
+        "Accept": "application/json",
+    }
+    headers = base_headers | additional_headers
+    match request_type:
+        case "GET":
+            response = get(
+                url,
+                headers=headers,
+                verify=use_ssl,
+                timeout=60,
+            )
+        case "POST":
+            response = post(
+                url,
+                json=post_data,
+                # json=transformed_post_data,
+                headers=headers,
+                verify=use_ssl,
+                timeout=60,
+            )
+
+    handle_MAPI_response(response, url)
+
+    return dict(response.json()) if request_type == "GET" else None
+
+
+def handle_MAPI_response(response: Response, url: str) -> None:
+    try:
+        response.raise_for_status()
+    except HTTPError as http_e:
+        if response.status_code == 403:  # noqa: PLR2004
+            msg = "You lack the sufficient permissions needed for your request"
+            raise NotSufficientPermissionsError(msg) from http_e
+        if response.status_code == 404:  # noqa: PLR2004
+            msg = "The request URL " + str(url) + " could not be found"
+            raise NotFoundError(msg) from http_e
+        raise
