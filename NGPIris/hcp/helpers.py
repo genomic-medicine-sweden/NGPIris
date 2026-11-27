@@ -1,7 +1,7 @@
 import sys
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import TYPE_CHECKING, Any, Literal, overload, reveal_type
 
 from icecream import ic
 from requests import HTTPError, Response, get, post
@@ -25,6 +25,8 @@ from NGPIris.hcp.exceptions import (
 from NGPIris.hcp.types import (
     ModifyBucketOptions,
     ModifyBucketOptionsTHQ,
+    NonStandardType,
+    PostDataAndType,
     POSTRequestData,
     from_ModifyBucketOptions_to_dict,
     from_ModifyBucketOptionsTHQ_to_dict,
@@ -193,40 +195,31 @@ def make_MAPI_request(
     url: str,
     token: str,
     use_ssl: bool,
+    post_data_and_type: PostDataAndType,
     request_type: Literal["GET"],
     additional_headers: dict[str, str] | None = None,
-    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
-        {},
-        POSTRequestData,
-    ),
 ) -> dict[Any, Any]: ...
 @overload
 def make_MAPI_request(
     url: str,
     token: str,
     use_ssl: bool,
+    post_data_and_type: PostDataAndType,
     request_type: Literal["POST"],
     additional_headers: dict[str, str] | None = None,
-    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
-        {},
-        POSTRequestData,
-    ),
 ) -> None: ...
 def make_MAPI_request(
     url: str,
     token: str,
     use_ssl: bool,
+    post_data_and_type: PostDataAndType,
     request_type: Literal["GET", "POST"],
     additional_headers: dict[str, str] | None = None,
-    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
-        {},
-        POSTRequestData,
-    ),
 ) -> dict[Any, Any] | None:
-    post_data = post_data_and_type[0]
-    datatype = post_data_and_type[1]
     if additional_headers is None:
         additional_headers = {}
+
+    post_data, datatype = post_data_and_type or (None, None)
 
     if (request_type == "POST") and not post_data:
         msg = "Request type is set to POST, but no data was supplied"
@@ -251,17 +244,14 @@ def make_MAPI_request(
                 timeout=60,
             )
         case "POST":
-            if is_type(post_data, datatype, ModifyBucketOptions):
+            if datatype == "modify_bucket_options":
                 transformed_post_data = from_ModifyBucketOptions_to_dict(
                     post_data
                 )
-            elif is_type(post_data, datatype, ModifyBucketOptionsTHQ):
+            elif datatype == "modify_bucket_options_thq":
                 transformed_post_data = from_ModifyBucketOptionsTHQ_to_dict(
                     post_data
                 )
-            else:
-                msg = "The given request POST data is not correct."
-                raise IncorrectPostDataError(msg)
 
             response = post(
                 url,
