@@ -29,7 +29,6 @@ from NGPIris.hcp.types import (
     from_ModifyBucketOptions_to_dict,
     from_ModifyBucketOptionsTHQ_to_dict,
     from_POSTRequestData_to_dict,
-    is_type,
 )
 
 if TYPE_CHECKING:
