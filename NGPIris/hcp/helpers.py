@@ -29,6 +29,7 @@ from NGPIris.hcp.types import (
     from_ModifyBucketOptions_to_dict,
     from_ModifyBucketOptionsTHQ_to_dict,
     from_POSTRequestData_to_dict,
+    is_type,
 )
 
 if TYPE_CHECKING:
@@ -195,7 +196,10 @@ def make_MAPI_request(
     use_ssl: bool,
     request_type: Literal["GET"],
     additional_headers: dict[str, str] | None = None,
-    post_data: None = None,
+    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
+        {},
+        POSTRequestData,
+    ),
 ) -> dict[Any, Any]: ...
 @overload
 def make_MAPI_request(
@@ -204,7 +208,10 @@ def make_MAPI_request(
     use_ssl: bool,
     request_type: Literal["POST"],
     additional_headers: dict[str, str] | None = None,
-    post_data: POSTRequestData | None = None,
+    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
+        {},
+        POSTRequestData,
+    ),
 ) -> None: ...
 def make_MAPI_request(
     url: str,
@@ -212,10 +219,13 @@ def make_MAPI_request(
     use_ssl: bool,
     request_type: Literal["GET", "POST"],
     additional_headers: dict[str, str] | None = None,
-    post_data: POSTRequestData | None = None,
+    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
+        {},
+        POSTRequestData,
+    ),
 ) -> dict[Any, Any] | None:
-    if post_data is None:
-        post_data = {}
+    post_data = post_data_and_type[0]
+    datatype = post_data_and_type[1]
     if additional_headers is None:
         additional_headers = {}
 
@@ -242,10 +252,21 @@ def make_MAPI_request(
                 timeout=60,
             )
         case "POST":
+            if is_type(post_data, datatype, ModifyBucketOptions):
+                transformed_post_data = from_ModifyBucketOptions_to_dict(
+                    post_data
+                )
+            elif is_type(post_data, datatype, ModifyBucketOptionsTHQ):
+                transformed_post_data = from_ModifyBucketOptionsTHQ_to_dict(
+                    post_data
+                )
+            else:
+                msg = "The given request POST data is not correct."
+                raise IncorrectPostDataError(msg)
+
             response = post(
                 url,
-                json=post_data,
-                # json=transformed_post_data,
+                json=transformed_post_data,
                 headers=headers,
                 verify=use_ssl,
                 timeout=60,
