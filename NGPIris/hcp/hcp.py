@@ -17,7 +17,6 @@ from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
 from parse import Result, parse
 from requests import get, post
-from requests.exceptions import HTTPError
 from typing_extensions import Generator  # noqa: UP035
 from urllib3 import disable_warnings
 
@@ -29,8 +28,6 @@ from NGPIris.hcp.exceptions import (
     IsFolderObjectError,
     NoBucketMountedError,
     NotAValidTenantError,
-    NotFoundError,
-    NotSufficientPermissionsError,
     ObjectAlreadyExistError,
     ObjectDoesNotExistError,
     SubfolderError,
@@ -40,9 +37,15 @@ from NGPIris.hcp.exceptions import (
 from NGPIris.hcp.helpers import (
     check_mounted,
     create_access_control_policy,
+    make_MAPI_request,
     operation_response_code_handler,
     progress_bar_handler,
     raise_path_error,
+)
+from NGPIris.hcp.types import (
+    ModifyBucketOptions,
+    POSTRequestData,
+    POSTRequestDataWrapper,
 )
 from NGPIris.parse_credentials import CredentialsHandler
 from NGPIris.utils.deprecation import _add_deprecation_in_doc_string
@@ -232,34 +235,33 @@ class HCPHandler:
 
         :return: The response as a dictionary
         """
-        url = self.base_request_url + path_extension
-        headers = {
-            "Authorization": "HCP " + self.token,
-            "Cookie": "hcp-ns-auth=" + self.token,
-            "Accept": "application/json",
-        }
-        response = get(
-            url,
-            headers=headers,
-            verify=self.use_ssl,
-            timeout=60,
+        return make_MAPI_request(
+            self.base_request_url + path_extension,
+            self.token,
+            self.use_ssl,
+            "GET",
         )
 
-        try:
-            response.raise_for_status()
-        except HTTPError as http_e:
-            if response.status_code == 403:  # noqa: PLR2004
-                msg = (
-                    "You lack the sufficient permissions needed for your "
-                    "request"
-                )
-                raise NotSufficientPermissionsError(msg) from http_e
-            if response.status_code == 404:  # noqa: PLR2004
-                msg = "The request URL " + str(url) + " could not be found"
-                raise NotFoundError(msg) from http_e
-            raise
+    def post_MAPI_request(
+        self,
+        path_extension: str = "",
+        post_data_wrapper: POSTRequestDataWrapper | None = None,
+    ) -> None:
+        """
+        Make a POST request to the HCP in order to use the builtin MAPI.
 
-        return dict(response.json())
+        :param path_extension:
+            Extension for the base request URL
+
+        """
+        make_MAPI_request(
+            self.base_request_url + path_extension,
+            self.token,
+            self.use_ssl,
+            "POST",
+            additional_headers={"Content-Type": "application/json"},
+            post_data_wrapper=post_data_wrapper,
+        )
 
     # ---------------------------- User methods ----------------------------
 
@@ -329,7 +331,7 @@ class HCPHandler:
         except EndpointConnectionError:  # pragma: no cover
             raise
         except ClientError as e:
-            status_code = e.response["ResponseMetadata"].get(
+            status_code = e.response["ResponseMetadata"].get(  # pyright: ignore[reportTypedDictNotRequiredAccess]
                 "HTTPStatusCode",
                 -1,
             )
@@ -384,6 +386,17 @@ class HCPHandler:
         # would have thrown an error
         self.s3_client.delete_bucket(
             Bucket=bucket,
+        )
+
+    def modify_bucket(self, bucket: str, options: ModifyBucketOptions) -> None:
+        """
+        Modify a specified bucket.
+
+        :param bucket: The bucket to be modified
+        """
+        self.post_MAPI_request(
+            "/namespaces/" + bucket + "/",
+            POSTRequestDataWrapper(options, ModifyBucketOptions),
         )
 
     class ListBucketsOutputMode(Enum):
@@ -520,12 +533,12 @@ class HCPHandler:
         try:
             response = dict(
                 self.s3_client.get_object(
-                    Bucket=self.bucket_name,
+                    Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
                     Key=key,
                 ),
             )
         except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
+            if e.response["Error"]["Code"] == "NoSuchKey":  # pyright: ignore[reportTypedDictNotRequiredAccess]
                 msg = "The object " + key + " does not exist"
                 raise ObjectDoesNotExistError(msg) from e
             raise
@@ -545,10 +558,10 @@ class HCPHandler:
         """
         try:
             metadata_response = dict(
-                self.s3_client.head_object(Bucket=self.bucket_name, Key=key)
+                self.s3_client.head_object(Bucket=self.bucket_name, Key=key)  # pyright: ignore[reportArgumentType]
             )
         except ClientError as e:
-            rm: dict = e.response
+            rm: dict = e.response  # pyright: ignore[reportAssignmentType]
             operation_response_code_handler(
                 rm, "Get object metadata", key, self.bucket_name
             )
@@ -674,7 +687,7 @@ class HCPHandler:
 
         paginator: Paginator = self.s3_client.get_paginator("list_objects_v2")
         pages: PageIterator = paginator.paginate(
-            Bucket=self.bucket_name,
+            Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
             Prefix=path_key,
             Delimiter="/",
         )
@@ -982,9 +995,9 @@ class HCPHandler:
         result = ""
         if object_list:
             deletion_dict = {"Objects": object_list}
-            response: dict = self.s3_client.delete_objects(
-                Bucket=self.bucket_name,
-                Delete=deletion_dict,
+            response: dict = self.s3_client.delete_objects(  # pyright: ignore[reportAssignmentType]
+                Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
+                Delete=deletion_dict,  # pyright: ignore[reportArgumentType]
             )
 
             operation_response_code_handler(response, "Delete", deletion_dict)
@@ -1057,7 +1070,7 @@ class HCPHandler:
 
         # Delete the folder object itself separately
         self.s3_client.delete_object(
-            Bucket=self.bucket_name,
+            Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
             Key=key,
         )
 
@@ -1272,8 +1285,8 @@ class HCPHandler:
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response: dict = self.s3_client.get_object_acl(
-            Bucket=self.bucket_name,
+        response: dict = self.s3_client.get_object_acl(  # pyright: ignore[reportAssignmentType]
+            Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
             Key=key,
         )
         return response
@@ -1285,8 +1298,8 @@ class HCPHandler:
 
         :return: Return the ACL in the shape of a dictionary
         """
-        response: dict = self.s3_client.get_bucket_acl(
-            Bucket=self.bucket_name,
+        response: dict = self.s3_client.get_bucket_acl(  # pyright: ignore[reportAssignmentType]
+            Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
         )
         return response
 
@@ -1315,9 +1328,9 @@ class HCPHandler:
             * READ_ACP
         """
         self.s3_client.put_object_acl(
-            Bucket=self.bucket_name,
+            Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
             Key=key,
-            AccessControlPolicy=create_access_control_policy(
+            AccessControlPolicy=create_access_control_policy(  # pyright: ignore[reportArgumentType]
                 {user_ID: permission},
             ),
         )
@@ -1341,8 +1354,8 @@ class HCPHandler:
             * READ_ACP
         """
         self.s3_client.put_bucket_acl(
-            Bucket=self.bucket_name,
-            AccessControlPolicy=create_access_control_policy(
+            Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
+            AccessControlPolicy=create_access_control_policy(  # pyright: ignore[reportArgumentType]
                 {user_ID: permission},
             ),
         )
@@ -1367,9 +1380,9 @@ class HCPHandler:
         """
         for key, user_ID_permissions in key_user_ID_permissions.items():
             self.s3_client.put_object_acl(
-                Bucket=self.bucket_name,
+                Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
                 Key=key,
-                AccessControlPolicy=create_access_control_policy(
+                AccessControlPolicy=create_access_control_policy(  # pyright: ignore[reportArgumentType]
                     user_ID_permissions,
                 ),
             )
@@ -1384,8 +1397,8 @@ class HCPHandler:
             permission to be set to that user
         """
         self.s3_client.put_bucket_acl(
-            Bucket=self.bucket_name,
-            AccessControlPolicy=create_access_control_policy(
+            Bucket=self.bucket_name,  # pyright: ignore[reportArgumentType]
+            AccessControlPolicy=create_access_control_policy(  # pyright: ignore[reportArgumentType]
                 user_ID_permissions,
             ),
         )

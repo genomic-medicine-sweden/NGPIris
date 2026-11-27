@@ -1,17 +1,33 @@
 import sys
 from functools import wraps
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, overload
 
+from icecream import ic
+from requests import HTTPError, Response, get, post
 from tqdm import tqdm
 
+from NGPIris.hci.exceptions import (
+    DataSuppliedToGETError,
+)
 from NGPIris.hcp.exceptions import (
+    IncorrectPostDataError,
     MetadataCouldNotBeFoundError,
     NoBucketMountedError,
     NoStatusCodeSuppliedError,
+    NotFoundError,
+    NotSufficientPermissionsError,
     ObjectDoesNotExistError,
     OperationNotPermittedError,
     UnknownStatusCodeError,
+)
+from NGPIris.hcp.types import (
+    ModifyBucketOptions,
+    ModifyBucketOptionsTHQ,
+    POSTRequestDataWrapper,
+    StandardTypeDict,
+    from_ModifyBucketOptions_to_dict,
+    from_ModifyBucketOptionsTHQ_to_dict,
 )
 
 if TYPE_CHECKING:
@@ -169,3 +185,103 @@ def progress_bar_handler[**P, R](
             method(*args, **kwargs)
 
     _progress_bar_handler(**method_kwargs)  # pyright: ignore[reportCallIssue]
+
+
+def _get_transformed_post_data(
+    post_data_wrapper: POSTRequestDataWrapper | None = None,
+) -> StandardTypeDict:
+    """
+    This function is a bit *cursed*, but the point of it is to type narrow
+    albeit in a somewhat unorthodox way.
+    """
+    if post_data_wrapper:
+        post_data = post_data_wrapper.data
+        datatype = post_data_wrapper.datatype
+        if datatype is ModifyBucketOptions:
+            return from_ModifyBucketOptions_to_dict(
+                post_data  # pyright: ignore[reportArgumentType]
+            )
+        elif datatype is ModifyBucketOptionsTHQ:  # noqa: RET505
+            return from_ModifyBucketOptionsTHQ_to_dict(
+                post_data  # pyright: ignore[reportArgumentType]
+            )
+    msg = "The given request POST data is not correct."
+    raise IncorrectPostDataError(msg)
+
+
+@overload
+def make_MAPI_request(
+    url: str,
+    token: str,
+    use_ssl: bool,
+    request_type: Literal["GET"],
+    additional_headers: dict[str, str] | None = None,
+    post_data_wrapper: None = None,
+) -> dict[Any, Any]: ...
+@overload
+def make_MAPI_request(
+    url: str,
+    token: str,
+    use_ssl: bool,
+    request_type: Literal["POST"],
+    additional_headers: dict[str, str] | None = None,
+    post_data_wrapper: POSTRequestDataWrapper | None = None,
+) -> None: ...
+def make_MAPI_request(
+    url: str,
+    token: str,
+    use_ssl: bool,
+    request_type: Literal["GET", "POST"],
+    additional_headers: dict[str, str] | None = None,
+    post_data_wrapper: POSTRequestDataWrapper | None = None,
+) -> dict[Any, Any] | None:
+    if additional_headers is None:
+        additional_headers = {}
+
+    if (request_type == "GET") and post_data_wrapper:
+        msg = "Request type is set to GET, but data was also supplied"
+        raise DataSuppliedToGETError(msg)
+
+    base_headers = {
+        "Authorization": "HCP " + token,
+        "Cookie": "hcp-ns-auth=" + token,
+        "Accept": "application/json",
+    }
+    headers = base_headers | additional_headers
+    match request_type:
+        case "GET":
+            response = get(
+                url,
+                headers=headers,
+                verify=use_ssl,
+                timeout=60,
+            )
+        case "POST":
+            transformed_post_data = _get_transformed_post_data(
+                post_data_wrapper
+            )
+
+            response = post(
+                url,
+                json=transformed_post_data,
+                headers=headers,
+                verify=use_ssl,
+                timeout=60,
+            )
+
+    handle_MAPI_response(response, url)
+
+    return dict(response.json()) if request_type == "GET" else None
+
+
+def handle_MAPI_response(response: Response, url: str) -> None:
+    try:
+        response.raise_for_status()
+    except HTTPError as http_e:
+        if response.status_code == 403:  # noqa: PLR2004
+            msg = "You lack the sufficient permissions needed for your request"
+            raise NotSufficientPermissionsError(msg) from http_e
+        if response.status_code == 404:  # noqa: PLR2004
+            msg = "The request URL " + str(url) + " could not be found"
+            raise NotFoundError(msg) from http_e
+        raise

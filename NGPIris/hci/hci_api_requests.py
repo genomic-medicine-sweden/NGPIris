@@ -63,8 +63,8 @@ def get_response(
         msg = "Request type is set to POST, but no data was supplied"
         raise DataNotSuppliedToPOSTError(msg)
 
-    if request_type == "GET" and data:
-        msg = "Request type is set to POST, but data was also supplied"
+    if (request_type == "GET") and data:
+        msg = "Request type is set to GET, but data was also supplied"
         raise DataSuppliedToGETError(msg)
 
     match hci_handler.realm:

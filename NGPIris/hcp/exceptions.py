@@ -26,6 +26,12 @@ class NotFoundError(Exception):
     """
 
 
+class IncorrectPostDataError(Exception):
+    """
+    The given request POST data is not correct.
+    """
+
+
 # -------------- Operation response exceptions --------------
 class MetadataCouldNotBeFoundError(Exception):
     """
