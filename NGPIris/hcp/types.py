@@ -92,12 +92,6 @@ class ModifyBucketOptionsTHQ(POSTRequestData, total=False):
     id: str
 
 
-PostDataAndType = (
-    tuple[ModifyBucketOptions, Literal["modify_bucket_options"]]
-    | tuple[ModifyBucketOptionsTHQ, Literal["modify_bucket_options_thq"]]
-    # ADD MORE when new TypedDict's are added
-)
-
 NonStandardType = HardQuotaString
 StandardType = str | int | bool
 StandardTypeDict = dict[str, StandardType]
