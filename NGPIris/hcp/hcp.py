@@ -241,7 +241,10 @@ class HCPHandler:
     def post_MAPI_request(
         self,
         path_extension: str = "",
-        post_data: POSTRequestData | None = None,
+        post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
+            {},
+            POSTRequestData,
+        ),
     ) -> None:
         """
         Make a POST request to the HCP in order to use the builtin MAPI.
@@ -250,15 +253,13 @@ class HCPHandler:
             Extension for the base request URL
 
         """
-        if post_data is None:
-            post_data = {}
         make_MAPI_request(
             self.base_request_url + path_extension,
             self.token,
             self.use_ssl,
             "POST",
             additional_headers={"Content-Type": "application/json"},
-            post_data=post_data,
+            post_data_and_type=post_data_and_type,
         )
 
     # ---------------------------- User methods ----------------------------
@@ -394,7 +395,7 @@ class HCPHandler:
         """
         self.post_MAPI_request(
             "/namespaces/" + bucket + "/",
-            options,
+            (options, ModifyBucketOptions),
         )
 
     class ListBucketsOutputMode(Enum):
