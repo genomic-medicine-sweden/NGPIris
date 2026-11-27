@@ -92,6 +92,12 @@ class ModifyBucketOptionsTHQ(POSTRequestData, total=False):
     id: str
 
 
+@dataclass
+class POSTRequestDataWrapper:
+    data: POSTRequestData
+    datatype: type[POSTRequestData]
+
+
 NonStandardType = HardQuotaString
 StandardType = str | int | bool
 StandardTypeDict = dict[str, StandardType]
