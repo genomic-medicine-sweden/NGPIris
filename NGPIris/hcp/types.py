@@ -7,10 +7,6 @@ if TYPE_CHECKING:
 # ruff: noqa: N801
 
 
-def is_type[T](_: Any, t1: type[T], t2: type[T]) -> TypeIs[T]:  # noqa: ANN401
-    return t1 == t2
-
-
 # MQE types -------------------------------------------------
 
 
@@ -56,6 +52,9 @@ class MQE_QueryResult(TypedDict):
     status: MQE_Status
 
 
+# POST Request types -------------------------------------------------
+
+
 class POSTRequestData(TypedDict):
     pass
 
@@ -96,8 +95,6 @@ class ModifyBucketOptionsTHQ(POSTRequestData, total=False):
 NonStandardType = HardQuotaString
 StandardType = str | int | bool
 StandardTypeDict = dict[str, StandardType]
-
-
 
 
 def value_is_StandardType(value: Any) -> TypeIs[StandardType]:  # noqa: ANN401
