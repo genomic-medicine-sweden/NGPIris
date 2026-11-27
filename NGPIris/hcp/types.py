@@ -6,6 +6,11 @@ if TYPE_CHECKING:
 
 # ruff: noqa: N801
 
+
+def is_type[T](_: Any, t1: type[T], t2: type[T]) -> TypeIs[T]:  # noqa: ANN401
+    return t1 == t2
+
+
 # MQE types -------------------------------------------------
 
 
@@ -93,8 +98,6 @@ StandardType = str | int | bool
 StandardTypeDict = dict[str, StandardType]
 
 
-def is_type[T](_: Any, t1: type[T], t2: type[T]) -> TypeIs[T]:  # noqa: ANN401
-    return t1 == t2
 
 
 def value_is_StandardType(value: Any) -> TypeIs[StandardType]:  # noqa: ANN401
