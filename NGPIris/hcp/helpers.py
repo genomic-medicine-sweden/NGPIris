@@ -8,7 +8,6 @@ from requests import HTTPError, Response, get, post
 from tqdm import tqdm
 
 from NGPIris.hci.exceptions import (
-    DataNotSuppliedToPOSTError,
     DataSuppliedToGETError,
 )
 from NGPIris.hcp.exceptions import (
@@ -25,10 +24,10 @@ from NGPIris.hcp.exceptions import (
 from NGPIris.hcp.types import (
     ModifyBucketOptions,
     ModifyBucketOptionsTHQ,
-    POSTRequestData,
+    POSTRequestDataWrapper,
+    StandardTypeDict,
     from_ModifyBucketOptions_to_dict,
     from_ModifyBucketOptionsTHQ_to_dict,
-    from_POSTRequestData_to_dict,
 )
 
 if TYPE_CHECKING:
@@ -188,6 +187,28 @@ def progress_bar_handler[**P, R](
     _progress_bar_handler(**method_kwargs)  # pyright: ignore[reportCallIssue]
 
 
+def _get_transformed_post_data(
+    post_data_wrapper: POSTRequestDataWrapper | None = None,
+) -> StandardTypeDict:
+    """
+    This function is a bit *cursed*, but the point of it is to type narrow
+    albeit in a somewhat unorthodox way.
+    """
+    if post_data_wrapper:
+        post_data = post_data_wrapper.data
+        datatype = post_data_wrapper.datatype
+        if datatype is ModifyBucketOptions:
+            return from_ModifyBucketOptions_to_dict(
+                post_data  # pyright: ignore[reportArgumentType]
+            )
+        elif datatype is ModifyBucketOptionsTHQ:  # noqa: RET505
+            return from_ModifyBucketOptionsTHQ_to_dict(
+                post_data  # pyright: ignore[reportArgumentType]
+            )
+    msg = "The given request POST data is not correct."
+    raise IncorrectPostDataError(msg)
+
+
 @overload
 def make_MAPI_request(
     url: str,
@@ -195,10 +216,7 @@ def make_MAPI_request(
     use_ssl: bool,
     request_type: Literal["GET"],
     additional_headers: dict[str, str] | None = None,
-    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
-        {},
-        POSTRequestData,
-    ),
+    post_data_wrapper: None = None,
 ) -> dict[Any, Any]: ...
 @overload
 def make_MAPI_request(
@@ -207,10 +225,7 @@ def make_MAPI_request(
     use_ssl: bool,
     request_type: Literal["POST"],
     additional_headers: dict[str, str] | None = None,
-    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
-        {},
-        POSTRequestData,
-    ),
+    post_data_wrapper: POSTRequestDataWrapper | None = None,
 ) -> None: ...
 def make_MAPI_request(
     url: str,
@@ -218,21 +233,12 @@ def make_MAPI_request(
     use_ssl: bool,
     request_type: Literal["GET", "POST"],
     additional_headers: dict[str, str] | None = None,
-    post_data_and_type: tuple[POSTRequestData, type[POSTRequestData]] = (
-        {},
-        POSTRequestData,
-    ),
+    post_data_wrapper: POSTRequestDataWrapper | None = None,
 ) -> dict[Any, Any] | None:
-    post_data = post_data_and_type[0]
-    datatype = post_data_and_type[1]
     if additional_headers is None:
         additional_headers = {}
 
-    if (request_type == "POST") and not post_data:
-        msg = "Request type is set to POST, but no data was supplied"
-        raise DataNotSuppliedToPOSTError(msg)
-
-    if (request_type == "GET") and post_data:
+    if (request_type == "GET") and post_data_wrapper:
         msg = "Request type is set to GET, but data was also supplied"
         raise DataSuppliedToGETError(msg)
 
@@ -251,17 +257,9 @@ def make_MAPI_request(
                 timeout=60,
             )
         case "POST":
-            if is_type(post_data, datatype, ModifyBucketOptions):
-                transformed_post_data = from_ModifyBucketOptions_to_dict(
-                    post_data
-                )
-            elif is_type(post_data, datatype, ModifyBucketOptionsTHQ):
-                transformed_post_data = from_ModifyBucketOptionsTHQ_to_dict(
-                    post_data
-                )
-            else:
-                msg = "The given request POST data is not correct."
-                raise IncorrectPostDataError(msg)
+            transformed_post_data = _get_transformed_post_data(
+                post_data_wrapper
+            )
 
             response = post(
                 url,
